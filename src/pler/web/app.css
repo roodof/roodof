@@ -31,6 +31,7 @@
 .git-event-ref{display:block;font:10px var(--mono);color:var(--muted);margin-top:3px}
 .session-git .git-limited{color:var(--rust)}
 .session-git .git-outcome{font-weight:600}
+.demo-notice{border-left:4px solid var(--rust);font-weight:600}
 .git-branch{display:inline-block;font-size:11px;color:var(--muted);margin-left:6px}
 .git-branch-off{color:var(--rust)}
 .session-git .git-history-note{font-size:10px;border-top:1px solid var(--rule);padding-top:10px}

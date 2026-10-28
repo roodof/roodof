@@ -36,7 +36,10 @@ For a manually opened tab, use the complete address printed at startup. It grant
 pler report             # sessions active in the last 30 days
 pler report --days 0    # all records
 pler report --json      # machine-readable
+pler demo               # the page with invented logs and an invented Git repository
 ```
+
+**Try it without your own data:** `pler demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside PLER's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `PLER-Demo.cmd` for the same.
 
 **Language:** the page follows your browser and has an English / Türkçe switch at the top. The terminal speaks Turkish on a Turkish system and English elsewhere; choose with `PLER_LANG=en` or `PLER_LANG=tr`.
 

@@ -2,6 +2,18 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 28 Ekim: 0.2.8 — pilot başlatılabilir durumda
+
+Kalan en büyük açık, gerçek bir profesyonelin PLER'le farklı bir karar verip vermediği. Bunu yalnız bir pilot gösterebilir. Pilot için hazırlananlar:
+- **Deneme modu:** `pler demo`, uydurma kayıtlar ve uydurma bir Git deposuyla sayfayı açıyor. Ajan klasörlerine dokunmuyor, sayfada açık bir "uydurma veri" uyarısı var. Protokoldeki 8 görevin her biri bu veriyle yapılabiliyor.
+- **Pilot kiti:**
+  - Python'suz Windows paketi (Python 3.14) ve wheel;
+  - iki dilde katılımcı rehberi ve görev formu;
+  - yürütücü için ölçülerek yazılmış cevap anahtarı, önceden belirlenmiş geçme ölçütleri ve kayıt şablonu.
+- **Doğrulama:** Kit, katılımcı gibi açılıp hem Python'suz Windows paketiyle hem Python 3.9 wheel'iyle sınandı. [Rapor](../reports/pilot-kit-v1/REPORT.md).
+
+**Açık:** Pilotun kendisi. Katılımcı bulma ve oturumları yürütme kullanıcının işi; sonuçlar gelince ölçütler değiştirilmeden yazılacak.
+
 ## 28 Ekim: 0.2.7 — “Harcanan tokenlar işe yaradı mı?”: commit'ler hâlâ dalda mı?
 
 Kullanıcının izniyle Git okuma sınırı genişletildi. Artık commit nesnelerinin de ebeveyn bağları ve zamanları okunuyor. İsim, e-posta, mesaj, ağaç ve dosya okunmuyor; Git programı çalışmıyor.

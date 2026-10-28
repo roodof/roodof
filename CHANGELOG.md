@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.8 — 2026-10-28 (local candidate)
+
+- `pler demo` opens the page with invented Claude Code and Codex logs and an invented Git repository. The data is written into a `demo` folder inside PLER's cache folder; the agents' own folders and quota samples are never read. A banner on the page says the data is invented. The demo has two agents, four projects, a Codex quota forecast, an older-format Codex log with a data-quality warning, a session started in a parent folder, and commits on and off a branch. Each read recreates it relative to the current time. A folder that is not a PLER demo is never replaced.
+- The Windows portable package adds `PLER-Demo.cmd`.
+- The Git observations read "No longer on any branch: n" and "Could not be checked: n" in English, so a single commit reads correctly.
+
+The demo is what the [pilot kit](../reports/pilot-kit-v1/REPORT.md) uses, so that participants can do every pilot task before deciding whether to look at their own records.
+
 ## 0.2.7 — 2026-10-28 (local candidate)
 
 - For commits recorded during a session, show whether each is still on a local or remote-tracking branch, or was amended, rebased, reset or left on a deleted branch. Commit objects are read directly: loose files and version-2 packs, including offset and reference deltas, SHA-1 and SHA-256. Only parent ids and committer time are used; names, email addresses, messages, trees and files are never kept or opened. Missing or shallow history, borrowed objects, refused links and the 20,000-commit bound give `unknown`, never a guess.

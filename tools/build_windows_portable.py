@@ -70,7 +70,10 @@ else:
 app = out/'app'
 shutil.copytree(PRODUCT/'src'/'pler', app/'pler', ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
 (app/'start.py').write_text('from pler.cli import main\nraise SystemExit(main())\n', 'utf-8')
-(out/'PLER.cmd').write_text('@echo off\r\n"%~dp0runtime\\python.exe" -I -S "%~dp0app\\start.py" %*\r\n', 'utf-8')
+# Bytes, not text: text mode on Windows would turn each \r\n into \r\r\n.
+(out/'PLER.cmd').write_bytes(b'@echo off\r\n"%~dp0runtime\\python.exe" -I -S "%~dp0app\\start.py" %*\r\n')
+# Double-click to try the page with invented data only; the window closes at once, PLER keeps running.
+(out/'PLER-Demo.cmd').write_bytes(b'@echo off\r\nstart "" "%~dp0PLER.exe" demo\r\n')
 subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64',
                 '/reference:System.Windows.Forms.dll', '/out:'+str(out/'PLER.exe'),
                 str(PRODUCT/'tools/windows/Launcher.cs')], check=True, capture_output=True, text=True)
@@ -78,6 +81,7 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'PLER '+__version__+' - Windows x64 local candidate\n\n'
     '1. Extract the whole ZIP file into a folder.\n'
     '2. Open PLER.exe. Python is not required.\n'
+    '   To try it with invented data only, open PLER-Demo.cmd instead.\n'
     '3. Close the application with the Close button on its page.\n'
     'Terminal report: PLER.cmd report --json\n\n'
     'This candidate is unsigned; public distribution has not been approved.\n'
@@ -91,6 +95,7 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'PLER '+__version__+' — Windows x64 yerel aday\n\n'
     '1. ZIP dosyasinin tamamini bir klasore cikarin.\n'
     '2. PLER.exe dosyasini acin. Python kurmaniz gerekmez.\n'
+    '   Yalniz uydurma verilerle denemek icin PLER-Demo.cmd dosyasini acin.\n'
     '3. Uygulamayi sayfadaki Kapat dugmesiyle kapatin.\n'
     'Terminal raporu: PLER.cmd report --json\n\n'
     'Bu aday imzasizdir; genel dagitim onayi verilmemistir.\n'

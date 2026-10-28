@@ -199,7 +199,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
                     + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']),
-                git_outcome=outcome, lang=lang,
+                git_outcome=outcome, lang=lang, demo=bool(sources.get('demo')),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),

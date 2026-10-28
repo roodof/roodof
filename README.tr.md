@@ -38,7 +38,16 @@ Sekmeyi elle açarken başlangıçta yazılan tam adresi kullanın. Bu adres ça
 pler report             # son 30 günde etkin oturumlar
 pler report --days 0    # bütün kayıtlar
 pler report --json      # makinenin okuyacağı biçim
+pler demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
 ```
+
+**Kendi verin olmadan dene:** `pler demo`, uydurma Claude Code ve Codex kayıtlarıyla küçük bir Git deposunu PLER'in önbellek klasöründeki `demo` klasörüne yazar. Sayfa yalnız bu klasörü okur ve en üstte verilerin uydurma olduğunu söyler. Denemede şunlar görünür:
+- iki ajan ve birkaç proje;
+- kota tahmini;
+- bir veri kalitesi uyarısı;
+- dalda olan ve olmayan commit'ler.
+
+Her **Kayıtları yeniden oku**, verileri şimdiki zamana göre yeniden kurar. Windows'un Python'suz paketinde aynı iş için `PLER-Demo.cmd` var.
 
 ## Ne gösterir
 

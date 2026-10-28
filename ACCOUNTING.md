@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.7 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.8 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Identity and copies
 

@@ -5,6 +5,7 @@
   pler statusline --install
                    show context and Claude subscription use in Claude Code's status line, and let PLER
                    read the Claude Code quota from there (asks before changing Claude Code's settings)
+  pler demo        try the page with invented logs and an invented Git repository, not your own
   pler --version
 
 No model is called, nothing is sent anywhere, and the logs are only read.
@@ -19,12 +20,12 @@ from .i18n import language, say
 PORT = 8765
 
 
-def serve(port=PORT, browser=True, lang='en'):
+def serve(port=PORT, browser=True, lang='en', dashboard=None):
     from .server import Server
     try:
-        server = Server(port)
+        server = Server(port, dashboard)
     except OSError:  # the usual port is taken, e.g. by another PLER window: take any free one
-        server = Server(0)
+        server = Server(0, dashboard)
     print(say(lang, 'cli.open', server.access_url), flush=True)
     if browser:
         webbrowser.open(server.access_url)
@@ -48,9 +49,33 @@ def main(argv=None):
         from .statusline import main as statusline
         return statusline(argv[1:])
     lang = language()
-    parser = argparse.ArgumentParser(prog='pler', description=__doc__.split('\n')[0], epilog=say(lang, 'cli.epilog'))
+    demo = argv[:1] == ['demo']
+    parser = argparse.ArgumentParser(prog='pler demo' if demo else 'pler', description=__doc__.split('\n')[0],
+                                     epilog=say(lang, 'cli.demo_epilog' if demo else 'cli.epilog'))
     parser.add_argument('--version', action='version', version='PLER ' + __version__)
     parser.add_argument('--port', type=int, default=PORT, help=say(lang, 'cli.port', PORT))
     parser.add_argument('--no-browser', action='store_true', help=say(lang, 'cli.no_browser'))
-    args = parser.parse_args(argv)
-    return serve(args.port, not args.no_browser, lang)
+    args = parser.parse_args(argv[1:] if demo else argv)
+    if not demo:
+        return serve(args.port, not args.no_browser, lang)
+    from .dashboard import UsageDashboard
+    from .demo import create
+    from .usage import scan
+    try:
+        made = create()
+    except ValueError as error:
+        reason = {'no_folder': 'cli.demo_no_folder', 'not_demo': 'cli.demo_not_demo'}.get(str(error), 'cli.demo_failed')
+        print(say(lang, reason), file=sys.stderr)
+        return 1
+    except OSError:
+        print(say(lang, 'cli.demo_failed'), file=sys.stderr)
+        return 1
+    print(say(lang, 'cli.demo_ready', made['folder']), flush=True)
+
+    def reader():
+        # Only the demo folder is read, never the agents' own folders. Every read rewrites the invented
+        # data relative to now, so its times and quota sample stay current during a long trial.
+        fresh = create(made['folder'])
+        sessions, sources = scan(fresh['claude'], fresh['codex'])
+        return sessions, dict(sources, demo=True)
+    return serve(args.port, not args.no_browser, lang, UsageDashboard(reader))

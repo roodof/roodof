@@ -86,6 +86,7 @@ const I18N=/*I18N*/{
 "scanning": "Reading logs…",
 "showing_previous": " Showing the previous summary.",
 "last_read": "Last read: {at} · found {claude} and {codex}.",
+"demo_banner": "Demo: every log, project and commit here is invented. Your own agent logs are not read.",
 "unreadable_coverage": "{files} could not be fully read. Verified records are included; totals may be incomplete. ",
 "all_read": "Every readable record of the sources found was used.",
 "cross_period": " {sessions} started before the selected period; their whole totals are included.",
@@ -150,8 +151,8 @@ const I18N=/*I18N*/{
 "git_no_repo": "Neither this session's folder nor the files it edited are in an available local Git repository.",
 "git_linked": "Repositories checked: {repos}. A repository counts when the session started in it or edited a file in it, so an agent started in a parent folder is still linked to the repository it changed.",
 "git_outcome": "Commits recorded in this time: {kept} of {total} are still on a local or remote-tracking branch.",
-"git_outcome_off": "{n} are no longer on any branch: amended, rebased, reset or on a deleted branch. A rewritten commit can still carry the same change.",
-"git_outcome_unknown": "{n} could not be checked: missing or borrowed objects, a shallow or very long history.",
+"git_outcome_off": "No longer on any branch: {n} (amended, rebased, reset or on a deleted branch). A rewritten commit can still carry the same change.",
+"git_outcome_unknown": "Could not be checked: {n} (missing or borrowed objects, a shallow or very long history).",
 "git_on_branch": "on a branch",
 "git_off_branch": "not on a branch",
 "git_no_history": "This repository has no readable local HEAD history. It may be disabled or expired; no activity count can be inferred.",
@@ -329,6 +330,7 @@ const I18N=/*I18N*/{
 "scanning": "Kayıtlar okunuyor…",
 "showing_previous": " Önceki özet gösteriliyor.",
 "last_read": "Son okuma: {at} · {claude}, {codex} bulundu.",
+"demo_banner": "Deneme: buradaki bütün kayıtlar, projeler ve commit'ler uydurmadır. Kendi ajan kayıtların okunmuyor.",
 "unreadable_coverage": "{files} tamamen okunamadı. Doğrulanabilen kayıtlar dahil; toplamlar eksik olabilir. ",
 "all_read": "Bulunan kaynakların okunabilen kayıtları kullanıldı.",
 "cross_period": " {sessions} seçilen dönemden önce başlamış; tüm oturum toplamı dahil.",
@@ -516,6 +518,7 @@ async function refreshUsage(){
 }
 function renderUsage(data){
   $('usage-refresh').disabled=data.state==='scanning';$('usage-progress').hidden=data.state!=='scanning';syncExportButton();
+  $('usage-demo').hidden=!data.demo;
   $('usage-status').textContent=data.state==='scanning'?t('scanning')+(data.has_snapshot?t('showing_previous'):''):data.error||t('last_read',{at:usageDate(data.scanned_at),claude:count(data.sources.claude_files,'claude_file'),codex:count(data.sources.codex_files,'codex_file')});
   const selected=$('usage-project').value;$('usage-project').replaceChildren(node('option','',t('project_all')));$('usage-project').firstChild.value='all';
   for(const project of data.project_options){const option=node('option','',project.name);option.value=project.id;$('usage-project').append(option);}$('usage-project').value=data.project_options.some(p=>p.id===selected)?selected:'all';
