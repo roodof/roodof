@@ -61,6 +61,11 @@ def owner(candidates):
     """Stable aggregation anchor; conflicting source ownership never chooses a project by file order."""
     unique = {s.session_id:s for s in candidates}
     chosen = unique[sorted(unique)[0]]
+    # A larger usage snapshot may come from a copied archive stream owned by another
+    # native session. Its evidence must follow the counts to the aggregation anchor.
+    for session in candidates:
+        for source,state in getattr(session,'_sources',{}).items():
+            chosen.source_evidence(source,**state)
     if len(unique) > 1:
         for session in unique.values():
             session.attribution_complete = False

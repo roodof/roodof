@@ -28,10 +28,13 @@ class FileCache:
         base = folder()
         self.path = cache_file(name + '.json', base) if base is not None else None
         self.key, self.old, self.new, self.signatures = key, {}, {}, {}
+        self.historical,self.historical_key={},None
         if self.path is None:
             return
         try:
             data = json.loads(self.path.read_text('utf-8'))
+            if isinstance(data.get('files'),dict):
+                self.historical,self.historical_key=data['files'],data.get('key')
             if data.get('key') == key and isinstance(data.get('files'), dict):
                 self.old = data['files']
         except (OSError, ValueError, AttributeError):
@@ -55,6 +58,11 @@ class FileCache:
                 self.new[name] = entry
                 return rows
         return None
+
+    def checksum(self, path):
+        """The checksum of the rows this read got or stored for `path`, or None."""
+        entry = self.new.get(str(path)) if self.path is not None else None
+        return entry.get('checksum') if isinstance(entry, dict) else None
 
     def put(self, path, rows):
         if self.path is None:

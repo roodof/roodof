@@ -75,6 +75,14 @@ Both JSON interfaces include `version`, `schema_version`, `parser_version`, `sou
 
 Schema 2 changes session grouping/counts and model attribution. Consumers must check the schema and quality fields. Old exports are not recomputed automatically. Parser-helper changes invalidate affected metadata caches; the next read rebuilds them from logs.
 
+### Archived sources
+
+For default and environment-selected roots, PLER keeps each file's allowlisted metadata projection in a bounded local archive. A file that is no longer present under its selected root is replayed from that projection with the same reader rules as a live file. It is never added on top of a live file with the same path.
+- **Provenance:** Each session carries `source_state` (`live`, `archive` or `mixed`) and `source_deleted`. The JSON header reports whether any selected session used archived metadata.
+- **Copies:** A live resumed session that shares identities with an archived file keeps one copy of each reply, response, prompt and tool call with a stable identifier. Anonymous archived quantities in an overlapping session cannot be proven disjoint, so they are withheld and the session is marked `archive_unverified` with incomplete tokens, calls and counts.
+- **Unverifiable sources:** A source that is present but unreadable, or whose WSL distribution is not running, uses its prior projection without claiming deletion. It is marked `archive_unverified`. Metadata extracted by another reader version is marked `archive_old_parser`. Both make tokens incomplete.
+- **Lost coverage:** Eviction by age (365 days unseen), file count or size, and an unreadable archive, add quality issues instead of being presented as zero usage.
+
 ## Local access boundary
 
 The startup address carries a random per-process access token in its URL fragment. The page removes the fragment and retains the token in tab session storage; report reads, exports and actions require it. The public root page and health check do not disclose it. Restarting invalidates the previous token; use the new startup address. This is access to one local process, not user accounts, team roles, SSO or OS-level isolation. A process that can read the user's terminal, browser state, memory or local logs is outside this boundary. Do not share the startup link.

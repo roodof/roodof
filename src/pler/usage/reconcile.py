@@ -15,7 +15,7 @@ def _absolute(path):
     return os.path.isabs(path) or bool(re.match(r'[A-Za-z]:[\\/]|[\\/]',path))
 
 
-def codex_sessions(paths,cache,reader,decode,access=None):
+def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
     sessions,streams,issues,projects = {},[],[],defaultdict(set)
     parents,threads,compactions,activity = defaultdict(list),defaultdict(set),set(),set()
     responses,events,checkpoints,locations = defaultdict(list),defaultdict(list),defaultdict(list),defaultdict(list)
@@ -44,21 +44,35 @@ def codex_sessions(paths,cache,reader,decode,access=None):
             session.attribution_complete=False
             session.issues.add('shared_attribution')
     if access is not None: access.read_phase()
-    for path in discovery.unique(paths):
-        path=discovery.local(path,issues,access)
-        if path is None: continue
+    live=discovery.unique(paths)
+    replay=archive.replay('codex') if archive is not None else []
+    for original in live+discovery.unique(replay):
+        path=original
+        archived=str(original) not in {str(value) for value in live}
+        rows=archive.rows('codex',path) if archived else None
+        if not archived:
+            path=discovery.local(path,issues,access)
+            if path is None:
+                rows=archive.rows('codex',original,unreadable=True) if archive is not None else None
+                if rows is None: continue
+                path=original;archived=True
         try:
-            rows=cache.get(path) if cache else None
-            if rows is None:
+            if archive is not None and not archived: archive.begin('codex',path)
+            if not archived: rows=cache.get(path) if cache else None
+            if rows is None and not archived:
                 rows=reader(path,decode)
                 if cache: cache.put(path,rows)
+            if archive is not None and not archived: archive.observe('codex',path,rows,cache.checksum(path) if cache else None)
         except (OSError,ValueError,RuntimeError) as error:
             note_file_issue(issues,path,type(error).__name__)
-            continue
+            rows=archive.rows('codex',path,unreadable=True) if archive is not None else None
+            if rows is None: continue
+        if rows is None: continue
         metas=[r.get('payload',{}) for r in rows if r.get('type')=='session_meta']
         ids=[m.get('session_id') or m.get('id') for m in metas]
         identity=next((v for v in reversed(ids) if isinstance(v,str) and v),str(path))
         session=sessions.setdefault(identity,Session('codex',identity,str(path)))
+        if archive is not None: archive.mark(session,'codex',path)
         session.source=min(session.source,str(path))
         root(identity)
         for meta in metas:
@@ -103,7 +117,10 @@ def codex_sessions(paths,cache,reader,decode,access=None):
             session.seen(moment)
             payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
             kind,sub=row.get('type'),payload.get('type')
-            if kind=='pler_incomplete_log':
+            if kind=='pler_archive_ambiguous':
+                session.tokens_complete=False;session.calls_complete=False;session.counts_complete=False
+                session.issues.update(('archive_unverified','unidentified_records'))
+            elif kind=='pler_incomplete_log':
                 note_file_issue(issues,path,'MalformedRows')
                 session.tokens_complete=False
                 session.issues.add('invalid_records')

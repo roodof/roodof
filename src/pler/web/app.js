@@ -15,6 +15,12 @@ const I18N=/*I18N*/{
 "head_intro": "Which agent used how much, in which project?",
 "refresh": "Read logs again",
 "export": "Download summary ↓",
+"archive_clear": "Clear PLER archive",
+"archive_clearing": "Clearing archive…",
+"archive_clear_help": "Clears the whole PLER archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.",
+"archive_summary": "Selected sessions containing PLER archive metadata: {n}.",
+"archive_disabled": "The PLER archive is unavailable; a safe local cache folder is required.",
+"archive_cleared": "PLER archive cleared. The remaining source logs are being read again.",
 "period_label": "Active sessions",
 "period_7": "Active in the last 7 days",
 "period_30": "Active in the last 30 days",
@@ -259,6 +265,12 @@ const I18N=/*I18N*/{
 "head_intro": "Hangi ajan, hangi projede, ne kadar kaynak kullandı?",
 "refresh": "Kayıtları yenile",
 "export": "Özeti indir ↓",
+"archive_clear": "PLER arşivini sil",
+"archive_clearing": "Arşiv temizleniyor…",
+"archive_clear_help": "Tüm PLER arşivi temizlenir. Ajan kayıtları değişmez; silinmiş kaynakların kopyaları geri alınamaz.",
+"archive_summary": "PLER arşivinden veri içeren seçili oturum: {n}.",
+"archive_disabled": "PLER arşivi kullanılamıyor; güvenli bir yerel önbellek klasörü gerekir.",
+"archive_cleared": "PLER arşivi temizlendi. Kalan kaynak kayıtları yeniden okunuyor.",
 "period_label": "Etkin oturumlar",
 "period_7": "Son 7 günde etkin",
 "period_30": "Son 30 günde etkin",
@@ -507,7 +519,7 @@ async function loadUsage(){
     if(data.state==='idle'){await refreshUsage();return;}
     clearTimeout(usageState.timer);if(data.state==='scanning'&&!usageState.stopped)usageState.timer=setTimeout(loadUsage,1500);
   }catch(error){if(revision!==usageState.revision)return;if(error.code==='unknown_project'&&$('usage-project').value!=='all'){$('usage-project').value='all';notice(t('project_gone'));loadUsage();return;}$('usage-status').textContent=error.message+(usageState.data?.has_snapshot?t('previous_kept'):'');$('usage-progress').hidden=true;$('usage-refresh').disabled=false;}
-  finally{if(revision===usageState.revision){usageState.loading=false;syncExportButton();$('usage-content').setAttribute('aria-busy','false');restoreActionFocus();}}
+  finally{if(revision===usageState.revision){usageState.loading=false;syncExportButton();syncArchiveButton();$('usage-content').setAttribute('aria-busy','false');restoreActionFocus();}}
 }
 async function refreshUsage(){
   rememberActionFocus($('usage-refresh'));
@@ -518,6 +530,7 @@ async function refreshUsage(){
 }
 function renderUsage(data){
   $('usage-refresh').disabled=data.state==='scanning';$('usage-progress').hidden=data.state!=='scanning';syncExportButton();
+  renderUsageArchive(data);
   $('usage-demo').hidden=!data.demo;
   $('usage-status').textContent=data.state==='scanning'?t('scanning')+(data.has_snapshot?t('showing_previous'):''):data.error||t('last_read',{at:usageDate(data.scanned_at),claude:count(data.sources.claude_files,'claude_file'),codex:count(data.sources.codex_files,'codex_file')});
   const selected=$('usage-project').value;$('usage-project').replaceChildren(node('option','',t('project_all')));$('usage-project').firstChild.value='all';
@@ -599,6 +612,7 @@ function renderUsageSessions(){
     const row=node('tr'),first=node('td'),button=node('button','text-button',session.project),code=usageSessionCode(session);
     button.setAttribute('aria-label',session.project+' · '+(usageAgents[session.agent]||session.agent)+' · '+code+t('open_detail'));button.addEventListener('click',()=>openUsageSession(session));
     first.append(button,node('small','task-subject',(usageAgents[session.agent]||session.agent)+' · #'+code));
+    if(session.source_note)first.append(node('small','session-issues',session.source_note));
     if(session.models.length)first.append(node('small','session-model',session.models.map(model=>model.model).join(', ')));
     if(session.errors||session.aborted)first.append(node('small','session-issues',count(session.errors,'error')+' · '+count(session.aborted,'interruption')));
     if(session.git_activity?.matched_events)first.append(node('small','session-git-hint',t('git_row',{events:count(session.git_activity.matched_events,'git_event')})));
@@ -636,6 +650,7 @@ function openUsageSession(session){
   $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
   const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
   fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),dl);
+  if(session.source_note)content.append(node('p','notice',session.source_note));
   if(session.models.length){content.append(node('h3','detail-model-title',t('models_in_session')));for(const model of session.models){const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',t('tokens',{n:number(model.total_tokens)})),node('small','',session.calls_complete?count(model.calls,'logged_call'):t('split_unknown')));content.append(row);}}
   content.append(node('p','section-note',t('files_note')));
   for(const note of session.notes)content.append(node('p','section-note',note));
@@ -650,6 +665,41 @@ function clearUsageDownload(){
   $('usage-download-result').hidden=true;
   $('usage-download-link').removeAttribute('href');
 }
+function syncArchiveButton(){
+  const button=$('usage-archive-clear'),archive=usageState.data?.archive;
+  if(!button)return;
+  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||!archive?.enabled||(!archive?.stored_files&&!archive?.errors);
+  button.textContent=t(usageState.archiveClearing?'archive_clearing':'archive_clear');
+  button.setAttribute('aria-busy',String(Boolean(usageState.archiveClearing)));
+}
+function renderUsageArchive(data){
+  const archive=data.archive,box=$('usage-archive-controls');
+  const hasHistory=archive&&(archive.archive_files||archive.unverified_files||archive.old_parser_files||archive.errors);
+  box.hidden=Boolean(data.demo)||!data.has_snapshot||!archive||Boolean(archive.enabled&&!hasHistory);
+  if(!box.hidden){
+    $('usage-archive-status').textContent=t(archive.enabled?'archive_summary':'archive_disabled',{n:number(archive.sessions||0)});
+    $('usage-archive-clear').hidden=!archive.enabled;
+  }
+  syncArchiveButton();
+}
+async function clearUsageArchive(){
+  const button=$('usage-archive-clear');
+  if(usageState.stopped||usageState.archiveClearing||usageState.exporting||button.disabled)return;
+  // Copies of deleted logs exist nowhere else: one click must not erase them.
+  if(!confirm(t('archive_clear_help')))return;
+  rememberActionFocus(button);
+  usageState.archiveClearing=true;clearUsageDownload();syncArchiveButton();syncExportButton();notice('');
+  try{
+    await post('/api/usage/archive/clear',{});
+    if(usageState.stopped)return;
+    usageState.revision=(usageState.revision||0)+1;
+    usageState.data=null;
+    $('usage-project').value='all';
+    notice(t('archive_cleared'));
+    await loadUsage();
+  }catch(error){if(!usageState.stopped)notice(error.message);}
+  finally{usageState.archiveClearing=false;syncArchiveButton();syncExportButton();restoreActionFocus();}
+}
 function rememberActionFocus(button){if(document.activeElement===button)usageState.actionFocus=button;}
 function restoreActionFocus(){
   const button=usageState.actionFocus;
@@ -661,24 +711,24 @@ function syncExportButton(){
   const filters=usageState.data?.filters;
   const matches=filters&&String(filters.days)===$('usage-period').value&&filters.agent===$('usage-agent').value&&filters.project===$('usage-project').value;
   const button=$('usage-export');
-  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||!usageState.data?.has_snapshot||!matches;
+  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||!usageState.data?.has_snapshot||!matches;
   button.textContent=t(usageState.exporting?'export_preparing':'export');
   button.setAttribute('aria-busy',String(usageState.exporting));
 }
 async function exportUsage(){
   if(usageState.stopped||usageState.exporting||!usageState.data?.has_snapshot||$('usage-export').disabled)return;
-  const query=usageQuery();
+  const query=usageQuery(),revision=usageState.revision;
   rememberActionFocus($('usage-export'));
-  usageState.exporting=true;clearUsageDownload();syncExportButton();notice('');
+  usageState.exporting=true;clearUsageDownload();syncExportButton();syncArchiveButton();notice('');
   try{
     const data=await api('/api/usage/export?'+query);
-    if(usageState.stopped||query!==usageQuery())return;
+    if(usageState.stopped||query!==usageQuery()||revision!==usageState.revision)return;
     usageState.downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
     usageState.downloadQuery=query;
     const link=$('usage-download-link');link.href=usageState.downloadUrl;link.download=t('export_file');
     $('usage-download-status').textContent=t('export_started');$('usage-download-result').hidden=false;link.click();
   }catch(error){if(!usageState.stopped)notice(error.message);}
-  finally{usageState.exporting=false;syncExportButton();restoreActionFocus();}
+  finally{usageState.exporting=false;syncExportButton();syncArchiveButton();restoreActionFocus();}
 }
 function showMoreUsageSessions(){
   const previous=$('usage-sessions').children.length;
@@ -688,6 +738,7 @@ function showMoreUsageSessions(){
 function reconnectFromAccessLink(){if(/^#access=[a-f0-9]{64}$/.test(location.hash))location.reload();}
 applyLanguage();
 $('lang-toggle').addEventListener('click',switchLanguage);$('close-app').addEventListener('click',closeApp);$('usage-refresh').addEventListener('click',refreshUsage);$('usage-export').addEventListener('click',exportUsage);$('usage-close-session').addEventListener('click',()=>$('usage-session-dialog').close());$('usage-more').addEventListener('click',showMoreUsageSessions);
+$('usage-archive-clear').addEventListener('click',clearUsageArchive);
 for(const id of ['usage-period','usage-agent','usage-project'])$(id).addEventListener('change',()=>{usageState.pageSize=20;loadUsage();});
 for(const id of ['usage-session-search','usage-session-sort'])$(id).addEventListener(id==='usage-session-search'?'input':'change',()=>{usageState.pageSize=20;renderUsageSessions();});
 $('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});

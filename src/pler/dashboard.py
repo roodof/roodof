@@ -143,6 +143,15 @@ def session_view(session, lang='en', git=None):
                 active_ms=active if type(active) is int and active >= 0 else None,
                 calls=session.calls, prompts=session.prompts, errors=session.errors, aborted=session.aborted,
                 calls_complete=session.calls_complete and not any(n.startswith('Older Codex log:') for n in session.notes),
+                source_state=getattr(session,'source_state','live'),
+                source_deleted=bool(getattr(session,'source_deleted',False)),
+                archive_files=getattr(session,'archive_files',0),
+                archive_old_parser=bool(getattr(session,'archive_old_parser',False)),
+                archive_unverified=bool(getattr(session,'archive_unverified',False)),
+                source_note=(say(lang,'archive.source_mixed') if getattr(session,'source_state','live')=='mixed'
+                             else say(lang,'archive.source_deleted' if getattr(session,'source_deleted',False)
+                                      else 'archive.source_unverified')
+                             if getattr(session,'source_state','live')=='archive' else ''),
                 quality=quality([session],{},lang),
                 tokens=dict(session.tokens), total_tokens=total(session.tokens),
                 cache_read_share=session.tokens['cache_read'] / inputs if inputs else None,
@@ -188,7 +197,11 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)
     trust=quality(rows,sources,lang)
     outcome=git_outcome(rows,sources)
-    return dict(**provenance(),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
+    archive=sources.get('archive') or {}
+    archive_public={key:archive.get(key,False if key=='enabled' else 0) for key in
+                    ('enabled','stored_files','archive_files','old_parser_files','unverified_files','evicted_files','errors')}
+    archive_public['sessions']=sum(getattr(s,'source_state','live')!='live' for s in rows)
+    return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
                 totals=summary['totals'], agents=summary['agents'], models=summary['models'], projects=projects,
@@ -199,7 +212,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
                     + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']),
-                git_outcome=outcome, lang=lang, demo=bool(sources.get('demo')),
+                git_outcome=outcome, archive=archive_public, lang=lang, demo=bool(sources.get('demo')),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),
@@ -218,17 +231,34 @@ class UsageDashboard:
         self.scanned_at = None
         self.error = None
         self.thread = None
+        self.generation = 0
 
-    def refresh(self):
+    def refresh(self, force=False):
         with self.lock:
-            if self.state == 'scanning':
+            if self.state == 'scanning' and not force:
                 return dict(state='scanning', started=False, new_model_calls=0)
             self.state, self.error = 'scanning', None
-            self.thread = threading.Thread(target=self._scan, daemon=True)
+            self.generation += 1
+            self.thread = threading.Thread(target=self._scan, args=(self.generation,), daemon=True)
             self.thread.start()
             return dict(state='scanning', started=True, new_model_calls=0)
 
-    def _scan(self):
+    def clear_archive(self):
+        from .usage.archive import clear_archive
+        with self.lock:
+            result = clear_archive()
+            if not result.get('ok'):
+                return dict(ok=False, cleared_files=0, errors=result.get('errors',1))
+            self.generation += 1
+            self.sessions, self.sources = [], {}
+            self.scanned_at, self.error, self.state = None, None, 'idle'
+            self.refresh(force=True)
+            return dict(ok=True, cleared_files=result.get('cleared_files',0), errors=0, state='scanning')
+
+    def _scan(self, generation=None):
+        if generation is None:
+            with self.lock:
+                generation = self.generation
         try:
             sessions, sources = self.reader()
             sources = dict(sources)
@@ -245,6 +275,8 @@ class UsageDashboard:
             # Validate the projection before publishing a replacement snapshot.
             project_view(sessions, sources, days=0)
             with self.lock:
+                if generation != self.generation:
+                    return
                 self.sessions, self.sources = sessions, sources
                 self.scanned_at = datetime.now(timezone.utc).isoformat()
                 self.state, self.error = 'ready', None
@@ -252,10 +284,21 @@ class UsageDashboard:
             # Reader errors may contain transcript excerpts or private paths.
             # Keep an earlier usable snapshot; never send a raw exception to UI.
             with self.lock:
+                if generation != self.generation:
+                    return
                 self.state, self.error = 'error', 'error.scan'
 
     def view(self, days=30, agent='all', project='all', lang='en'):
         with self.lock:
+            archive=self.sources.get('archive') or {}
+            if archive.get('enabled') and self.scanned_at is not None:
+                from .usage.archive import archive_generation
+                current=archive_generation()
+                if current is not None and current != archive.get('clear_generation'):
+                    self.generation += 1
+                    self.sessions,self.sources=[],{}
+                    self.scanned_at,self.state,self.error=None,'idle',None
+                    self.refresh(force=True)
             value = project_view(self.sessions, self.sources, days, agent, project, lang=lang)
             value.update(state=self.state, scanned_at=self.scanned_at, error=self.error and say(value['lang'], self.error),
                          has_snapshot=self.scanned_at is not None)

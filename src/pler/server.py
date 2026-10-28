@@ -120,7 +120,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._local():
             return
         route = urlsplit(self.path).path
-        if route not in ('/api/usage/refresh', '/api/quit'):
+        if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -138,6 +138,12 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route == '/api/usage/refresh':
             self._send(202, self.server.dashboard.refresh())
+        elif route == '/api/usage/archive/clear':
+            result = self.server.dashboard.clear_archive()
+            if result.get('ok'):
+                self._send(200, result)
+            else:
+                self._send(500, dict(error=say(self._lang(), 'error.archive_clear')))
         else:
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()

@@ -14,18 +14,18 @@ from . import accounting, discovery
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
 
 
-def roots(skipped=None, access=None):
+def roots(skipped=None, access=None, manifest=None):
     """Claude Code config folders: CLAUDE_CONFIG_DIR (comma-separated allowed), else ~/.config/claude and ~/.claude."""
     configured = os.environ.get('CLAUDE_CONFIG_DIR')
     bases = ([Path(part.strip()).expanduser() for part in configured.split(',') if part.strip()] if configured
              else [Path.home() / '.config' / 'claude', Path.home() / '.claude'])
-    return discovery.folders(bases,('projects',),skipped,access,explicit=bool(configured))
+    return discovery.folders(bases,('projects',),skipped,access,explicit=bool(configured),manifest=manifest)
 
 
-def files(folders=None, skipped=None, access=None):
+def files(folders=None, skipped=None, access=None, manifest=None):
     access=access if access is not None else discovery.WslRoots()
-    return discovery.files(roots(skipped,access) if folders is None else folders,
-                           lambda name:name.endswith('.jsonl'),skipped,access,explicit=folders is not None)
+    return discovery.files(roots(skipped,access,manifest) if folders is None else folders,
+                           lambda name:name.endswith('.jsonl'),skipped,access,explicit=folders is not None,manifest=manifest)
 
 
 def _tokens(usage):
@@ -125,7 +125,8 @@ def _slim(row):
                                usage=slim_usage, content=blocks)
         if zeroed is not None:
             kept['message']['zeroed_usage_thinking'] = zeroed
-    return kept
+    from .archive import sanitize
+    return sanitize('claude-code',[kept])[0]
 
 
 def _rows(path):
@@ -145,24 +146,45 @@ def _rows(path):
     return rows
 
 
-def read(paths, skipped=None, cache=None, access=None):
+def read(paths, skipped=None, cache=None, access=None, archive=None):
     """Merge copies before attribution; source order never determines a project's usage."""
     from collections import defaultdict
     sessions, replies, prompts = {}, defaultdict(list), defaultdict(list)
     projects, branches = defaultdict(set), defaultdict(set)
     if access is not None: access.read_phase()
-    for path in discovery.unique(paths):
-        path=discovery.local(path,skipped,access)
-        if path is None: continue
+    live=discovery.unique(paths)
+    replay=archive.replay('claude-code') if archive is not None else []
+    for original in live+discovery.unique(replay):
+        path=original
+        archived=str(original) not in {str(value) for value in live}
+        rows=archive.rows('claude-code',path) if archived else None
+        if not archived:
+            path=discovery.local(path,skipped,access)
+            if path is None:
+                rows=archive.rows('claude-code',original,unreadable=True) if archive is not None else None
+                if rows is None: continue
+                path=original;archived=True
         try:
-            rows=cache.get(path) if cache else None
-            if rows is None:
+            if archive is not None and not archived: archive.begin('claude-code',path)
+            if not archived:
+                rows=cache.get(path) if cache else None
+            if rows is None and not archived:
                 rows=_rows(path)
                 if cache and not any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows):
                     cache.put(path,rows)
+            if archive is not None and not archived:
+                partial=any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows)
+                if partial:
+                    for row in rows:
+                        if row.get('type')=='pler_file_issue': note_file_issue(skipped,path,row['reason'])
+                    prior=archive.rows('claude-code',path,unreadable=True)
+                    if prior is not None: rows=prior
+                else: archive.observe('claude-code',path,rows,cache.checksum(path) if cache else None)
         except OSError as error:
             note_file_issue(skipped,path,type(error).__name__)
-            continue
+            rows=archive.rows('claude-code',path,unreadable=True) if archive is not None else None
+            if rows is None: continue
+        if rows is None: continue
         affected=[]
         for index,row in enumerate(rows):
             if row.get('type')=='pler_file_issue':
@@ -173,6 +195,7 @@ def read(paths, skipped=None, cache=None, access=None):
             identity=row.get('sessionId')
             if not isinstance(identity,str): continue
             session=sessions.setdefault(identity,Session('claude-code',identity,str(path)))
+            if archive is not None: archive.mark(session,'claude-code',path)
             session.source=min(session.source,str(path))
             if session not in affected: affected.append(session)
             moment=timestamp(row.get('timestamp'));session.seen(moment)
@@ -180,7 +203,10 @@ def read(paths, skipped=None, cache=None, access=None):
             if isinstance(row.get('gitBranch'),str) and row['gitBranch']: branches[identity].add(row['gitBranch'])
             if isinstance(row.get('version'),str): session.client_version=row['version']
             kind=row.get('type')
-            if kind=='cost-state' and type(row.get('totalCostUSD')) in (int,float):
+            if kind=='pler_archive_ambiguous':
+                session.tokens_complete=False;session.calls_complete=False;session.counts_complete=False
+                session.issues.update(('archive_unverified','unidentified_records'))
+            elif kind=='cost-state' and type(row.get('totalCostUSD')) in (int,float):
                 session.reported_cost_usd=max(session.reported_cost_usd or 0.0,float(row['totalCostUSD']))
             elif kind=='user' and not row.get('isMeta') and row.get('prompt'):
                 uid=row.get('uuid')

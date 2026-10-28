@@ -20,17 +20,17 @@ _ESCAPE = re.compile(r'\\(.)', re.S)
 MAX_EDITED = 200
 
 
-def roots(skipped=None, access=None):
+def roots(skipped=None, access=None, manifest=None):
     base = Path(os.environ.get('CODEX_HOME') or Path.home() / '.codex').expanduser()
     return discovery.folders([base],('sessions','archived_sessions'),skipped,access,
-                             explicit=bool(os.environ.get('CODEX_HOME')))
+                             explicit=bool(os.environ.get('CODEX_HOME')),manifest=manifest)
 
 
-def files(folders=None, skipped=None, access=None):
+def files(folders=None, skipped=None, access=None, manifest=None):
     access=access if access is not None else discovery.WslRoots()
-    return discovery.files(roots(skipped,access) if folders is None else folders,
+    return discovery.files(roots(skipped,access,manifest) if folders is None else folders,
                            lambda name:name.startswith('rollout-') and name.endswith(('.jsonl','.jsonl.zst')),
-                           skipped,access,explicit=folders is not None)
+                           skipped,access,explicit=folders is not None,manifest=manifest)
 
 
 def _int(value):
@@ -108,7 +108,8 @@ def _slim(row):
             kept['edited_files'] = edited
     else:
         return None
-    return dict(type=kind, timestamp=row.get('timestamp'), payload=kept)
+    from .archive import sanitize
+    return sanitize('codex',[dict(type=kind,timestamp=row.get('timestamp'),payload=kept)])[0]
 
 
 def _rows(path, decode):
@@ -135,7 +136,7 @@ def _rows(path, decode):
     return rows
 
 
-def read(paths, cache=None, access=None):
+def read(paths, cache=None, access=None, archive=None):
     """Reconcile logical sessions and response copies before publishing counts."""
     from .reconcile import codex_sessions
-    return codex_sessions(paths,cache,_rows,decoder()[0],access)
+    return codex_sessions(paths,cache,_rows,decoder()[0],access,archive)

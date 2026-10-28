@@ -118,6 +118,15 @@ Metadata extracted from unchanged Claude Code and Codex logs is kept in a cache,
 Damaged or older cache entries are re-read from the original log. The checksum detects accidental changes; it is not protection against someone who can edit both the cache and checksum.
 An update that changes a reader or its validation helpers rebuilds the affected cache on its next read. Logs that grow during reading or fail partway through access are retried on the next read. A failed cache replacement leaves the previous cache intact and removes the temporary file when permitted.
 
+### History after logs are deleted
+
+Claude Code deletes transcripts older than 30 days by default. So that monthly comparisons do not silently shrink, PLER keeps the metadata it extracted in an archive next to the cache (`metadata-archive.json`). When a log disappears, its sessions still count. They are marked "Source deleted · from the PLER archive" on the page and in the export.
+- **What is kept:** The same fields as the cache: counts, times, identifiers, models, project paths, branch names and edited file paths. No prompt, reply, command or tool output is kept.
+- **Which folders:** The default folders and those selected with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`. Folders named with `--claude-dir`/`--codex-dir` are read but never archived.
+- **Limits:** A file is dropped after 365 days without being seen. The archive is capped at 2,048 files and 64 MB, oldest first, and the page says when coverage was lost.
+- **Copies:** A resumed session that copies archived replies is counted once. Archived metadata from an older reader, or from a source that is present but unreadable, is shown with a quality warning.
+- **Clearing:** Use **Clear PLER archive** on the page (it asks first) or `pler archive clear`. Agent logs and quota samples are not touched. Copies of deleted logs cannot be recovered afterwards.
+
 ## Trust and data quality
 
 The page shows a dated snapshot. PLER withholds forecasts from samples older than 30 minutes for short windows and 24 hours for day-long or weekly windows. These are PLER's conservative freshness limits, not provider rules. An elapsed reset or a forecast deadline that has already passed makes the current level unknown. An open page updates those labels from its clock without fetching an account or reading logs again.

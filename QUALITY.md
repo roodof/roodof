@@ -2,6 +2,32 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 29 Ekim: 0.2.11 — kayıtlar silinince geçmiş artık kaybolmuyor
+
+Claude Code varsayılan olarak 30 günden eski konuşmaları siliyor. PLER'in önbelleği de yalnız son okumada görülen dosyaları sakladığından, oturumlar sessizce kayboluyor ve aylık toplamlar küçülüyordu. Kullanıcı bunu fark edemiyordu.
+
+- **Düzeltme:** PLER, varsayılan ve ortam değişkeniyle seçilen klasörlerdeki her dosyanın izinli üst bilgisini sınırlı bir yerel arşivde tutuyor. Silinen kaynağın oturumları sayılmaya devam ediyor ve "kaynak silindi, PLER arşivinden" diye işaretleniyor. Metin tutulmuyor.
+- **Önce ve sonra (uydurma kayıtlar):**
+  - Kaynak silinince 0.2.10'da 350 token 0'a düşüyor, 0.2.11'de 350 kalıyor.
+  - Arşivdeki yanıtları kopyalayan devam oturumu iki kez sayılmıyor (410 token, 3 çağrı).
+  - Arşiv silinince yalnız yerinde duran kayıt kalıyor (290 token).
+- **Gerçek kayıtlar:** Hiçbir şey silinmemişken toplamlar 0.2.10 ile birebir aynı: 29 oturum, 9.186 çağrı.
+- **Codex'in yarım bıraktığı taslakta düzeltilenler:**
+  - **Hız:** Her okuma arşivi baştan temizleyip yeniden yazıyor, oturum kaynak kanıtı da karesel büyüyordu. Gerçek kayıtlarda yeniden okuma 2,3 sn'den 21 sn'ye çıkmıştı; şimdi 4,1 sn.
+  - **Komut satırı klasörleri:** `pler report --claude-dir` ile bir kez bakılan klasörler bir yıl saklanıyordu. Testler de bu yüzden gerçek kullanıcı önbelleğine uydurma kayıt yazıyordu. Artık bu klasörler arşivlenmiyor.
+  - **Onaysız silme:** Sayfadaki silme düğmesi bir yıllık, geri getirilemez geçmişi onay sormadan siliyordu. Artık önce onay istiyor.
+- **0.2.10 düzeltmesi:** Seçilen klasördeki macOS `/var` gibi sistem bağlantıları her zaman çözülüyor, bu yüzden macOS CI'ında 5 test düşüyordu. Düzeltildi; CI 12/12.
+- **Testler:**
+  - Windows'ta Python 3.9 ve 3.12 ile 310, Python 3.14 ile 319 test geçti.
+  - Linux'ta normal ve macOS benzeri geçici klasörle 319/319 geçti.
+  - Tarayıcı mantığında 19/19 geçti.
+
+[Kanıt](../reports/source-archive-v1/REPORT.md).
+
+**Sınır:**
+- **Arşivin yükü:** Arşiv önbellek kadar özel bir üst bilgi dosyası; proje ve dosya yolları da içinde. Yük sınırlı ama sıfır değil: 24,5 MB ve sıcak okumada yaklaşık 1,8 sn.
+- **Kaybolan geçmiş:** Silinmeden önce PLER'in hiç okumadığı kayıtlar geri gelmez.
+
 ## 28 Ekim: 0.2.10 — açıkça seçilen WSL kayıtları
 
 Windows'ta açıkça seçilen iki WSL yol yazımı artık çalışır. Aynı uydurma gerçek WSL dosyalarında 0.2.9 sıfır oturum gösterirken 0.2.10 iki oturum ve 350 tokenı okudu. Hem ortam değişkeni hem açık klasör seçenekleri doğrulandı. Linux'tan Windows'a `/mnt/c` okuması aynı sonucu verdi. Harf büyüklüğüyle ayrılan iki WSL dosyası da korunuyor.

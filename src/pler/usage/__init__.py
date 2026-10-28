@@ -23,24 +23,34 @@ from ..reporting import provenance,quality
 AGENTS = {'claude-code': 'Claude Code', 'codex': 'Codex'}
 
 
-def scan(claude_folders=None, codex_folders=None):
+def scan(claude_folders=None, codex_folders=None, retain=False):
     """Sessions from the agents' log folders. Both readers' metadata extracts are cached (cache.py), so
     unchanged logs are not decompressed and parsed again; explicitly given folders are always read. With the
-    default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota']."""
+    default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota'].
+    Metadata of default (or environment-selected) folders is kept in PLER's archive after a source disappears;
+    explicitly given folders only with `retain`."""
     skipped=[]
     access=claude_code.discovery.WslRoots()
-    claude_files = claude_code.files(claude_folders,skipped,access)
-    codex_files = codex.files(codex_folders,skipped,access)
-    cached = FileCache('codex', version(codex, records, zstd, unzstd, xxh64, accounting, reconcile)) if codex_folders is None else None
-    codex_sessions, codex_skipped = codex.read(codex_files, cached,access)
+    from . import archive as archive_rules
+    from .discovery import Manifest
+    archive=archive_rules.Archive(enabled=retain or claude_folders is None or codex_folders is None)
+    claude_manifest,codex_manifest=Manifest(),Manifest()
+    claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
+    codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,archive_rules)
+    cached = FileCache('codex', codex_key) if codex_folders is None else None
+    archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
+    codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_cache = FileCache('claude', version(claude_code, records, accounting)) if claude_folders is None else None
-    sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access) + codex_sessions)
+    claude_key=version(claude_code,records,accounting,archive_rules)
+    claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
+    archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
+    sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
     if claude_cache:
         claude_cache.save()
-    return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,
+    return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),
                           claude_quota=claude_quota() if claude_folders is None else [])
 
 
@@ -128,6 +138,12 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
     lines.append('')
     lines.append(say(lang, 'report.read', claude=count(lang, sources['claude_files'], 'claude_file'),
                      codex=count(lang, sources['codex_files'], 'codex_file')))
+    archive=sources.get('archive')
+    if archive is not None:
+        archived=sum(row.get('source_state','live')!='live' for row in summary.get('largest_sessions',()))
+        # Counts are already scoped by scan roots; the report period still selects whole sessions.
+        if archive.get('archive_files'): lines.append(say(lang,'archive.coverage',n=archive['archive_files']))
+        elif not archive.get('enabled'): lines.append(say(lang,'archive.disabled'))
     if sources['skipped']:
         lines.append(say(lang, 'report.unreadable', count=count(lang, len(sources['skipped']), 'log_file'),
                          reasons=', '.join(sorted({reason for _, reason in sources['skipped']}))))
@@ -145,6 +161,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.days < 0:
         parser.error('--days must be 0 or more')
+    # A folder named on the command line is a one-off selection: read it, never keep it for a year.
     sessions, sources = scan(args.claude_dir, args.codex_dir)
     now = datetime.now(timezone.utc)
     since = now - timedelta(days=args.days) if args.days else None
@@ -165,9 +182,10 @@ def main(argv=None):
             row['project'] = label(None if row['project'] == 'unknown' else row['project'], lang=lang) or say(lang,'unknown_project')
         for row in summary['largest_sessions']:
             row['project'] = label(row['project'], lang=lang) or say(lang,'unknown_project')
-        value = dict(summary,**provenance(),quality=trust,generated_at=now.isoformat(),outlook=windows, insights=notes,
+        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows, insights=notes,
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
-                                  skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota'])))
+                                  skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
+                                  archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))
         if args.sessions:
             value['sessions'] = [session_view(s,lang) for s in rows]
         print(json.dumps(value, ensure_ascii=False, indent=2))

@@ -48,6 +48,21 @@ def main(argv=None):
     if argv[:1] == ['statusline']:
         from .statusline import main as statusline
         return statusline(argv[1:])
+    if argv[:1] == ['archive']:
+        import json
+        from .usage.archive import clear_archive
+        lang = language()
+        parser = argparse.ArgumentParser(prog='pler archive', description=say(lang, 'archive.clear_help'))
+        parser.add_argument('action', choices=('clear',))
+        parser.add_argument('--json', action='store_true')
+        args = parser.parse_args(argv[1:])
+        result = clear_archive()
+        public = {name: result.get(name) for name in ('ok', 'cleared_files', 'errors')}
+        if args.json:
+            print(json.dumps(public))
+        else:
+            print(say(lang, 'archive.cleared' if result.get('ok') else 'error.archive_clear'))
+        return 0 if result.get('ok') else 1
     lang = language()
     demo = argv[:1] == ['demo']
     parser = argparse.ArgumentParser(prog='pler demo' if demo else 'pler', description=__doc__.split('\n')[0],

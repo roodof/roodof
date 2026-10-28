@@ -101,6 +101,29 @@ class Session:
     attribution_complete: bool = True
     models_complete: bool = True
     issues: set = field(default_factory=set)       # fixed reason codes, never excerpts or private paths
+    source_state: str = 'live'
+    source_deleted: bool = False
+    archive_files: int = 0
+    archive_old_parser: bool = False
+    archive_unverified: bool = False
+
+    def source_evidence(self,source,state='live',deleted=False,old=False,unverified=False):
+        """Computed scan provenance. Never persisted as a Session snapshot."""
+        evidence=getattr(self,'_sources',{})
+        value=dict(state=state,deleted=deleted,old=old,unverified=unverified)
+        if evidence.get(source)==value: return  # repeated for every reply/owner merge; keep it linear
+        evidence[source]=value
+        self._sources=evidence
+        states={value['state'] for value in evidence.values()}
+        self.source_state='mixed' if len(states)>1 else next(iter(states))
+        self.source_deleted=any(value['deleted'] for value in evidence.values())
+        self.archive_files=sum(value['state']=='archive' for value in evidence.values())
+        self.archive_old_parser=any(value['old'] for value in evidence.values())
+        self.archive_unverified=any(value['unverified'] for value in evidence.values())
+        if self.archive_old_parser:
+            self.issues.add('archive_old_parser');self.tokens_complete=False
+        if self.archive_unverified:
+            self.issues.add('archive_unverified');self.tokens_complete=False
 
     def count(self, table, key, step=1):
         if key:

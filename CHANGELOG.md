@@ -1,5 +1,15 @@
 # Changes
 
+## 0.2.11 — 2026-10-29
+
+- Keep usage metadata after an agent deletes its logs. Claude Code deletes transcripts older than 30 days by default, so period totals used to shrink silently. Default and environment-selected roots now keep each file's allowlisted metadata in a bounded local archive (365 days unseen, 2,048 files, 64 MB). Deleted sources still count and are marked on the page, in the terminal report and in JSON. Existing cache entries are imported once, without reopening any log.
+- Count a resumed session that copies archived replies once. Withhold anonymous archived quantities that cannot be proven disjoint, and mark old-reader, unreadable-source, evicted and unreadable-archive cases as incomplete.
+- Clear the archive from the page, after confirmation, or with `pler archive clear`. Agent logs and quota samples are unchanged.
+- Never archive folders named with `--claude-dir`/`--codex-dir`; they are one-off selections.
+- An unchanged read neither rebuilds nor rewrites the archive. Session source evidence is merged in linear time. On this computer's real logs a warm read takes 4.1 s with a 24.5 MB archive, against 2.3 s without one; an earlier draft took 21 s.
+
+See [evidence and limits](../reports/source-archive-v1/REPORT.md).
+
 ## 0.2.10 — 2026-10-28
 
 - Read explicitly selected WSL log roots on Windows through either standard WSL host spelling. A per-scan capability covers only that subtree and requires a fresh running-distribution status before discovery and reader access. Ordinary UNC/device paths remain refused before probing; Git/project/cache paths stay strict.
