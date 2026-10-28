@@ -9,6 +9,7 @@ from collections import Counter
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import hashlib
+import os
 import threading
 
 from .i18n import LANGUAGES, say
@@ -16,7 +17,7 @@ from .git_activity import read_repository, session_activity
 from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
-from .usage.projects import label
+from .usage.projects import ProjectRoots, label
 from .usage.records import total
 from .usage.summary import summarize, quota_burn
 from .reporting import provenance,quality
@@ -48,6 +49,41 @@ def _notes(session, lang):
         notes.append(say(lang, 'note.routing_alias'))
     notes.extend(item['detail'] for item in quality([session],{},lang)['issues'])
     return notes
+
+
+def _link_key(session):
+    return session.agent, session.source, session.session_id
+
+
+def git_links(sessions):
+    """Repositories each session is linked to: its working folder, and the nearest repository above each
+    file it edited (an agent started in a parent folder often edits a repository inside it). Paths stay
+    in memory for reading the local Git history; the public view only gets counts and reasons."""
+    roots, found, links = ProjectRoots(), {}, {}
+    def repository(folder):
+        if folder not in found:
+            try:
+                found[folder] = roots._git_root(folder)
+            except (OSError, ValueError, RuntimeError):
+                found[folder] = None
+        return found[folder]
+    for session in sessions:
+        linked = {}
+        if session.project:
+            linked[os.path.normcase(os.path.normpath(session.project))] = [session.project, {'working_folder'}]
+        for path in session.files_edited:
+            root = repository(os.path.dirname(os.path.normpath(path))) if os.path.isabs(path) else None
+            if root:
+                linked.setdefault(os.path.normcase(os.path.normpath(root)), [root, set()])[1].add('edited_files')
+        links[_link_key(session)] = {path: reasons for path, reasons in linked.values()}
+    return links
+
+
+def _git_for(session, sources):
+    activity, links = sources.get('git_activity', {}), sources.get('git_links')
+    if links is None:  # a snapshot made without links: the working folder only
+        return activity.get(session.project)
+    return [(activity.get(path), tuple(sorted(reasons))) for path, reasons in links.get(_link_key(session), {}).items()]
 
 
 def session_view(session, lang='en', git=None):
@@ -112,7 +148,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
                 totals=summary['totals'], agents=summary['agents'], models=summary['models'], projects=projects,
                 project_options=[dict(id=key, name=name) for key, name in options],
-                sessions=sorted((session_view(s, lang, sources.get('git_activity', {}).get(s.project)) for s in rows),
+                sessions=sorted((session_view(s, lang, _git_for(s, sources)) for s in rows),
                                 key=lambda row: (row['total_tokens'], row['ended'] or ''), reverse=True),
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
@@ -149,7 +185,9 @@ class UsageDashboard:
         try:
             sessions, sources = self.reader()
             sources = dict(sources)
-            sources['git_activity'] = {project: self.git_reader(project) for project in {s.project for s in sessions} if project}
+            sources['git_links'] = git_links(sessions)
+            folders = {path for linked in sources['git_links'].values() for path in linked}
+            sources['git_activity'] = {path: self.git_reader(path) for path in folders}
             # Validate the projection before publishing a replacement snapshot.
             project_view(sessions, sources, days=0)
             with self.lock:

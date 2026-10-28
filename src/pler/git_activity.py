@@ -106,21 +106,31 @@ def read_repository(project):
 
 
 def session_activity(snapshot, started, ended):
-    """Explicit public projection. Never expose the raw log, identity or message."""
-    if not snapshot:
+    """Explicit public projection. Never expose the raw log, identity, message or repository path.
+
+    `snapshot` is one repository's snapshot, or a list of (snapshot, reasons) pairs: every repository the
+    session is linked to, through its working folder or the files it edited. An empty list means no
+    folder of the session is a repository."""
+    if snapshot is None:
         return dict(state='not_scanned')
-    if snapshot['state'] != 'ready':
-        return dict(state=snapshot['state'])
+    linked = snapshot if isinstance(snapshot, list) else [(snapshot, ('working_folder',))]
+    ready = [(item, reasons) for item, reasons in linked if item and item['state'] == 'ready']
+    if not ready:
+        states = {item['state'] if item else 'not_scanned' for item, _ in linked}
+        for state in ('unavailable', 'no_history', 'not_scanned', 'not_repository'):
+            if state in states or state == 'not_repository':
+                return dict(state=state)
     if not started or not ended or ended < started:
         return dict(state='unknown_time')
-    events = snapshot['events']
-    selected = sorted((event for event in events if started <= event['at'] <= ended),
+    selected = sorted((event for item, _ in ready for event in item['events'] if started <= event['at'] <= ended),
                       key=lambda event: event['at'], reverse=True)
     counts = Counter(event['kind'] for event in selected)
-    earliest = min(event['at'] for event in events)
-    limited = bool(snapshot['truncated'] or snapshot['skipped'] or snapshot['changed'] or earliest > started)
+    beginnings = [min(event['at'] for event in item['events']) for item, _ in ready]
+    limited = any(item['truncated'] or item['skipped'] or item['changed'] for item, _ in ready) \
+        or max(beginnings) > started
     return dict(state='ready', matched_events=len(selected), counts=dict(counts),
                 events=[dict(at=event['at'].isoformat(), kind=event['kind'], commit=event['commit'])
                         for event in selected[:MAX_EVENTS]],
                 omitted_events=max(0, len(selected) - MAX_EVENTS), coverage_limited=limited,
-                history_from=earliest.isoformat())
+                history_from=min(beginnings).isoformat(), repositories=len(ready),
+                linked_by=sorted({reason for _, reasons in ready for reason in reasons}))

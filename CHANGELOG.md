@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.6 — 2026-10-28 (local candidate)
+
+- Link each session to the Git repositories holding the files it edited, not only to its working folder. An agent started in a parent folder, or a session whose project is unknown, now shows the commits recorded in the repository it changed. Events of several linked repositories are merged. The page names how many repositories were checked, never their paths.
+- Read the target files of Codex patches (`*** Add/Update/Delete File`, `*** Move to`), also when the patch sits inside a code or JSON string. Only paths are kept, never the patch body. Codex sessions now report edited files like Claude Code sessions.
+- Advance the parser version to `accounting-2026-10-28.4`; token and call totals are unchanged and export schema 2 is unchanged. The Codex metadata cache rebuilds once.
+
+On this computer's real logs, sessions with readable Git history went from 1 to 6 and sessions with Git events during their time from 0 to 4. Those 4 sessions hold 69% of the tokens. This session's view shows exactly the 4 commits made in the product repository during it. The source passes 237 tests on Windows with Python 3.9 and 3.12, 246 with Python 3.14 on Windows and Linux, plus 18 browser-logic tests. See the [Git link evidence](../reports/git-links-v1/REPORT.md).
+
 ## 0.2.5 — 2026-10-28 (local candidate)
 
 - Disable the metadata and Claude quota caches when `PLER_CACHE_DIR` or the default cache base names a network location, or a user link or junction leads to it, instead of reading or writing there. Revalidate the cache and quota file paths before every write, and remove failed temporary files only at a validated location.

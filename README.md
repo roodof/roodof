@@ -61,7 +61,7 @@ A session's **record span** is the time between its first and last event, waitin
 
 ## Local Git activity
 
-On **Read logs again**, PLER also checks `.git/logs/HEAD` in projects already named by the agent logs. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
+On **Read logs again**, PLER also checks `.git/logs/HEAD` in the repositories each session is linked to. A repository is linked when the session's working folder is in it, or when the session edited a file inside it: Claude Code edit tools and Codex patches name their target files. An agent started in a parent folder is therefore still linked to the repository it changed. Repository paths stay in memory; the page only shows how many were checked. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
 
 Only event time, a fixed action category and the first eight characters of the destination commit are sent to the page and JSON. Author names, email addresses, commit messages, branch names, source files and Git configuration are not included. No Git metadata is added to the persistent cache.
 

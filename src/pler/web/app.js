@@ -147,7 +147,8 @@ const I18N=/*I18N*/{
 "models_in_session": "Models in this session",
 "git_title": "Git during this session",
 "git_scope": "Local Git events between this session's first and last record. Other people and agents may have been working at the same time; these events do not prove authorship or that changes were kept.",
-"git_no_repo": "This project folder is not an available local Git repository.",
+"git_no_repo": "Neither this session's folder nor the files it edited are in an available local Git repository.",
+"git_linked": "Repositories checked: {repos}. A repository counts when the session started in it or edited a file in it, so an agent started in a parent folder is still linked to the repository it changed.",
 "git_no_history": "This repository has no readable local HEAD history. It may be disabled or expired; no activity count can be inferred.",
 "git_unavailable": "Local Git history could not be read. Your usage totals are still available.",
 "git_not_scanned": "Git history has not been checked in this snapshot. Read the logs again to check it.",
@@ -168,6 +169,10 @@ const I18N=/*I18N*/{
 "noun_git_event": [
 "local event",
 "local events"
+],
+"noun_repository": [
+"repository",
+"repositories"
 ],
 "split_unknown": "Call split unknown",
 "files_note": "The file count shows logged edits. It does not show that the changes were kept or that the work was finished.",
@@ -380,7 +385,8 @@ const I18N=/*I18N*/{
 "models_in_session": "Bu oturumdaki modeller",
 "git_title": "Oturum sırasında Git",
 "git_scope": "Oturumun ilk ve son kaydı arasındaki yerel Git hareketleri. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu hareketler yazarı veya değişikliklerin korunduğunu kanıtlamaz.",
-"git_no_repo": "Bu proje klasöründe erişilebilir bir yerel Git deposu bulunamadı.",
+"git_no_repo": "Ne bu oturumun klasörü ne de düzenlediği dosyalar erişilebilir bir yerel Git deposunda.",
+"git_linked": "Kontrol edilen depolar: {repos}. Oturum bir depoda başladıysa ya da bir deponun dosyasını düzenlediyse o depo sayılır; böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır.",
 "git_no_history": "Bu depoda okunabilir yerel HEAD geçmişi yok. Kayıt kapalı veya süresi dolmuş olabilir; hareket sayısı çıkarılamaz.",
 "git_unavailable": "Yerel Git geçmişi okunamadı. Kullanım toplamların gösterilmeye devam ediyor.",
 "git_not_scanned": "Bu özette Git geçmişi kontrol edilmemiş. Kontrol etmek için kayıtları yeniden oku.",
@@ -399,6 +405,7 @@ const I18N=/*I18N*/{
 "git_other": "Diğer HEAD hareketi",
 "git_row": "Git · {events}",
 "noun_git_event": "yerel hareket",
+"noun_repository": "depo",
 "split_unknown": "Çağrı ayrımı bilinmiyor",
 "files_note": "Dosya sayısı kayda geçmiş düzenlemeleri gösterir. Değişikliklerin kalıcı olduğu veya işin tamamlandığı doğrulanmış değildir.",
 "burn": "Oturum sırasında hesap ölçerindeki artış: {items}. Eşzamanlı oturumlar dahildir.",
@@ -596,6 +603,7 @@ function renderGitActivity(content,activity){
   const states={not_repository:'git_no_repo',no_history:'git_no_history',unavailable:'git_unavailable',not_scanned:'git_not_scanned',unknown_time:'git_unknown_time'};
   if(!activity||activity.state!=='ready'){box.append(node('p','',t(states[activity?.state]||'git_not_scanned')));content.append(box);return;}
   box.append(node('p','',t('git_scope')));
+  if(activity.repositories)box.append(node('p','git-linked',t('git_linked',{repos:count(activity.repositories,'repository')})));
   if(activity.matched_events){
     const counts=node('div','git-counts');
     for(const [kind,n] of Object.entries(activity.counts)){const item=node('div');item.append(node('strong','',number(n)),node('span','',t(gitLabels[kind]||'git_other')));counts.append(item);}box.append(counts);

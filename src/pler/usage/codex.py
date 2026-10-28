@@ -8,10 +8,16 @@ meter (used percent per rate-limit window), which is kept as samples.
 """
 import os
 from pathlib import Path
+import re
 
 from .records import Session, add_tokens, json_row, note_file_issue, percentage, timestamp, total
 from .zstd import decoder
 from . import accounting, discovery
+
+_PATCH = re.compile(r'\*\*\* Begin Patch.*?(?:\*\*\* End Patch|$)', re.S)
+_TARGET = re.compile(r'^\*\*\* (?:(?:Add|Update|Delete) File|Move to): (.+?)[ \t]*$', re.M)
+_ESCAPE = re.compile(r'\\(.)', re.S)
+MAX_EDITED = 200
 
 
 def roots(skipped=None):
@@ -43,6 +49,20 @@ def _identities(payload, *names):
     for name in names:
         if payload.get(name) is not None and not isinstance(payload[name], str):
             raise ValueError('invalid record identity')
+
+
+def _edited_files(payload):
+    """Files named by apply_patch headers in a tool call. Only the target paths are kept, never the patch."""
+    found = []
+    for text in (payload.get('input'), payload.get('arguments')):
+        if not isinstance(text, str) or '*** Begin Patch' not in text:
+            continue
+        for block in _PATCH.findall(text):
+            if not _TARGET.search(block):
+                # The patch sits in a quoted string (code or JSON): undo its escapes first.
+                block = _ESCAPE.sub(lambda m: {'n': '\n', 'r': '\r', 't': '\t'}.get(m[1], m[1]), block)
+            found.extend(_TARGET.findall(block))
+    return sorted({path for path in found if 0 < len(path) <= 1024})[:MAX_EDITED]
 
 
 def _slim(row):
@@ -80,6 +100,9 @@ def _slim(row):
     elif kind == 'response_item' and sub in ('function_call', 'custom_tool_call'):
         _identities(payload, 'call_id')
         kept = dict(type=sub,name=payload.get('name'),call_id=payload.get('call_id'))
+        edited = _edited_files(payload)
+        if edited:
+            kept['edited_files'] = edited
     else:
         return None
     return dict(type=kind, timestamp=row.get('timestamp'), payload=kept)

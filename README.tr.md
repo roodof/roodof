@@ -62,7 +62,11 @@ Oturum ayrıntısındaki **kayıt aralığı**, ilk ve son olay arasındaki zama
 
 Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görünür: commit, commit düzeltmesi, checkout, reset, merge ve rebase. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu kayıtlar yazarı veya değişikliklerin korunduğunu kanıtlamaz. Bir hareket birden fazla oturumla eşleşebilir; oturum sayılarını toplayarak benzersiz commit sayısı çıkarılamaz.
 
-**Kayıtları yenile** sırasında yalnız ajan kayıtlarında zaten adı geçen projelerin `.git/logs/HEAD` dosyası kontrol edilir. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
+**Kayıtları yenile** sırasında her oturumun bağlı olduğu depoların `.git/logs/HEAD` dosyası kontrol edilir. Bir depo şu durumlarda bağlı sayılır:
+- oturumun çalışma klasörü o depodadır;
+- oturum o deponun içindeki bir dosyayı düzenlemiştir. Claude Code'un düzenleme araçları ve Codex yamaları hedef dosyalarını kayda geçirir.
+
+Böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır. Depo yolları yalnız bellekte tutulur; sayfada yalnız kaç depoya bakıldığı görünür. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
 
 Ekrana ve JSON'a yalnız olay zamanı, sabit işlem türü ve hedef commit'in ilk sekiz karakteri gider. Yazar adı, e-posta, commit mesajı, dal adı, kaynak dosyalar ve Git ayarları dahil edilmez. Git komutu çalıştırılmaz ve bu bilgiler kalıcı önbelleğe yazılmaz.
 

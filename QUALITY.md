@@ -2,6 +2,33 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 28 Ekim: 0.2.6 — “ccusage'dan farkı ne?”: oturumlar değiştirdikleri depoya bağlanıyor
+
+PLER'in token saymanın ötesindeki asıl farkı, oturumu Git'teki sonucuyla yan yana koymak. Codex'in 26 Ekim'deki ilk sürümü yalnız oturumun açıldığı klasöre bakıyordu. Bu bilgisayarda bu yaklaşım hiçbir şey göstermedi.
+
+**Nedeni:** Ajan çoğu zaman bir üst klasörde başlatılıyor ve içerideki bir depoyu değiştiriyor. Bazı oturumların proje bilgisi de belirsiz.
+
+**Çözüm:** Oturum artık düzenlediği dosyaların bulunduğu depolara da bağlanıyor. Codex yamalarının hedef dosyaları da okunuyor; yamanın içeriği tutulmuyor.
+
+| Bu bilgisayarın gerçek kayıtları (29 oturum) | Önce | Sonra |
+|---|---:|---:|
+| Okunabilir Git geçmişine bağlanan oturum | 1 | 6 |
+| Oturum sırasında Git hareketi görülen oturum | 0 | 4 |
+| Bu oturumlardaki hareketler | 0 | 70 (67 commit) |
+| Bu oturumların tokenlardaki payı | %0 | %69 |
+
+- **Gerçek kontrol:** Bu oturumun ekranı, `product/` deposunda oturum sırasında yapılan 4 commit'i tam olarak gösteriyor. Oturumun proje bilgisi belirsiz olduğu hâlde bağlantı düzenlenen dosyalardan kuruldu.
+- **Sayım değişmedi:** 128 sabit gerçek dosyada 0.2.5 ile 0.2.6'nın token, çağrı ve kalite bayrakları aynı. Yalnız 8 Codex oturumu artık düzenlediği dosyaları bildiriyor.
+- **Testler:** Windows'ta 237, Python 3.14 ile Windows ve Linux'ta 246, tarayıcı mantığında 18 test geçti. Yeni 10 test şunları sınıyor: yama hedefleri, bağlantı kuralı, birden çok depo, ağ yolu güvenliği ve gizlilik.
+
+[Kanıt ve sınırlar](../reports/git-links-v1/REPORT.md).
+
+**Sınır:**
+- Bu hâlâ "oturum sırasında yerel Git'te ne oldu" sorusunun cevabı. Commit'in korunup korunmadığı ya da geri alınıp alınmadığı henüz yok.
+- Aynı anda başka kişiler veya ajanlar da çalışmış olabilir.
+- Düzenleme sayısı, kayda geçen düzenleme girişimidir.
+- Sonraki adım: oturumun commit'lerinin bugün dalda durup durmadığı. Bu, Git nesnelerini okumayı gerektirir; okuma sınırı genişleyeceği için ayrı bir karar konusudur.
+
 ## 28 Ekim: “İlk açılışta çok bekliyorum” — Python'suz pakette 3 kat hız
 
 Boş önbellekle ilk okumanın yaklaşık %80'i sıkıştırılmış Codex kayıtlarını saf Python ile açmaya gidiyordu (Windows'ta 19,2 saniyelik Codex okumasının 15,3 saniyesi). Python 3.14'ün yerleşik zstd çözücüsü aynı baytları 40 kat hızlı üretiyor.
@@ -120,7 +147,7 @@ Bu önceki değerlendirmede ürün kodu değiştirilmedi. Mevcut 124 test yenide
 | P1 | “Geçici okuma hatası önbellekte takılı kalır.” | Erişimi yarıda kesilen Claude dosyası önbelleğe alınmaz; bozuk satır ile erişim hatası aynı dosyada olsa da sonraki okuma tekrar dener. Okunurken büyüyen dosya eski imzayla kaydedilmez. Hatalı önbellek yazımının geçici dosyası temizlenir. | Senaryolar regresyonla giderildi. Tüm dosya sistemlerinde atomik işlem veya eşzamanlı mutasyona tam garanti verilmez. |
 | P1 | “Paylaştığım özet özel bilgiler taşır mı?” | Terminal JSON'u da ekranın açık alan listesine geçti: kaynak yolları, ham kimlikler, dal ve düzenlenen dosya yolları çıkarıldı. Kaynak hataları yol içermez. İstek, yanıt ve komutlar özetlere alınmaz. | Yeniden üretilen sızıntı giderildi. Kısa proje adları, zaman, model ve sayılar hâlâ özel olabilir; anonim paylaşım iddiası yok. |
 | P1 | “Hangi sürümü kullanıyorum; güncellemede ekran karışır mı?” | Sürüm 0.1.2'ye ilerledi; JSON ve önbellek değişiklikleri değişiklik kaydında. Açık sunucu başladıktan sonra değişen sayfa dosyalarını karıştırmıyor; yeni sürüm için yeniden başlatılıyor. | Aynı sunucuda eski/yeni dosyaların karışması sınandı. Otomatik güncelleme veya imzalı dağıtım sağlanmış sayılmaz. |
-| P1 | “ccusage yerine neden bunu kullanayım?” | İki ajanın görünümü mevcut; Git'in ilk eşleştirmesinde gerçek örneklerde eşleşen olay çıkmadı. | Açık. Profesyonelin kendi işiyle, mevcut alternatife karşı tekrar kullanılma nedeni gösterilmeli. Yeni özellik sayısı bu soruyu kapatmaz. |
+| P1 | “ccusage yerine neden bunu kullanayım?” | İki ajanın görünümü mevcut; Git'in ilk eşleştirmesinde gerçek örneklerde eşleşen olay çıkmadı. **28 Ekim (0.2.6):** Oturumlar düzenledikleri depoya bağlanıyor; gerçek kayıtlarda tokenların %69'u oturum sırasında commit görülen oturumlarda. | Açık. Profesyonelin kendi işiyle, mevcut alternatife karşı tekrar kullanılma nedeni gösterilmeli. Yeni özellik sayısı bu soruyu kapatmaz. |
 | P2 | “Yayın ve destek şartları belli değil.” | PyPI yayını, lisans ve imzalı kurulum henüz yok. | Açık. Yayın lisansı/adı, sürümleme ve destek kapsamı belirlenmeden “dağıtıma hazır” denmez. |
 
 Bu tur gerçek Claude ayarı değiştirilmedi; model deneyi, ücretli ajan çağrısı, harici kota sorgusu veya yayın yapılmadı. Kanıtlar: [0.1.2 güvenilirlik ve hız raporu](../reports/reliability-v2/REPORT.md), [bozuk arşiv önce](../reports/reliability-v2/corrupt-before.json), [sonra](../reports/reliability-v2/corrupt-after.json), [sabit arşiv ölçümü](../reports/reliability-v2/final-benchmark.json). Önceki tur: [0.1.1 raporu](../reports/company-readiness-v1/REPORT.md).

@@ -2,11 +2,17 @@
 from collections import defaultdict
 import os
 from pathlib import Path
+import re
 
 from . import accounting as rules
 from . import discovery
 from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
+
+
+def _absolute(path):
+    # A drive (C:/ or C:\) or root path counts as absolute on every system the log may come from.
+    return os.path.isabs(path) or bool(re.match(r'[A-Za-z]:[\\/]|[\\/]',path))
 
 
 def codex_sessions(paths,cache,reader,decode):
@@ -160,9 +166,17 @@ def codex_sessions(paths,cache,reader,decode):
             session.project=next(iter(projects[identity])) if len(projects[identity])==1 else next(iter(evidence.values()))
     for path,session,rows in streams:
         occurrences=defaultdict(int)
+        cwd=None
         for row in rows:
             payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
             kind,sub=row.get('type'),payload.get('type')
+            if kind in ('session_meta','turn_context') and isinstance(payload.get('cwd'),str) and payload['cwd']:
+                cwd=payload['cwd']
+            if isinstance(payload.get('edited_files'),list):
+                # Patch targets may be relative to the working folder of that moment.
+                payload=dict(payload,edited_files=[os.path.normpath(p if _absolute(p) else os.path.join(cwd,p))
+                                                   for p in payload['edited_files']
+                                                   if isinstance(p,str) and (cwd or _absolute(p))])
             if not (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted')
                     or kind=='response_item' and sub in ('function_call','custom_tool_call')): continue
             identity=payload.get('call_id') if kind=='response_item' else payload.get('turn_id')
@@ -251,6 +265,7 @@ def codex_sessions(paths,cache,reader,decode):
         else:
             names={p.get('name') for p in payloads if isinstance(p.get('name'),str)}
             target.count(target.tools,next(iter(names)) if len(names)==1 else 'unknown')
+            for p in payloads: target.files_edited.update(p.get('edited_files') or ())
     for session in sessions.values():
         session.quota.sort(key=lambda sample:sample[0])
         if 'codex-auto-review' in session.model_tokens:

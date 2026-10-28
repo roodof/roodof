@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.5 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.6 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Identity and copies
 
@@ -39,6 +39,12 @@ Retained cumulative counters do not prove that related histories are disjoint. W
 Subagent threads of one Codex session keep its `session_id`, carry their own thread `id` and name the root or a sibling thread as `parent_thread_id`. That lineage is inside the merged session and is not parent evidence. Only parents outside the merged session count: exactly one becomes the session's parent; several different outside parents, a thread naming itself, or a parent cycle leave the parent unknown, attribution incomplete and totals incomplete. Metadata order never chooses between contradictory parents.
 
 A file with only a compaction marker is an explicit unknown boundary, not a known empty session. Sessions with only aborts, tool calls, quota samples or completions are kept without inventing calls or tokens. Metadata-only and context-only files do not create active sessions. Parser version `accounting-2026-10-28.3` records these rules; schema 2 is unchanged.
+
+### Edited files and Git links
+
+Claude Code edit tools name one target file each. A Codex patch names its targets in `*** Add/Update/Delete File:` and `*** Move to:` headers. The patch may sit inside a code or JSON string, so escapes are undone first. Only the target paths are kept, at most 200 per call, never the patch body; relative targets resolve against the working folder in effect at that moment. Edited-file counts are logged intentions: a failed or later reverted edit still counts. Parser version `accounting-2026-10-28.4` adds Codex targets; token and call accounting is unchanged.
+
+A session is linked to the repository of its working folder and to the nearest repository above each edited file (never at or above the home folder, never through a network path or a user link). Its Git view merges the local HEAD reflog events of every linked repository within the session's time span. The public view reports how many repositories were checked and why, never their paths.
 
 ## Numbers, models and events
 
