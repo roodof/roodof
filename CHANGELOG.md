@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.10 — 2026-10-28
+
+- Read explicitly selected WSL log roots on Windows through either standard WSL host spelling. A per-scan capability covers only that subtree and requires a fresh running-distribution status before discovery and reader access. Ordinary UNC/device paths remain refused before probing; Git/project/cache paths stay strict.
+- Use only the fixed, bounded System32 WSL status command, with no shell or distribution launch. Explain stopped/unavailable distributions in both languages. No automatic WSL discovery is performed.
+- Preserve case-sensitive WSL file identities during discovery and reconciliation. Resolve a selected local link before its following parent-directory component instead of choosing another folder by early normalization.
+
+Real invented WSL records changed from zero sessions in 0.2.9 to two sessions and 350 tokens; both host spellings and both selection methods matched. Windows-from-Linux mount reading and case-only file names were verified separately. See [evidence and limits](../reports/wsl-roots-v1/REPORT.md).
+
 ## 0.2.9 — 2026-10-28 (local candidate)
 
 - Follow the user's own link or junction to a log folder: `~/.claude`, `~/.codex`, their `projects`/`sessions` folders, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` and `--codex-dir`. Someone who moved these folders to another disk and left a link behind previously saw no records and an "UnsafePath" skip. Each link is read without being followed, so a target with network, volume or device syntax is refused before anything there is touched; loops stop after 32 links. Links inside a log folder, other Windows reparse points, project paths read from logs, Git metadata and the cache folder keep the previous rules.

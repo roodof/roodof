@@ -1,4 +1,5 @@
-"""What PLER promises, checked: it calls no model, sends nothing anywhere, starts no program and only reads logs.
+"""What PLER promises, checked: it calls no model, sends nothing to external services and only reads logs.
+The only process exception is the fixed WSL status query for an explicitly selected WSL root.
 
 The source is checked statically (no module that can open a connection or start a process is imported), and a
 whole run is checked at runtime (a scan and every page request, with outgoing connections and new processes
@@ -18,7 +19,7 @@ import threading
 import unittest
 from unittest import mock
 
-from pler import cli
+from pler import cli, __version__
 from pler.server import Server
 from test_logs import SECRET, USAGE, claude_reply, codex_rows, stored_zstd, write_jsonl
 
@@ -46,6 +47,8 @@ class SourceTests(unittest.TestCase):
             tree = ast.parse(path.read_text(encoding='utf-8'))
             for name in imported(tree):
                 with self.subTest(file=path.name, module=name):
+                    if path.name == 'wsl.py' and name == 'subprocess':
+                        continue  # Only the fixed, read-only running-distribution query is allowed here.
                     self.assertFalse(any(name == bad or name.startswith(bad + '.') for bad in FORBIDDEN))
                     if name in ONLY_IN:
                         self.assertEqual(path.name, ONLY_IN[name])
@@ -137,7 +140,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(self.connections, [])
         with self.assertRaises(SystemExit) as stopped, contextlib.redirect_stdout(io.StringIO()) as shown:
             cli.main(['--version'])
-        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'PLER 0.2.9'))
+        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'PLER ' + __version__))
 
 
 if __name__ == '__main__':

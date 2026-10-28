@@ -2,6 +2,14 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 28 Ekim: 0.2.10 — açıkça seçilen WSL kayıtları
+
+Windows'ta açıkça seçilen iki WSL yol yazımı artık çalışır. Aynı uydurma gerçek WSL dosyalarında 0.2.9 sıfır oturum gösterirken 0.2.10 iki oturum ve 350 tokenı okudu. Hem ortam değişkeni hem açık klasör seçenekleri doğrulandı. Linux'tan Windows'a `/mnt/c` okuması aynı sonucu verdi. Harf büyüklüğüyle ayrılan iki WSL dosyası da korunuyor.
+
+Kapalı dağıtımın gerçek durum sorgusunda dosya sorgusu yapılmadı ve dağıtım kapalı kaldı. Ürün yalnız sabit durum sorgusunu çalıştırır; dağıtım başlatmaz veya otomatik kayıt aramaz. Gerçek ağ, aygıt ve birim yolları ile Git/proje/önbellek sınırları korunur. Durum kontrolü ile dosya erişimi arasında dışarıdan kapatılmaya karşı atomik garanti yoktur.
+
+Windows 3.9 ve 3.12'de 278 test geçti; yerleşik çözücü isteyen dokuz test bu sürümlerde yoktur. Windows 3.14 ve Linux'ta 287/287, tarayıcı mantığında 18/18 geçti. Kurulmuş pakette de 278 kabul testi geçti; 31 kaynak/arayüz dosyası birebir eşleşti. Bütün sonuçlar [çalışma raporunda](../reports/wsl-roots-v1/REPORT.md). Kaybolan kaynakların arşivi ve yeniden düzenleme gözlemi sonraki iki aşamadır; bu sürümde tamamlanmış sayılmaz.
+
 ## 28 Ekim: 0.2.9 — taşınmış kayıt klasörü artık "kayıt yok" göstermiyor
 
 Kayıt klasörünü (`~/.claude`, `~/.codex` ya da içindeki `projects`/`sessions`) başka bir diske taşıyıp yerine sembolik bağlantı veya Windows junction'ı bırakan biri, PLER'de hiç kayıt görmüyordu. PLER bu bağlantıyı güvensiz yol sayıp atlıyordu. Pilotta böyle bir katılımcı, ürünü bozuk sanıp yanlış bir "veri yok" sonucu verirdi.

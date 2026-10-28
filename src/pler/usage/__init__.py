@@ -28,15 +28,16 @@ def scan(claude_folders=None, codex_folders=None):
     unchanged logs are not decompressed and parsed again; explicitly given folders are always read. With the
     default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota']."""
     skipped=[]
-    claude_files = claude_code.files(claude_folders,skipped)
-    codex_files = codex.files(codex_folders,skipped)
+    access=claude_code.discovery.WslRoots()
+    claude_files = claude_code.files(claude_folders,skipped,access)
+    codex_files = codex.files(codex_folders,skipped,access)
     cached = FileCache('codex', version(codex, records, zstd, unzstd, xxh64, accounting, reconcile)) if codex_folders is None else None
-    codex_sessions, codex_skipped = codex.read(codex_files, cached)
+    codex_sessions, codex_skipped = codex.read(codex_files, cached,access)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
     claude_cache = FileCache('claude', version(claude_code, records, accounting)) if claude_folders is None else None
-    sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache) + codex_sessions)
+    sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access) + codex_sessions)
     if claude_cache:
         claude_cache.save()
     return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,

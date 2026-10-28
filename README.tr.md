@@ -49,6 +49,16 @@ pler demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
 
 Her **Kayıtları yeniden oku**, verileri şimdiki zamana göre yeniden kurar. Windows'un Python'suz paketinde aynı iş için `PLER-Demo.cmd` var.
 
+## Windows'ta WSL kayıt klasörleri
+
+PLER WSL dağıtımlarını otomatik aramaz. Dağıtımı kendiniz açıp kayıt kökünü `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` veya `--codex-dir` ile açıkça seçin. Hem `\\wsl.localhost\Ubuntu\...` hem `\\wsl$\Ubuntu\...` desteklenir. Ortam değişkenleri ajanın ana/ayar klasörünü, komut seçenekleri projects/sessions klasörünü gösterir.
+
+PLER okumadan önce yalnız Windows System32 içindeki sabit `wsl.exe --list --running --quiet` durum sorgusunu çalıştırır. Kapalı veya durumu öğrenilemeyen dağıtım açıklamayla atlanır; başlatma, kurulum veya otomatik bulma komutu kullanılmaz. Okuyucu aşamasından önce durum yeniden denetlenir. Durum kontrolü ile Windows dosya erişimi arasında dağıtımın başka bir işlem tarafından kapatılmasına karşı atomik yalıtım sağlanmaz.
+
+Git/proje ve önbellek yolları ile kayıt klasörünün içindeki bağlantılar daha sıkı kurallarını korur. Yerel bir bağlantı taramayı sessizce WSL'ye ya da ağ paylaşımına yönlendiremez. Gerçek UNC, aygıt ve birim yolları sorgulanmadan reddedilir.
+
+Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerini `/mnt/c` üzerinden aynı seçeneklerle seçebilirsiniz. Önbelleği Linux ortamında tutun. Bu yol normal yerel bağlama yollarını kullanır; Windows WSL durum sorgusu gerekmez.
+
 ## Ne gösterir
 
 - **Durumun:** Kayıtlardan çıkan, dayanağı yanında yazan gözlemler. Örneğin uzun oturumlarda her model çağrısının kısa oturumlara göre kaç kat token harcadığı, ya da harcamanın çoğunun tek bir oturumda toplanması.

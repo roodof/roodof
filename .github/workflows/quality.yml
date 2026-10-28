@@ -1,7 +1,6 @@
 name: Product acceptance
 
-# Keep this file in .github/workflows when product/ becomes the repository root.
-# This checkout has no connected repository; adding the file does not run CI.
+# This file runs from the standalone product repository on explicit workflow dispatch.
 on:
   workflow_dispatch:
 

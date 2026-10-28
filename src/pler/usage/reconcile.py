@@ -15,7 +15,7 @@ def _absolute(path):
     return os.path.isabs(path) or bool(re.match(r'[A-Za-z]:[\\/]|[\\/]',path))
 
 
-def codex_sessions(paths,cache,reader,decode):
+def codex_sessions(paths,cache,reader,decode,access=None):
     sessions,streams,issues,projects = {},[],[],defaultdict(set)
     parents,threads,compactions,activity = defaultdict(list),defaultdict(set),set(),set()
     responses,events,checkpoints,locations = defaultdict(list),defaultdict(list),defaultdict(list),defaultdict(list)
@@ -43,8 +43,9 @@ def codex_sessions(paths,cache,reader,decode):
         if ownership:
             session.attribution_complete=False
             session.issues.add('shared_attribution')
-    for path in sorted(set(map(Path,paths)),key=str):
-        path=discovery.local(path,issues)
+    if access is not None: access.read_phase()
+    for path in discovery.unique(paths):
+        path=discovery.local(path,issues,access)
         if path is None: continue
         try:
             rows=cache.get(path) if cache else None

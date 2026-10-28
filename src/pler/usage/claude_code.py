@@ -14,16 +14,18 @@ from . import accounting, discovery
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
 
 
-def roots(skipped=None):
+def roots(skipped=None, access=None):
     """Claude Code config folders: CLAUDE_CONFIG_DIR (comma-separated allowed), else ~/.config/claude and ~/.claude."""
     configured = os.environ.get('CLAUDE_CONFIG_DIR')
     bases = ([Path(part.strip()).expanduser() for part in configured.split(',') if part.strip()] if configured
              else [Path.home() / '.config' / 'claude', Path.home() / '.claude'])
-    return discovery.folders(bases,('projects',),skipped)
+    return discovery.folders(bases,('projects',),skipped,access,explicit=bool(configured))
 
 
-def files(folders=None, skipped=None):
-    return discovery.files(roots(skipped) if folders is None else folders,lambda name:name.endswith('.jsonl'),skipped)
+def files(folders=None, skipped=None, access=None):
+    access=access if access is not None else discovery.WslRoots()
+    return discovery.files(roots(skipped,access) if folders is None else folders,
+                           lambda name:name.endswith('.jsonl'),skipped,access,explicit=folders is not None)
 
 
 def _tokens(usage):
@@ -143,13 +145,14 @@ def _rows(path):
     return rows
 
 
-def read(paths, skipped=None, cache=None):
+def read(paths, skipped=None, cache=None, access=None):
     """Merge copies before attribution; source order never determines a project's usage."""
     from collections import defaultdict
     sessions, replies, prompts = {}, defaultdict(list), defaultdict(list)
     projects, branches = defaultdict(set), defaultdict(set)
-    for path in sorted(set(map(Path,paths)),key=str):
-        path=discovery.local(path,skipped)
+    if access is not None: access.read_phase()
+    for path in discovery.unique(paths):
+        path=discovery.local(path,skipped,access)
         if path is None: continue
         try:
             rows=cache.get(path) if cache else None

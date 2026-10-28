@@ -125,6 +125,21 @@ class LinkedRootTests(unittest.TestCase):
                 self.assertEqual([path.name for path in found], ['s1.jsonl'])
                 self.assertEqual([(Path(path).name, reason) for path, reason in issues], [('other', 'UnsafePath')])
 
+    def test_parent_after_a_link_resolves_at_its_target_instead_of_the_link_location(self):
+        for make in self.makers:
+            with self.subTest(link=make.__name__):
+                case = self.root / make.__name__
+                home = case / 'home'
+                home.mkdir(parents=True)
+                destination = case / 'disk' / 'nested'
+                destination.mkdir(parents=True)
+                source = self.claude_session(case / 'disk' / 'projects')
+                make(destination, home / 'moved')
+                chosen = home / 'moved' / '..' / 'projects'
+                self.assertEqual(paths.user_folder(chosen), case / 'disk' / 'projects')
+                found = discovery.files([chosen], lambda name: name.endswith('.jsonl'))
+                self.assertEqual(found, [source])
+
 
 class LinkTargetTests(unittest.TestCase):
     """Simulated links: the network, loop and reparse cases must never depend on a real share or privilege."""

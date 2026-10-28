@@ -1,8 +1,8 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the only actions are "read the logs again" and "close". It starts no program and opens no
-connection to anywhere else.
+command; the only actions are "read the logs again" and "close". It opens no connection to an external service. Selected WSL log roots allow only the fixed
+local running-distribution status query; no Git or agent program runs.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json

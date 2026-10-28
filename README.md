@@ -5,7 +5,7 @@
 See what Claude Code and Codex used, from their own logs on your computer: tokens by project and model, where your subscription quota is heading, and where usage builds up.
 
 - **Calls no model.** Measuring costs zero tokens.
-- **Sends nothing.** No network access; the page opens on this computer only (`127.0.0.1`).
+- **Sends nothing to external services.** The page opens on this computer only (`127.0.0.1`). Explicit WSL log roots on this computer are supported; other network shares stay refused.
 - **Agent logs stay unchanged.** PLER keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
 - **Any programming language.** It reads agent logs and local Git activity metadata, not source code.
 
@@ -42,6 +42,16 @@ pler demo               # the page with invented logs and an invented Git reposi
 **Try it without your own data:** `pler demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside PLER's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `PLER-Demo.cmd` for the same.
 
 **Language:** the page follows your browser and has an English / Türkçe switch at the top. The terminal speaks Turkish on a Turkish system and English elsewhere; choose with `PLER_LANG=en` or `PLER_LANG=tr`.
+
+## WSL log folders on Windows
+
+PLER does not search WSL distributions automatically. Open the distribution yourself, then explicitly select its log root with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` or `--codex-dir`. Both `\\wsl.localhost\Ubuntu\...` and `\\wsl$\Ubuntu\...` are supported. An environment variable names the agent home/config folder; the command options name the projects/sessions folder.
+
+Before reading a selected WSL root, PLER runs only the fixed local `wsl.exe --list --running --quiet` status query from Windows System32. A stopped or unknown distribution is skipped with an explanation; no launch, install or discovery command is used. The state is checked again before the reader phase. A concurrent external shutdown between the status check and Windows filesystem access is not an atomic isolation boundary.
+
+Git/project paths, cache paths and links inside log roots keep their stricter rules. A local link cannot silently redirect the scan into WSL or another network share. Ordinary UNC, device and volume paths are refused before probing.
+
+Alternatively run PLER inside WSL and explicitly select Windows log folders through `/mnt/c` with the same options. Keep the cache inside that Linux environment. This route uses normal local mount paths and needs no Windows WSL status query.
 
 ## What it shows
 
@@ -135,8 +145,8 @@ The [quality register](QUALITY.md) separates fixed defects from unresolved reaso
 ## Checking the promises
 
 [tests/test_trust.py](tests/test_trust.py) checks that:
-- the source imports no module that can open a connection or start a program;
-- a whole session talks only to `127.0.0.1` and starts no program;
+- only the local HTTP/browser components and the fixed, explicitly selected WSL status query may use connection/process modules;
+- a local-log session talks only to `127.0.0.1` and starts no program; selected WSL roots permit only the documented running-state query;
 - no log text reaches the page or the cache.
 
 [tests/test_i18n.py](tests/test_i18n.py) checks that English and Turkish have the same entries and placeholders, and that every word the code and the page use exists in both.
