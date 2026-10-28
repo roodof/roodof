@@ -137,7 +137,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(self.connections, [])
         with self.assertRaises(SystemExit) as stopped, contextlib.redirect_stdout(io.StringIO()) as shown:
             cli.main(['--version'])
-        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'PLER 0.2.6'))
+        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'PLER 0.2.7'))
 
 
 if __name__ == '__main__':

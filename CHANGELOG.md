@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.7 — 2026-10-28 (local candidate)
+
+- For commits recorded during a session, show whether each is still on a local or remote-tracking branch, or was amended, rebased, reset or left on a deleted branch. Commit objects are read directly: loose files and version-2 packs, including offset and reference deltas, SHA-1 and SHA-256. Only parent ids and committer time are used; names, email addresses, messages, trees and files are never kept or opened. Missing or shallow history, borrowed objects, refused links and the 20,000-commit bound give `unknown`, never a guess.
+- The period summary adds an observation: how many sessions recorded how many commits, each counted once, and how many are still on a branch. The token share of those sessions is shown only when usage is complete.
+- Session JSON adds `commits` counts and a per-event `on_branch`. The view adds `git_outcome`. Accounting and export schema 2 are unchanged.
+
+The branch answers matched git's own on invented repositories with amend, reset, rebase and a deleted branch, for loose objects, a pack and an aggressive delta pack, in SHA-1 and SHA-256. On a 30,000-commit pack, a recent commit was found in 0.07 s; a dropped one was confirmed in 0.56 s; the worst case stopped at the bound after 3.3 s. On this computer's logs, 4 sessions recorded 68 commits and all 68 are still on a branch. Tests: 248 on Windows with Python 3.9 and 3.12, 257 with Python 3.14 on Windows and Linux, plus 18 browser-logic tests. See the [evidence](../reports/git-outcome-v1/REPORT.md).
+
 ## 0.2.6 — 2026-10-28 (local candidate)
 
 - Link each session to the Git repositories holding the files it edited, not only to its working folder. An agent started in a parent folder, or a session whose project is unknown, now shows the commits recorded in the repository it changed. Events of several linked repositories are merged. The page names how many repositories were checked, never their paths.

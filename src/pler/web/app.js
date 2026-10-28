@@ -146,9 +146,14 @@ const I18N=/*I18N*/{
 "detail_intro": "The record span is the time between the first and last event and includes waiting. Working time is shown only when the agent logged it.",
 "models_in_session": "Models in this session",
 "git_title": "Git during this session",
-"git_scope": "Local Git events between this session's first and last record. Other people and agents may have been working at the same time; these events do not prove authorship or that changes were kept.",
+"git_scope": "Local Git events between this session's first and last record. Other people and agents may have been working at the same time; these events do not prove authorship. A commit still on a branch may have been undone by a later commit.",
 "git_no_repo": "Neither this session's folder nor the files it edited are in an available local Git repository.",
 "git_linked": "Repositories checked: {repos}. A repository counts when the session started in it or edited a file in it, so an agent started in a parent folder is still linked to the repository it changed.",
+"git_outcome": "Commits recorded in this time: {kept} of {total} are still on a local or remote-tracking branch.",
+"git_outcome_off": "{n} are no longer on any branch: amended, rebased, reset or on a deleted branch. A rewritten commit can still carry the same change.",
+"git_outcome_unknown": "{n} could not be checked: missing or borrowed objects, a shallow or very long history.",
+"git_on_branch": "on a branch",
+"git_off_branch": "not on a branch",
 "git_no_history": "This repository has no readable local HEAD history. It may be disabled or expired; no activity count can be inferred.",
 "git_unavailable": "Local Git history could not be read. Your usage totals are still available.",
 "git_not_scanned": "Git history has not been checked in this snapshot. Read the logs again to check it.",
@@ -384,9 +389,14 @@ const I18N=/*I18N*/{
 "detail_intro": "Kayıt aralığı ilk ve son olay arasındaki zamandır; beklemeleri de içerir. Çalışma süresi yalnız ajan kaydettiyse gösterilir.",
 "models_in_session": "Bu oturumdaki modeller",
 "git_title": "Oturum sırasında Git",
-"git_scope": "Oturumun ilk ve son kaydı arasındaki yerel Git hareketleri. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu hareketler yazarı veya değişikliklerin korunduğunu kanıtlamaz.",
+"git_scope": "Oturumun ilk ve son kaydı arasındaki yerel Git hareketleri. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu hareketler yazarı kanıtlamaz. Hâlâ dalda olan bir commit sonraki bir commit'le geri alınmış olabilir.",
 "git_no_repo": "Ne bu oturumun klasörü ne de düzenlediği dosyalar erişilebilir bir yerel Git deposunda.",
 "git_linked": "Kontrol edilen depolar: {repos}. Oturum bir depoda başladıysa ya da bir deponun dosyasını düzenlediyse o depo sayılır; böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır.",
+"git_outcome": "Bu sürede kaydedilen commit'ler: {total} commit'ten {kept} tanesi hâlâ yerel ya da uzak izleme dalında.",
+"git_outcome_off": "{n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı. Yeniden yazılan bir commit aynı değişikliği taşımaya devam edebilir.",
+"git_outcome_unknown": "{n} tanesi kontrol edilemedi: eksik ya da başka depodan ödünç nesneler, sığ ya da çok uzun geçmiş.",
+"git_on_branch": "dalda",
+"git_off_branch": "dalda değil",
 "git_no_history": "Bu depoda okunabilir yerel HEAD geçmişi yok. Kayıt kapalı veya süresi dolmuş olabilir; hareket sayısı çıkarılamaz.",
 "git_unavailable": "Yerel Git geçmişi okunamadı. Kullanım toplamların gösterilmeye devam ediyor.",
 "git_not_scanned": "Bu özette Git geçmişi kontrol edilmemiş. Kontrol etmek için kayıtları yeniden oku.",
@@ -607,8 +617,12 @@ function renderGitActivity(content,activity){
   if(activity.matched_events){
     const counts=node('div','git-counts');
     for(const [kind,n] of Object.entries(activity.counts)){const item=node('div');item.append(node('strong','',number(n)),node('span','',t(gitLabels[kind]||'git_other')));counts.append(item);}box.append(counts);
+    const made=activity.commits;
+    if(made?.total){box.append(node('p','git-outcome',t('git_outcome',{kept:number(made.on_branch),total:number(made.total)})));
+      if(made.off_branch)box.append(node('p','',t('git_outcome_off',{n:number(made.off_branch)})));
+      if(made.unknown)box.append(node('p','',t('git_outcome_unknown',{n:number(made.unknown)})));}
     const details=node('details','git-events'),summary=node('summary','',t('git_details')),list=node('ol');details.open=activity.events.length<=5;
-    for(const event of activity.events){const item=node('li'),time=node('time','',usageDate(event.at));time.dateTime=event.at;const label=node('span','',t(gitLabels[event.kind]||'git_other'));if(event.commit)label.append(node('code','git-event-ref',event.commit));item.append(time,label);list.append(item);}
+    for(const event of activity.events){const item=node('li'),time=node('time','',usageDate(event.at));time.dateTime=event.at;const label=node('span','',t(gitLabels[event.kind]||'git_other'));if(event.commit)label.append(node('code','git-event-ref',event.commit));if(event.on_branch!=null)label.append(node('small','git-branch'+(event.on_branch?'':' git-branch-off'),t(event.on_branch?'git_on_branch':'git_off_branch')));item.append(time,label);list.append(item);}
     details.append(summary,list);box.append(details);
     if(activity.omitted_events)box.append(node('p','',t('git_more',{n:number(activity.omitted_events)})));
   }else box.append(node('p','',t('git_zero')));

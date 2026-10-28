@@ -2,6 +2,25 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 28 Ekim: 0.2.7 — “Harcanan tokenlar işe yaradı mı?”: commit'ler hâlâ dalda mı?
+
+Kullanıcının izniyle Git okuma sınırı genişletildi. Artık commit nesnelerinin de ebeveyn bağları ve zamanları okunuyor. İsim, e-posta, mesaj, ağaç ve dosya okunmuyor; Git programı çalışmıyor.
+
+Oturum sırasında kaydedilen her commit için şu soru cevaplanıyor: hâlâ yerel ya da uzak izleme dalında mı, yoksa amend, rebase, reset ya da silinen dal yüzünden dalın dışında mı? Okunamayan durumlar tahmin edilmeden "bilinmiyor" olarak bırakılıyor. Dönem özetine bir gözlem eklendi: kaç oturumda kaç commit kaydedildi ve kaçı hâlâ dalda. Her commit, oturumlar çakışsa da bir kez sayılıyor.
+
+- **Doğruluk:** Uydurma depolarda (amend, reset, rebase, silinen dal) sonuçlar Git'in kendi cevabıyla 12 denetimde birebir aynı. Denetimler SHA-1 ve SHA-256 depolarda, tek tek nesne dosyaları, paket ve delta sıkıştırmalı paket biçimlerinde yapıldı.
+- **Hız:** 30.000 commit'lik pakette yeni bir commit 0,07 sn, dalın dışına çıkmış bir commit 0,56 sn sürüyor. En kötü durum 3,3 sn'de sınıra gelip "bilinmiyor" diyor.
+- **Gerçek kayıtlar:** 4 oturum sırasında 68 commit kaydedilmiş, 68'i de hâlâ dalda. Bu oturumlar tokenların yaklaşık %70'ini kullanmış. Kullanım eksiksiz olmadığı için bu pay ekranda gösterilmiyor.
+- **Testler:** Windows'ta 248, Python 3.14 ile Windows ve Linux'ta 257, tarayıcı mantığında 18 test geçti. 11'i yeni.
+
+[Kanıt](../reports/git-outcome-v1/REPORT.md).
+
+**Sınır:**
+- "Dalda" demek değişikliğin hâlâ kodda durduğu anlamına gelmez; sonraki bir commit onu geri almış olabilir.
+- "Dalda değil" de değişikliğin kaybolduğu anlamına gelmez; yeniden yazılan bir commit aynı değişikliği taşıyabilir.
+- Geri alma (revert) commit'lerini tanımak için mesaj okumak gerekir; bu bilerek yapılmıyor.
+- Zaman eşleşmesi yazarlığı kanıtlamaz.
+
 ## 28 Ekim: 0.2.6 — “ccusage'dan farkı ne?”: oturumlar değiştirdikleri depoya bağlanıyor
 
 PLER'in token saymanın ötesindeki asıl farkı, oturumu Git'teki sonucuyla yan yana koymak. Codex'in 26 Ekim'deki ilk sürümü yalnız oturumun açıldığı klasöre bakıyordu. Bu bilgisayarda bu yaklaşım hiçbir şey göstermedi.
@@ -147,7 +166,7 @@ Bu önceki değerlendirmede ürün kodu değiştirilmedi. Mevcut 124 test yenide
 | P1 | “Geçici okuma hatası önbellekte takılı kalır.” | Erişimi yarıda kesilen Claude dosyası önbelleğe alınmaz; bozuk satır ile erişim hatası aynı dosyada olsa da sonraki okuma tekrar dener. Okunurken büyüyen dosya eski imzayla kaydedilmez. Hatalı önbellek yazımının geçici dosyası temizlenir. | Senaryolar regresyonla giderildi. Tüm dosya sistemlerinde atomik işlem veya eşzamanlı mutasyona tam garanti verilmez. |
 | P1 | “Paylaştığım özet özel bilgiler taşır mı?” | Terminal JSON'u da ekranın açık alan listesine geçti: kaynak yolları, ham kimlikler, dal ve düzenlenen dosya yolları çıkarıldı. Kaynak hataları yol içermez. İstek, yanıt ve komutlar özetlere alınmaz. | Yeniden üretilen sızıntı giderildi. Kısa proje adları, zaman, model ve sayılar hâlâ özel olabilir; anonim paylaşım iddiası yok. |
 | P1 | “Hangi sürümü kullanıyorum; güncellemede ekran karışır mı?” | Sürüm 0.1.2'ye ilerledi; JSON ve önbellek değişiklikleri değişiklik kaydında. Açık sunucu başladıktan sonra değişen sayfa dosyalarını karıştırmıyor; yeni sürüm için yeniden başlatılıyor. | Aynı sunucuda eski/yeni dosyaların karışması sınandı. Otomatik güncelleme veya imzalı dağıtım sağlanmış sayılmaz. |
-| P1 | “ccusage yerine neden bunu kullanayım?” | İki ajanın görünümü mevcut; Git'in ilk eşleştirmesinde gerçek örneklerde eşleşen olay çıkmadı. **28 Ekim (0.2.6):** Oturumlar düzenledikleri depoya bağlanıyor; gerçek kayıtlarda tokenların %69'u oturum sırasında commit görülen oturumlarda. | Açık. Profesyonelin kendi işiyle, mevcut alternatife karşı tekrar kullanılma nedeni gösterilmeli. Yeni özellik sayısı bu soruyu kapatmaz. |
+| P1 | “ccusage yerine neden bunu kullanayım?” | İki ajanın görünümü mevcut; Git'in ilk eşleştirmesinde gerçek örneklerde eşleşen olay çıkmadı. **28 Ekim (0.2.6–0.2.7):** Oturumlar düzenledikleri depoya bağlanıyor ve oturumdaki commit'lerin hâlâ dalda olup olmadığı görünüyor. Gerçek kayıtlarda 68 commit'in 68'i dalda; bu oturumlar tokenların yaklaşık %70'ini kullanmış. Kalan: gerçek bir profesyonelin bu bilgiyle karar verip vermediği. | Açık. Profesyonelin kendi işiyle, mevcut alternatife karşı tekrar kullanılma nedeni gösterilmeli. Yeni özellik sayısı bu soruyu kapatmaz. |
 | P2 | “Yayın ve destek şartları belli değil.” | PyPI yayını, lisans ve imzalı kurulum henüz yok. | Açık. Yayın lisansı/adı, sürümleme ve destek kapsamı belirlenmeden “dağıtıma hazır” denmez. |
 
 Bu tur gerçek Claude ayarı değiştirilmedi; model deneyi, ücretli ajan çağrısı, harici kota sorgusu veya yayın yapılmadı. Kanıtlar: [0.1.2 güvenilirlik ve hız raporu](../reports/reliability-v2/REPORT.md), [bozuk arşiv önce](../reports/reliability-v2/corrupt-before.json), [sonra](../reports/reliability-v2/corrupt-after.json), [sabit arşiv ölçümü](../reports/reliability-v2/final-benchmark.json). Önceki tur: [0.1.1 raporu](../reports/company-readiness-v1/REPORT.md).

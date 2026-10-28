@@ -12,8 +12,8 @@ import hashlib
 import os
 import threading
 
-from .i18n import LANGUAGES, say
-from .git_activity import read_repository, session_activity
+from .i18n import LANGUAGES, count, say
+from .git_activity import CREATED, check_branches, read_repository, session_activity
 from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
@@ -86,6 +86,50 @@ def _git_for(session, sources):
     return [(activity.get(path), tuple(sorted(reasons))) for path, reasons in links.get(_link_key(session), {}).items()]
 
 
+def git_outcome(rows, sources):
+    """Commits recorded during the selected sessions in their linked repositories, each counted once even
+    when sessions overlap, and how many are still on a branch. None without any such commit."""
+    links, activity = sources.get('git_links'), sources.get('git_activity', {})
+    if links is None:
+        return None
+    commits, sessions, tokens = {}, 0, 0
+    for session in rows:
+        if not session.started or not session.ended:
+            continue
+        found = False
+        for path in links.get(_link_key(session), {}):
+            snapshot = activity.get(path) or {}
+            for event in snapshot.get('events', ()) if snapshot.get('state') == 'ready' else ():
+                if event['kind'] in CREATED and event.get('full') and session.started <= event['at'] <= session.ended:
+                    commits[(os.path.normcase(path), event['full'])] = snapshot.get('branch', {}).get(event['full'])
+                    found = True
+        if found:
+            sessions += 1
+            tokens += total(session.tokens)
+    if not commits:
+        return None
+    states = list(commits.values())
+    everything = sum(total(s.tokens) for s in rows)
+    return dict(sessions=sessions, commits=len(states), on_branch=states.count(True), off_branch=states.count(False),
+                unknown=sum(state is None for state in states), token_share=tokens / everything if everything else None)
+
+
+def _git_insight(outcome, lang, usage_complete):
+    if not outcome:
+        return []
+    rest = ''
+    if outcome['off_branch']:
+        rest += say(lang, 'insight.git.off', n=outcome['off_branch'])
+    if outcome['unknown']:
+        rest += say(lang, 'insight.git.unknown', n=outcome['unknown'])
+    if usage_complete and outcome['token_share'] is not None:
+        rest += say(lang, 'insight.git.share', share=round(outcome['token_share'] * 100))
+    return [dict(kind='git_outcome', level='info', title=say(lang, 'insight.git.title'),
+                 detail=say(lang, 'insight.git.detail', sessions=count(lang, outcome['sessions'], 'session'),
+                            commits=count(lang, outcome['commits'], 'commit'), kept=outcome['on_branch'], rest=rest),
+                 evidence=outcome)]
+
+
 def session_view(session, lang='en', git=None):
     inputs = sum(session.tokens[k] for k in ('input', 'cache_read', 'cache_write'))
     span = (session.ended - session.started).total_seconds() if session.started and session.ended else None
@@ -143,6 +187,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     reason_keys={'MalformedRows':'malformed_file','InconsistentReasoning':'inconsistent_reasoning_file'}
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)
     trust=quality(rows,sources,lang)
+    outcome=git_outcome(rows,sources)
     return dict(**provenance(),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
@@ -152,7 +197,9 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                                 key=lambda row: (row['total_tokens'], row['ended'] or ''), reverse=True),
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
-                    usage_complete=trust['tokens_complete'] and trust['attribution_complete']), lang=lang,
+                    usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
+                    + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']),
+                git_outcome=outcome, lang=lang,
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),
@@ -188,6 +235,13 @@ class UsageDashboard:
             sources['git_links'] = git_links(sessions)
             folders = {path for linked in sources['git_links'].values() for path in linked}
             sources['git_activity'] = {path: self.git_reader(path) for path in folders}
+            windows = {}
+            for session in sessions:
+                if session.started and session.ended:
+                    for path in sources['git_links'][_link_key(session)]:
+                        windows.setdefault(path, []).append((session.started, session.ended))
+            for path, snapshot in sources['git_activity'].items():
+                check_branches(snapshot, windows.get(path, ()))
             # Validate the projection before publishing a replacement snapshot.
             project_view(sessions, sources, days=0)
             with self.lock:

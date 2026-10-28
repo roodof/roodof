@@ -1,8 +1,9 @@
 """Bounded, read-only Git activity beside an agent session.
 
-Only .git's HEAD reflog is read, never source files, objects or Git configuration.
-Identities and commit messages are discarded. No Git program runs. Reflogs are local, incomplete
-history; a coincident event proves neither authorship nor retained changes.
+.git's HEAD reflog gives the events. For commits recorded during a session, git_objects.py then checks
+whether they are still on a branch, reading only commit parents and times. Source files and Git
+configuration are never read. Identities and commit messages are discarded. No Git program runs.
+Reflogs are local, incomplete history; a coincident event does not prove authorship.
 """
 from collections import Counter
 from datetime import datetime, timezone
@@ -10,10 +11,12 @@ import os
 from pathlib import Path
 import re
 
+from .git_objects import on_branch
 from .paths import local_path, network
 
 MAX_BYTES = 1 << 20
 MAX_EVENTS = 20
+CREATED = ('commit', 'amend', 'merge')   # events whose destination is a commit made at that moment
 _HEX = rb'[0-9a-f]{40}(?:[0-9a-f]{24})?'
 _HEADER = re.compile(rb'^(' + _HEX + rb') (' + _HEX + rb') .+ ([0-9]{1,12}) [+-][0-9]{4}$')
 
@@ -94,15 +97,30 @@ def read_repository(project):
             except (ValueError, OverflowError, OSError):
                 skipped += 1
                 continue
-            new = match[2]
-            events.append(dict(at=moment, kind=_kind(message),
-                               commit=new[:8].decode('ascii') if new.strip(b'0') else None))
+            new = match[2] if match[2].strip(b'0') else None
+            # The full id stays internal (branch check); only eight characters are ever projected.
+            events.append(dict(at=moment, kind=_kind(message), commit=new[:8].decode('ascii') if new else None,
+                               full=new.decode('ascii') if new else None))
         if not events:
             return dict(state='unavailable' if skipped else 'no_history')
-        return dict(state='ready', events=events, truncated=bool(offset), skipped=skipped,
+        return dict(state='ready', events=events, truncated=bool(offset), skipped=skipped, directory=str(directory),
                     changed=(before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns))
     except (OSError, ValueError, RuntimeError):
         return dict(state='unavailable')
+
+
+def check_branches(snapshot, windows):
+    """Mark which commits recorded inside the given session windows are still on a branch."""
+    try:
+        if not snapshot or snapshot.get('state') != 'ready' or not snapshot.get('directory'):
+            return
+        created = {event['full']: event['at'] for event in snapshot['events']
+                   if event['kind'] in CREATED and event.get('full')
+                   and any(start <= event['at'] <= end for start, end in windows)}
+        if created:
+            snapshot['branch'] = on_branch(snapshot['directory'], created, since=min(created.values()).timestamp())
+    except (OSError, ValueError, RuntimeError, MemoryError):
+        snapshot.pop('branch', None)  # unknown, never a guess
 
 
 def session_activity(snapshot, started, ended):
@@ -122,15 +140,20 @@ def session_activity(snapshot, started, ended):
                 return dict(state=state)
     if not started or not ended or ended < started:
         return dict(state='unknown_time')
-    selected = sorted((event for item, _ in ready for event in item['events'] if started <= event['at'] <= ended),
-                      key=lambda event: event['at'], reverse=True)
-    counts = Counter(event['kind'] for event in selected)
+    selected = sorted(((event, item.get('branch', {}).get(event.get('full')) if event['kind'] in CREATED else None)
+                       for item, _ in ready for event in item['events'] if started <= event['at'] <= ended),
+                      key=lambda pair: pair[0]['at'], reverse=True)
+    counts = Counter(event['kind'] for event, _ in selected)
+    states = [kept for event, kept in selected if event['kind'] in CREATED]
     beginnings = [min(event['at'] for event in item['events']) for item, _ in ready]
     limited = any(item['truncated'] or item['skipped'] or item['changed'] for item, _ in ready) \
         or max(beginnings) > started
     return dict(state='ready', matched_events=len(selected), counts=dict(counts),
-                events=[dict(at=event['at'].isoformat(), kind=event['kind'], commit=event['commit'])
-                        for event in selected[:MAX_EVENTS]],
+                events=[dict(at=event['at'].isoformat(), kind=event['kind'], commit=event['commit'],
+                             **(dict(on_branch=kept) if event['kind'] in CREATED else {}))
+                        for event, kept in selected[:MAX_EVENTS]],
                 omitted_events=max(0, len(selected) - MAX_EVENTS), coverage_limited=limited,
                 history_from=min(beginnings).isoformat(), repositories=len(ready),
-                linked_by=sorted({reason for _, reasons in ready for reason in reasons}))
+                linked_by=sorted({reason for _, reasons in ready for reason in reasons}),
+                commits=dict(total=len(states), on_branch=states.count(True), off_branch=states.count(False),
+                             unknown=sum(kept is None for kept in states)))

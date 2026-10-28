@@ -47,7 +47,7 @@ pler report --json      # machine-readable
 - **Totals:** the token mix: new input, read from cache, written to cache, and output. Tokens outside the cache are shown separately, because most agent tokens are the same context read again.
 - **Projects, models, sessions:** sessions are grouped by git repository; sessions in temporary folders form one group.
 - **Find your sessions:** search by project, model or short session code; sort by last activity, start, tokens, or errors and interruptions. Each row has its own code, start and last activity.
-- **Git alongside the session:** open a session to see local commit, amend, checkout, reset, merge and rebase events recorded during its time span. No Git program runs. Events can overlap several sessions and do not identify who made a change or prove it was kept.
+- **Git alongside the session:** open a session to see local commit, amend, checkout, reset, merge and rebase events recorded during its time span. No Git program runs. Commits recorded in that time are marked as still on a branch or not. Events can overlap several sessions and do not identify who made a change.
 
 ![Session search and sorting, with invented sample data](docs/sessions.jpg)
 
@@ -61,9 +61,9 @@ A session's **record span** is the time between its first and last event, waitin
 
 ## Local Git activity
 
-On **Read logs again**, PLER also checks `.git/logs/HEAD` in the repositories each session is linked to. A repository is linked when the session's working folder is in it, or when the session edited a file inside it: Claude Code edit tools and Codex patches name their target files. An agent started in a parent folder is therefore still linked to the repository it changed. Repository paths stay in memory; the page only shows how many were checked. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
+On **Read logs again**, PLER also checks `.git/logs/HEAD` in the repositories each session is linked to. A repository is linked when the session's working folder is in it, or when the session edited a file inside it: Claude Code edit tools and Codex patches name their target files. An agent started in a parent folder is therefore still linked to the repository it changed. Repository paths stay in memory; the page only shows how many were checked. For each commit recorded during the session, PLER also checks whether it is still on a local or remote-tracking branch, or was amended, rebased, reset or left on a deleted branch. It reads only the parent links and times of commit objects, never names, messages or files. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
 
-Only event time, a fixed action category and the first eight characters of the destination commit are sent to the page and JSON. Author names, email addresses, commit messages, branch names, source files and Git configuration are not included. No Git metadata is added to the persistent cache.
+Only event time, a fixed action category, whether a recorded commit is still on a branch and the first eight characters of the destination commit are sent to the page and JSON. Author names, email addresses, commit messages, branch names, source files and Git configuration are not included. No Git metadata is added to the persistent cache.
 
 Local reflogs can expire, be disabled or be absent in a copied checkout. At most the last 1 MiB of each project's HEAD log is read; the newest 20 matching events are listed and the count covers all matching events in that read. Missing dates, unavailable history and partial coverage are shown explicitly. A zero count means no matching event was found in the available local log, not that no work was done. Network paths, symlinks, Windows junctions and home-folder repositories are skipped. Bare repositories and activity from other worktrees are not included.
 

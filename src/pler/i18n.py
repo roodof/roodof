@@ -62,6 +62,12 @@ TEXT = {
                                 'in sessions under {short} calls, {short_tokens} ({ratio}x). Tasks, models and settings were not '
                                 'held constant. This observation does not establish waste or savings from a new session.'),
         'insight.calls_unknown': 'call count unknown',
+        'insight.git.title': 'Commits during your sessions',
+        'insight.git.detail': ('{commits} were recorded during {sessions}, in repositories the agents changed. '
+                               '{kept} of them are still on a branch.{rest} Timing alone does not prove who made them.'),
+        'insight.git.off': ' {n} are no longer on any branch: amended, rebased, reset or on a deleted branch.',
+        'insight.git.unknown': ' {n} could not be checked.',
+        'insight.git.share': ' These sessions hold {share}% of the tokens in this selection.',
         'insight.concentration.title': 'Usage is concentrated in one session',
         'insight.concentration.detail': ('{share}% of the tokens in this selection are in a single {agent} session ({tokens} tokens, '
                                          '{calls}). That session is a good place to start looking at where usage builds up.'),
@@ -168,6 +174,12 @@ TEXT = {
                                 'kullandı; {short} çağrıdan kısa oturumlarda {short_tokens} ({ratio} kat). İşler, modeller ve ayarlar '
                                 'sabit tutulmadı. Bu gözlem israfı veya yeni oturum açmanın tasarruf sağlayacağını kanıtlamaz.'),
         'insight.calls_unknown': 'çağrı sayısı bilinmiyor',
+        'insight.git.title': 'Oturumlarındaki commit\'ler',
+        'insight.git.detail': ('{sessions} boyunca, ajanların değiştirdiği depolarda {commits} kaydedildi. '
+                               'Bunlardan {kept} tanesi hâlâ bir dalda.{rest} Zaman eşleşmesi kimin yaptığını tek başına kanıtlamaz.'),
+        'insight.git.off': ' {n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı.',
+        'insight.git.unknown': ' {n} tanesi kontrol edilemedi.',
+        'insight.git.share': ' Bu oturumlar bu seçimdeki tokenların %{share} kadarını kullandı.',
         'insight.concentration.title': 'Kullanım tek bir oturumda yoğunlaşıyor',
         'insight.concentration.detail': ('Bu seçimdeki tokenların %{share} kadarı tek bir {agent} oturumunda ({tokens} token, {calls}). '
                                          'Bu oturum, kullanımın nerede biriktiğini incelemek için bir başlangıç.'),
@@ -230,10 +242,12 @@ NOUNS = {   # English: singular, plural; Turkish keeps one form after a number
            'model_call': ('model call', 'model calls'), 'error': ('error', 'errors'),
            'interrupted': ('interrupted', 'interrupted'), 'interrupted_turn': ('interrupted turn', 'interrupted turns'),
            'time': ('time', 'times'), 'claude_file': ('Claude Code file', 'Claude Code files'),
-           'codex_file': ('Codex file', 'Codex files'), 'log_file': ('log file', 'log files')},
+           'codex_file': ('Codex file', 'Codex files'), 'log_file': ('log file', 'log files'),
+           'commit': ('commit', 'commits')},
     'tr': {'session': 'oturum', 'request': 'istek', 'call': 'çağrı', 'model_call': 'model çağrısı', 'error': 'hata',
            'interrupted': 'yarıda kesilen', 'interrupted_turn': 'yarıda kesilen tur', 'time': 'kez',
-           'claude_file': 'Claude Code dosyası', 'codex_file': 'Codex dosyası', 'log_file': 'kayıt dosyası'},
+           'claude_file': 'Claude Code dosyası', 'codex_file': 'Codex dosyası', 'log_file': 'kayıt dosyası',
+           'commit': 'commit'},
 }
 
 

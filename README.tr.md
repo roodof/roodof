@@ -60,13 +60,15 @@ Oturum ayrıntısındaki **kayıt aralığı**, ilk ve son olay arasındaki zama
 
 ## Yerel Git hareketleri
 
-Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görünür: commit, commit düzeltmesi, checkout, reset, merge ve rebase. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu kayıtlar yazarı veya değişikliklerin korunduğunu kanıtlamaz. Bir hareket birden fazla oturumla eşleşebilir; oturum sayılarını toplayarak benzersiz commit sayısı çıkarılamaz.
+Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görünür: commit, commit düzeltmesi, checkout, reset, merge ve rebase. O sürede kaydedilen commit'lerin hâlâ bir dalda olup olmadığı da işaretlenir. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu kayıtlar yazarı kanıtlamaz. Bir hareket birden fazla oturumla eşleşebilir; oturum sayılarını toplayarak benzersiz commit sayısı çıkarılamaz.
 
 **Kayıtları yenile** sırasında her oturumun bağlı olduğu depoların `.git/logs/HEAD` dosyası kontrol edilir. Bir depo şu durumlarda bağlı sayılır:
 - oturumun çalışma klasörü o depodadır;
 - oturum o deponun içindeki bir dosyayı düzenlemiştir. Claude Code'un düzenleme araçları ve Codex yamaları hedef dosyalarını kayda geçirir.
 
-Böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır. Depo yolları yalnız bellekte tutulur; sayfada yalnız kaç depoya bakıldığı görünür. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
+Böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır. Depo yolları yalnız bellekte tutulur; sayfada yalnız kaç depoya bakıldığı görünür.
+
+Oturum sırasında kaydedilen her commit için PLER, commit'in hâlâ yerel ya da uzak izleme dalında durup durmadığını da kontrol eder. Commit düzeltilmiş (amend), yeniden sıralanmış (rebase), reset edilmiş ya da silinen bir dalda kalmış olabilir. Bunun için commit nesnelerinin yalnız ebeveyn bağları ve zamanları okunur; isim, mesaj ve dosya okunmaz. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
 
 Ekrana ve JSON'a yalnız olay zamanı, sabit işlem türü ve hedef commit'in ilk sekiz karakteri gider. Yazar adı, e-posta, commit mesajı, dal adı, kaynak dosyalar ve Git ayarları dahil edilmez. Git komutu çalıştırılmaz ve bu bilgiler kalıcı önbelleğe yazılmaz.
 

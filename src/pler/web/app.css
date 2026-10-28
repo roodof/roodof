@@ -30,6 +30,9 @@
 .git-events time{color:var(--muted);font-variant-numeric:tabular-nums}
 .git-event-ref{display:block;font:10px var(--mono);color:var(--muted);margin-top:3px}
 .session-git .git-limited{color:var(--rust)}
+.session-git .git-outcome{font-weight:600}
+.git-branch{display:inline-block;font-size:11px;color:var(--muted);margin-left:6px}
+.git-branch-off{color:var(--rust)}
 .session-git .git-history-note{font-size:10px;border-top:1px solid var(--rule);padding-top:10px}
 .session-git-hint{display:block;font-size:10px;color:var(--petrol);margin-top:5px}
 @media(max-width:720px){.session-git{padding:14px 12px}.git-events li{grid-template-columns:1fr;gap:3px}}

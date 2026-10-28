@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.6 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.7 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Identity and copies
 
@@ -45,6 +45,17 @@ A file with only a compaction marker is an explicit unknown boundary, not a know
 Claude Code edit tools name one target file each. A Codex patch names its targets in `*** Add/Update/Delete File:` and `*** Move to:` headers. The patch may sit inside a code or JSON string, so escapes are undone first. Only the target paths are kept, at most 200 per call, never the patch body; relative targets resolve against the working folder in effect at that moment. Edited-file counts are logged intentions: a failed or later reverted edit still counts. Parser version `accounting-2026-10-28.4` adds Codex targets; token and call accounting is unchanged.
 
 A session is linked to the repository of its working folder and to the nearest repository above each edited file (never at or above the home folder, never through a network path or a user link). Its Git view merges the local HEAD reflog events of every linked repository within the session's time span. The public view reports how many repositories were checked and why, never their paths.
+
+### Commits still on a branch
+
+For every commit, amend or merge event recorded during a linked session, PLER checks whether that commit is still reachable from HEAD, a local branch or a remote-tracking branch. It reads commit objects (loose, or from version-2 packs including deltas) and uses only their parent ids and committer time. Identities and messages are skipped unread, branch names are discarded, trees and files are never opened, and no Git program runs. The walk starts at the newest commit and stops a day before the oldest checked commit or after 20,000 commits.
+
+The answer is `on_branch`, `off_branch` or `unknown`:
+- **on_branch:** reached from a branch tip.
+- **off_branch:** not reached, after everything that could reach it was read. Amend, rebase, reset and a deleted branch all leave the original commit off every branch, while a rewritten commit can still carry the same change.
+- **unknown:** objects were missing or borrowed through alternates, the history was shallow, a link was refused or the walk bound was hit. An unknown commit is never counted as kept or lost.
+
+The period summary counts each commit once, even when several sessions overlap it. It reports the share of tokens in sessions with such commits only when usage and attribution are complete. Timing does not prove who made a commit.
 
 ## Numbers, models and events
 
