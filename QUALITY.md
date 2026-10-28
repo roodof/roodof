@@ -13,12 +13,16 @@ Codex'in yarıda kalan turu Claude tarafından tamamlandı. [Kanıt, yöntem ve 
   - Windows'a özgü `/\sunucu` yazımı Linux'ta ağ yolu sayılmıyordu.
   - Geçici klasör macOS'taki gibi işletim sisteminin kısayolu arkasındayken 236 testin 176'sı düşüyordu. PLER, macOS'ta `/var` ve `/tmp`, bazı Linux'larda `/home` gibi root'a ait sistem bağlantılarını reddediyordu. Bu bilgisayarlarda kayıtlar ve önbellek kullanılamaz kalırdı.
   - Artık macOS/Linux'ta root'a ait bağlantılar izleniyor; kullanıcı bağlantıları ve Windows'taki tüm bağlantılar eskisi gibi reddediliyor.
-  - macOS'un kendisi hâlâ denenmedi.
+- **İlk gerçek macOS çalıştırması.** Kod özel bir GitHub deposuna yüklendi ve hazırlanan CI çalıştırıldı. Her iş testleri kaynaktan ve yeni ortama kurulmuş wheel'den koşturdu, sürümü denetledi ve paketi kaldırdı.
+  - Windows Server 2025 ve Ubuntu 24.04'te Python 3.9, 3.12, 3.14 ve isteğe bağlı `zstandard`: hepsi geçti.
+  - macOS 26 arm64'te Python 3.9 ve 3.12 geçti.
+  - macOS'ta Python 3.14 ve `zstandard` işleri GitHub'ın makine kapasitesi yüzünden üç denemede de başlayamadı.
+  - İlk koşuda Windows'ta tek bir test sürücü farkından düştü (kod D:, geçici klasör C:). Bu test hatasıydı; düzeltildi.
 - **"Python kurmam gerekiyor" kısmen azaldı.** İmzasız, özel bir Windows x64 adayı derlendi: 6,0 MB ZIP, içinde CPython 3.12 ve `PLER.exe`. Bu bilgisayarda `PATH` üzerinde hiç Python yokken kendini denetledi, terminal raporunu verdi ve sunucuyu açtı. Temiz bilgisayar, imza ve dağıtım onayı açık.
 
 Testler: Windows'ta Python 3.9 ve 3.12 ile 227/227, Linux'ta 236/236, tarayıcı mantığında 18/18, kurulmuş wheel'de 227/227. 0.2.5 yerel uygulamaya geçirildi.
 
-**Hâlâ açık:** gerçek macOS ve yerel Linux çalıştırması, CI'ın gerçekten koşturulması, isteğe bağlı `zstandard` yolu, Python'suz paketin temiz makinede denenmesi ve imzası, ilk okuma hızı, genel geçmiş tamlığı, kullanıcının kendi kısayolu arkasındaki kayıt klasörü (örneğin dotfiles ile bağlanmış `~/.claude`), Claude masaüstü kotası, gerçek profesyonel pilot, lisans ve dağıtım.
+**Hâlâ açık:** macOS'ta Python 3.14 ve `zstandard` işleri, macOS ve Linux masaüstünde gerçek tarayıcı kabulü, Python'suz paketin temiz makinede denenmesi ve imzası, ilk okuma hızı, genel geçmiş tamlığı, kullanıcının kendi kısayolu arkasındaki kayıt klasörü (örneğin dotfiles ile bağlanmış `~/.claude`), Claude masaüstü kotası, gerçek profesyonel pilot, lisans ve dağıtım.
 
 Claude masaüstü kotası: Durum satırı 26 Ekim'de kuruldu, ama iki günde hiç kota örneği oluşmadı. Masaüstü uygulaması bu komutu çalıştırmıyor görünüyor.
 
@@ -87,7 +91,7 @@ Bu önceki değerlendirmede ürün kodu değiştirilmedi. Mevcut 124 test yenide
 | P1 | “Aynı kısa kodu taşıyan satırları ayıramıyorum.” | Gerçek ekranda farklı kaynak kayıtlarının aynı ajan kimliğini taşıyabildiği görüldü. Görünen satır kodu kaynak kimliğini de tek yönlü özetine katıyor; yerel yol dışa aktarılmıyor. | Tekrarlanan ajan kimliği senaryosu giderildi. Kayıt taşınırsa kod değişebilir; sekiz karakterlik gösterim matematiksel benzersizlik garantisi değildir. |
 | P1 | “Claude masaüstü kotamı göstermiyor.” | Durum satırı bağlantısı terminaldeki Claude Code içindir. Masaüstünde veri geldiği doğrulanmadı; ekrandaki kurulum metni bu sınırı söylüyor. | Açık. Gerçek masaüstü örneği veya açıkça desteklenmeyen ürün kapsamı gerekir. |
 | P1 | “Python kurmam gerekiyor; uygulamayı açamıyorum.” | Kaynak kurulumunun hangi klasörden yapılacağı düzeltildi; bağımlılıksız wheel denetleniyor. | Açık. Python'suz dağıtım ve temiz bilgisayarda kurulum/kaldırma kabulü gerekir. |
-| P1 | “Benim sistemimde denenmemiş.” | Bu bilgisayarda Windows, Python 3.9 ve 3.12 var. | Açık. macOS ve Linux'ta gerçek çalıştırma / CI gerekir. Windows'ta iki Python sürümü üç işletim sistemi testi değildir. |
+| P1 | “Benim sistemimde denenmemiş.” | Bu bilgisayarda Windows, Python 3.9 ve 3.12 var. **28 Ekim:** CI'da Windows, Ubuntu ve macOS 26 üzerinde kaynak ve kurulmuş paket testleri geçti; macOS'ta 3.14 koşamadı (GitHub kapasitesi). | Kısmen kapandı. Kalan: macOS 3.14 ve her sistemde gerçek tarayıcı kabulü. |
 | P1 | “İlk açılışta çok bekliyorum.” | Aynı 133 sabit dosyada tam okuyucu ölçümü: ilk okuma 31,52 → 31,02 sn; önbellekli okuma 2,73 → 1,14 sn. Claude da metin içermeyen önbelleğe geçti. Oturum metadata özeti birebir aynı. Güncellemeden sonra doğrulama yardımcıları değişince önbellek bir kez yenilenir. | Yenileme iyileşti. İlk okuma hâlâ açık; tek bilgisayardaki bu koşu genel hız garantisi veya anlamlı ilk açılış kazancı değildir. Gerçek sunucunun tamamı ayrıca denetlenir. |
 | P1 | “Geçici okuma hatası önbellekte takılı kalır.” | Erişimi yarıda kesilen Claude dosyası önbelleğe alınmaz; bozuk satır ile erişim hatası aynı dosyada olsa da sonraki okuma tekrar dener. Okunurken büyüyen dosya eski imzayla kaydedilmez. Hatalı önbellek yazımının geçici dosyası temizlenir. | Senaryolar regresyonla giderildi. Tüm dosya sistemlerinde atomik işlem veya eşzamanlı mutasyona tam garanti verilmez. |
 | P1 | “Paylaştığım özet özel bilgiler taşır mı?” | Terminal JSON'u da ekranın açık alan listesine geçti: kaynak yolları, ham kimlikler, dal ve düzenlenen dosya yolları çıkarıldı. Kaynak hataları yol içermez. İstek, yanıt ve komutlar özetlere alınmaz. | Yeniden üretilen sızıntı giderildi. Kısa proje adları, zaman, model ve sayılar hâlâ özel olabilir; anonim paylaşım iddiası yok. |

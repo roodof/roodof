@@ -117,7 +117,7 @@ Token use is not a price or a measured saving. Neither the page export nor `pler
 
 For an update from this checkout, close PLER, run `pip install --upgrade ./product` from the outer folder, then reopen it. `pler --version` identifies the installed release. A running page keeps the assets it started with; restart PLER to use updated code. Release and JSON changes are listed in the [changelog](CHANGELOG.md).
 
-The [quality register](QUALITY.md) separates fixed defects from unresolved reasons to reject the product. Python-free installation, macOS/Linux validation and proven usefulness in professionals' daily work remain open.
+The [quality register](QUALITY.md) separates fixed defects from unresolved reasons to reject the product. Automated tests pass on Windows, Linux and macOS (Python 3.9 and 3.12 on macOS; 3.9 to 3.14 elsewhere). A signed Python-free installation, real-browser acceptance on each system and proven usefulness in professionals' daily work remain open.
 
 ## Limits
 

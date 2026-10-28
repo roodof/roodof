@@ -118,7 +118,7 @@ Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirile
 
 Bu kaynak kopyadan güncellerken PLER'i kapat, dış klasörden `pip install --upgrade ./product` çalıştır ve yeniden aç. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için PLER'i yeniden başlat. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
 
-[Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Python gerektirmeyen kurulum, macOS/Linux doğrulaması ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
+[Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta geçiyor (macOS'ta Python 3.9 ve 3.12; diğerlerinde 3.9–3.14). İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
 
 ## Sınırlar
 
