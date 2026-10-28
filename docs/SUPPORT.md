@@ -7,7 +7,7 @@ PLER currently describes retained Claude Code/Codex records on one computer. It 
 - Confirm the running version with `pler --version`. Stop and restart after an update; use the new complete startup address in a manually opened tab.
 - Check the last read time and found/unreadable source counts. `Read logs again` rereads retained files; it does not contact the provider to update an account meter.
 - Check period/agent/project filters. The period selects sessions by their last activity, then includes their full retained totals. Search narrows only the session list.
-- If no records appear, confirm the agent has written supported local logs and the configured log root is local. A network/junction path may be intentionally skipped. The app should retain readable data and report affected files when reading is incomplete.
+- If no records appear, confirm the agent has written supported local logs and the configured log root is local. A link or junction to the log folder itself is followed when it leads to a local folder; links inside it and network locations are intentionally skipped. The app should retain readable data and report affected files when reading is incomplete.
 - For a prepared export that did not save, use **Download again** and inspect browser downloads. The JSON still contains short project names, times and model names; review it before sharing.
 - For a cache problem, prefer an isolated temporary `PLER_CACHE_DIR` for diagnosis. Deleting only PLER's cache rebuilds metadata later; never delete Claude/Codex log directories to troubleshoot PLER. Do not share the private cache file.
 

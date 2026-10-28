@@ -2,6 +2,22 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 28 Ekim: 0.2.9 — taşınmış kayıt klasörü artık "kayıt yok" göstermiyor
+
+Kayıt klasörünü (`~/.claude`, `~/.codex` ya da içindeki `projects`/`sessions`) başka bir diske taşıyıp yerine sembolik bağlantı veya Windows junction'ı bırakan biri, PLER'de hiç kayıt görmüyordu. PLER bu bağlantıyı güvensiz yol sayıp atlıyordu. Pilotta böyle bir katılımcı, ürünü bozuk sanıp yanlış bir "veri yok" sonucu verirdi.
+
+- **Düzeltme:** Kullanıcının seçtiği kayıt klasörüne giden kendi bağlantısı artık izleniyor: varsayılan klasör, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` ve `--codex-dir`.
+  - Bağlantının hedefi açılmadan önce okunuyor. Ağ, birim ya da aygıt yazımına giden hedef, oraya hiç dokunulmadan reddediliyor.
+  - Döngü 32 bağlantıda duruyor.
+- **Değişmeyenler:** Kayıt klasörünün içindeki bağlantılar, bağlantı olmayan Windows ayrıştırma noktaları, kayıtlardan okunan proje yolları, Git üst bilgisi ve önbellek klasörü eski kurallarla çalışıyor.
+- **Önce ve sonra:** Bağlantılı uydurma bir ev klasöründe 0.2.8 hiç oturum göstermiyor ve iki "UnsafePath" atlaması bildiriyordu. 0.2.9, 2 oturumu ve 2.320 tokenı eksiksiz okuyor. Sonuç Windows'ta junction'la ve Linux'ta sembolik bağlantıyla aynı.
+- **Testler:**
+  - Windows'ta Python 3.9 ve 3.12 ile 262 geçti. Python 3.14'ün yerleşik zstd çözücüsünü isteyen 9 test bu sürümlerde her zamanki gibi atlandı. Bu bilgisayarda sembolik bağlantı yetkisi olmadığından yeni testler Windows'ta junction'la çalıştı.
+  - Python 3.14 ile Windows ve Linux'ta 271/271; Linux'ta ayrıca geçici klasör macOS'taki gibi bir sistem bağlantısının arkasındayken de 271/271.
+  - 9'u yeni. Uçtan uca iki yeni test eski kodda düşüyor.
+
+[Kanıt](../reports/linked-roots-v1/REPORT.md).
+
 ## 28 Ekim: 0.2.8 — pilot başlatılabilir durumda
 
 Kalan en büyük açık, gerçek bir profesyonelin PLER'le farklı bir karar verip vermediği. Bunu yalnız bir pilot gösterebilir. Pilot için hazırlananlar:

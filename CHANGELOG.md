@@ -1,5 +1,9 @@
 # Changes
 
+## 0.2.9 — 2026-10-28 (local candidate)
+
+- Follow the user's own link or junction to a log folder: `~/.claude`, `~/.codex`, their `projects`/`sessions` folders, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` and `--codex-dir`. Someone who moved these folders to another disk and left a link behind previously saw no records and an "UnsafePath" skip. Each link is read without being followed, so a target with network, volume or device syntax is refused before anything there is touched; loops stop after 32 links. Links inside a log folder, other Windows reparse points, project paths read from logs, Git metadata and the cache folder keep the previous rules.
+
 ## 0.2.8 — 2026-10-28 (local candidate)
 
 - `pler demo` opens the page with invented Claude Code and Codex logs and an invented Git repository. The data is written into a `demo` folder inside PLER's cache folder; the agents' own folders and quota samples are never read. A banner on the page says the data is invented. The demo has two agents, four projects, a Codex quota forecast, an older-format Codex log with a data-quality warning, a session started in a parent folder, and commits on and off a branch. Each read recreates it relative to the current time. A folder that is not a PLER demo is never replaced.

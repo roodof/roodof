@@ -106,6 +106,8 @@ Yalnız mevcut PLER kurulumunun ürettiği, değiştirilmemiş satır kaldırıl
 | Claude Code | `~/.claude/projects`, `~/.config/claude/projects` | `CLAUDE_CONFIG_DIR` |
 | Codex | `~/.codex/sessions`, `~/.codex/archived_sessions` (sıkıştırılmış olanlar dahil) | `CODEX_HOME` |
 
+Bu klasörlerden birini başka bir diske taşıyıp yerine bir bağlantı (sembolik bağlantı veya Windows junction'ı) bıraktıysan, PLER bu bağlantıyı izleyip asıl yerel klasörü okur. Kayıt klasörlerinin içindeki bağlantılar ve ağ konumuna giden bağlantılar izlenmez.
+
 Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. Python 3.14 ve üstünde standart kütüphane bunları hızlı açar. Daha eski Python'da `pip install "pler[fast]"` aynı hızı verir. İkisi de yoksa yerleşik çözücü çalışır ama yavaştır: bir test bilgisayarında ilk okuma 7 yerine 23 saniye sürdü. Sonraki okumalar önbellekten gelir.
 
 Bağımlılıksız okuyucuda tekrarlanan sayaç karşılaştırmaları ve önbelleğin yazılması iyileştirildi. Büyük arşivlerin ilk okunması hâlâ zaman alır; [hız doğrulaması](../reports/cold-start-v1/REPORT.md), boş PLER önbelleğiyle okumayı sonraki okumalardan ayrı ölçer.

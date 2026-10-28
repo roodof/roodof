@@ -37,6 +37,58 @@ def local_path(value):
     return path
 
 
+MAX_LINKS = 32
+
+
+def _target(text):
+    """A link target in plain local spelling, or None. Windows reads junctions and symlinks as \\\\?\\C:\\...;
+    \\\\?\\UNC\\..., volume and device targets are refused like any network path."""
+    for prefix in ('\\\\?\\', '\\??\\'):
+        if text.startswith(prefix):
+            rest = text[len(prefix):]
+            drive = len(rest) >= 3 and rest[0].isalpha() and rest[1] == ':' and rest[2] in '\\/'
+            return rest if drive else None
+    return None if network(text) else text
+
+
+def user_folder(value):
+    """A folder the user chose (a home default, an environment variable or a command option), with the user's
+    own links and junctions followed to the final local folder. Each link is read without being followed, so a
+    target with network syntax is refused before anything there is touched; loops stop after MAX_LINKS. Other
+    reparse points stay refused. Paths read from logs never come here: they use local_path."""
+    if not value or network(value):
+        return None
+    path = Path(os.path.abspath(value))
+    if not path.is_absolute() or network(path.anchor):
+        return None
+    current, pending, links = Path(path.anchor), list(path.parts[1:]), 0
+    while pending:
+        name = pending.pop(0)
+        if name == '..':
+            current = current.parent
+            continue
+        candidate = current / name
+        try:
+            info = candidate.lstat()
+        except FileNotFoundError:
+            return local_path(candidate.joinpath(*pending))
+        if _system_link(info) or not (stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400):
+            current = candidate
+            continue
+        links += 1
+        try:
+            target = _target(os.readlink(candidate)) if links <= MAX_LINKS else None
+        except (OSError, ValueError, NotImplementedError):
+            target = None  # not a symlink or junction: another kind of reparse point
+        if target is None:
+            return None
+        target = current / target
+        if not target.is_absolute() or network(target.anchor):
+            return None
+        current, pending = Path(target.anchor), [*target.parts[1:], *pending]
+    return local_path(current)
+
+
 def _cache_path(value):
     if not value or network(value):
         return None

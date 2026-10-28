@@ -1,21 +1,22 @@
-"""Discover local regular log files without following symlinks, junctions or network paths."""
+"""Discover local regular log files without following network paths. The user's own links or junctions to a
+log folder itself are followed; links inside a log folder never are."""
 import os
 from pathlib import Path
 import stat
 
 from ..git_activity import _local_path
-from ..paths import network
+from ..paths import network, user_folder
 from .records import note_file_issue
 
 
-def local(path, issues=None):
+def _checked(path, issues, check):
     # Reject network syntax before any filesystem access, including on Windows.
     value=str(path)
     if network(value):
         note_file_issue(issues,path,'UnsafePath')
         return None
     try:
-        result=_local_path(os.path.abspath(os.path.expanduser(value)))
+        result=check(os.path.abspath(os.path.expanduser(value)))
         if result is None: note_file_issue(issues,path,'UnsafePath')
         return result
     except (OSError,ValueError,RuntimeError) as error:
@@ -23,13 +24,22 @@ def local(path, issues=None):
         return None
 
 
+def local(path, issues=None):
+    return _checked(path,issues,_local_path)
+
+
+def chosen(path, issues=None):
+    """A log folder the user chose (home default, environment variable or option), through their own links."""
+    return _checked(path,issues,user_folder)
+
+
 def folders(bases, names, issues=None):
     result=[]
     for base in bases:
-        safe=local(base,issues)
+        safe=chosen(base,issues)
         if safe is None: continue
         for name in names:
-            path=local(safe/name,issues)
+            path=chosen(safe/name,issues)
             if path is None: continue
             try:
                 if path.is_dir(): result.append(path)
@@ -41,7 +51,7 @@ def files(roots, matches, issues=None):
     found=[]
     pending=[]
     for root in roots:
-        safe=local(root,issues)
+        safe=chosen(root,issues)
         if safe is not None: pending.append(safe)
     while pending:
         directory=pending.pop()
