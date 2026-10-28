@@ -136,9 +136,23 @@ class LinkedRootTests(unittest.TestCase):
                 source = self.claude_session(case / 'disk' / 'projects')
                 make(destination, home / 'moved')
                 chosen = home / 'moved' / '..' / 'projects'
-                self.assertEqual(paths.user_folder(chosen), case / 'disk' / 'projects')
+                # A later '..' also resolves an OS link such as macOS /var, so compare real locations.
+                self.assertTrue(same(paths.user_folder(chosen), case / 'disk' / 'projects'))
                 found = discovery.files([chosen], lambda name: name.endswith('.jsonl'))
-                self.assertEqual(found, [source])
+                self.assertEqual(len(found), 1)
+                self.assertTrue(same(found[0], source))
+
+    def test_os_link_keeps_its_spelling_without_a_later_parent_step(self):
+        # macOS keeps TMPDIR and ~/Library behind /var -> /private/var; reported paths must not change.
+        real = Path.lstat
+        system = self.root / 'var'
+        target = system / 'logs'
+        target.mkdir(parents=True)
+        def guarded(path, *args, **kwargs):
+            return SimpleNamespace(st_mode=stat.S_IFLNK, st_uid=0) if path == system else real(path, *args, **kwargs)
+        fake_os = SimpleNamespace(name='posix', path=os.path, environ=os.environ, readlink=os.readlink)
+        with patch.object(paths, 'os', fake_os), patch.object(Path, 'lstat', guarded):
+            self.assertEqual(paths.user_folder(target), target)
 
 
 class LinkTargetTests(unittest.TestCase):

@@ -77,7 +77,10 @@ def user_folder(value):
             if '..' in pending:
                 return None  # a missing component cannot be traversed to its parent
             return local_path(candidate.joinpath(*pending))
-        if not (stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400):
+        # Root-owned OS links (macOS /var -> /private/var) keep the spelling the user and the tests see,
+        # unless a later '..' needs the real parent.
+        if (not (stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400)
+                or (_system_link(info) and '..' not in pending)):
             current = candidate
             continue
         links += 1

@@ -5,6 +5,7 @@
 - Read explicitly selected WSL log roots on Windows through either standard WSL host spelling. A per-scan capability covers only that subtree and requires a fresh running-distribution status before discovery and reader access. Ordinary UNC/device paths remain refused before probing; Git/project/cache paths stay strict.
 - Use only the fixed, bounded System32 WSL status command, with no shell or distribution launch. Explain stopped/unavailable distributions in both languages. No automatic WSL discovery is performed.
 - Preserve case-sensitive WSL file identities during discovery and reconciliation. Resolve a selected local link before its following parent-directory component instead of choosing another folder by early normalization.
+- Keep root-owned operating-system links such as macOS `/var` → `/private/var` in their original spelling unless a later `..` needs the real parent. The first 0.2.10 commit resolved them always, which changed every reported macOS temporary path and failed five tests on macOS CI.
 
 Real invented WSL records changed from zero sessions in 0.2.9 to two sessions and 350 tokens; both host spellings and both selection methods matched. Windows-from-Linux mount reading and case-only file names were verified separately. See [evidence and limits](../reports/wsl-roots-v1/REPORT.md).
 

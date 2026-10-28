@@ -158,8 +158,8 @@ Bu kaynak kopyadan güncellerken PLER'i kapat, dış klasörden `pip install --u
 ## Söz verilenin denetimi
 
 [tests/test_trust.py](tests/test_trust.py) şunları sınar:
-- kaynak kodda bağlantı açabilen ya da program başlatabilen bir modül olmadığını;
-- tam bir kullanım boyunca yalnız `127.0.0.1` ile konuşulduğunu ve hiçbir program başlatılmadığını;
+- bağlantı ya da süreç modüllerini yalnız yerel HTTP/tarayıcı parçalarının ve açıkça seçilen WSL kökleri için sabit durum sorgusunun kullandığını;
+- yerel kayıtlarla tam bir kullanım boyunca yalnız `127.0.0.1` ile konuşulduğunu ve hiçbir program başlatılmadığını; seçilen WSL köklerinde yalnız belgelenen çalışma durumu sorgusunun çalıştığını;
 - ekrana ve önbelleğe kayıt metninin girmediğini.
 
 ```
