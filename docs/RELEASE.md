@@ -8,9 +8,9 @@ This is the maintainer's release procedure. It is not a statement that a public 
 |---|---|---|
 | Reader correctness and privacy | Synthetic regressions, local package checks and dated reports in `../../reports/` | All tests pass on the exact candidate; unexplained totals and unsupported histories remain labelled incomplete |
 | Windows source/wheel | Local Windows Python 3.9/3.12 runs; GitHub CI on Windows Server 2025 with Python 3.9, 3.12 and 3.14: source and installed-wheel suites, version check and uninstall pass | Browser, export and restart checks on a real Windows desktop |
-| Windows without Python | 0.2.5 x64 candidate built offline; on the developer machine it ran with no Python on `PATH` (self-check, terminal report, local server) | Run that exact artifact on a clean Windows account/machine with no Python and no developer checkout; record architecture and hash |
-| macOS and Linux | GitHub CI: Ubuntu 24.04 with Python 3.9, 3.12 and 3.14 and macOS 26 arm64 with Python 3.9 and 3.12 pass the source and installed-wheel suites. Also green on WSL2 Ubuntu with Python 3.14.4. macOS Python 3.14 jobs were not acquired by GitHub (runner capacity) | macOS Python 3.14 run; a real browser acceptance on macOS and a Linux desktop |
-| Fast decoders | Python 3.14 `compression.zstd` and optional `zstandard` pass the full suite on Windows and Linux CI | The same on macOS |
+| Windows without Python | 0.2.5 x64 candidate built offline with the official CPython 3.14.10 embeddable package (SHA-256 checked against python.org, PSF/Microsoft Authenticode signatures valid). On the developer machine, with no Python on `PATH`, it passed the self-check, terminal report and the full local server flow; first read 7.2 s instead of 23.1 s with CPython 3.12 | Run that exact artifact on a clean Windows account/machine with no Python and no developer checkout; record architecture and hash |
+| macOS and Linux | GitHub CI: Ubuntu 24.04 and macOS 26 arm64 with Python 3.9, 3.12 and 3.14 pass the source and installed-wheel suites. Also green on WSL2 Ubuntu with Python 3.14.4 | A real browser acceptance on macOS and a Linux desktop |
+| Fast decoders | Python 3.14 `compression.zstd` and optional `zstandard` pass the full suite on Windows, Linux and macOS CI | — |
 | Accessibility and browser downloads | Existing keyboard, narrow-layout and browser-logic checks | Physical browser/screen-reader matrix in [ACCEPTANCE.md](ACCEPTANCE.md) is completed |
 | Useful professional work | Proposed tasks and measures | A real professional pilot meets the criteria in [PILOT.md](PILOT.md); no participant results have been invented |
 | Distribution rights and identity | No product distribution license or publisher decision recorded | Owner approves the license, public name, publisher identity, channels and support contact |
@@ -18,7 +18,7 @@ This is the maintainer's release procedure. It is not a statement that a public 
 
 The quality register remains authoritative about specific known defects. A prepared test procedure or CI file is not a passed gate. Evidence for the rows above: [0.2.5 completion report](../../reports/completion-v1/REPORT.md).
 
-To rebuild the private Windows candidate: `python tools/build_windows_portable.py --runtime <existing CPython 3.12 folder> --compiler <Windows .NET csc.exe> --output <new folder>`. It downloads nothing, refuses to overwrite and writes a manifest of SHA-256 hashes plus a ZIP next to the folder.
+To rebuild the private Windows candidate: `python tools/build_windows_portable.py --runtime <CPython folder> --compiler <Windows .NET csc.exe> --output <new folder>`. Use the extracted official Windows embeddable package of CPython 3.14 or newer: verify its SHA-256 against the python.org release page and its Authenticode signatures first. The 3.14 standard-library zstd decoder makes the first read about three times faster than an installed 3.12 folder, which the tool still accepts. The tool downloads nothing, refuses to overwrite and writes a manifest of SHA-256 hashes plus a ZIP next to the folder.
 
 ## Candidate procedure
 

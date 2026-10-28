@@ -1,7 +1,10 @@
-"""Offline local portable candidate using an existing CPython 3.12 runtime and Windows C# compiler.
+"""Offline local portable candidate using an existing CPython 3.12+ runtime and Windows C# compiler.
 
-No download, global install, registry setting or signing is performed. Output must not already exist.
-The application remains private until publisher, license and signing decisions are resolved.
+The runtime is an installed CPython folder (Lib, DLLs) or an extracted official Windows embeddable
+package (pythonXY.zip). Python 3.14+ brings the standard-library zstd decoder, which makes the first
+read of compressed Codex logs much faster. No download, global install, registry setting or signing is
+performed. Output must not already exist. The application remains private until publisher, license
+and signing decisions are resolved.
 """
 import argparse
 import hashlib
@@ -24,11 +27,19 @@ if os.name != 'nt':
 for path in (args.runtime, args.compiler, args.output):
     if not path.is_absolute() or str(path).startswith(('\\\\', '//')):
         parser.error('Use explicit local absolute paths.')
-if args.output.exists():
-    parser.error('Output already exists; select a new folder. Nothing was overwritten.')
-for name in ('python.exe', 'python312.dll', 'LICENSE.txt'):
-    if not (args.runtime/name).is_file():
-        parser.error('The supplied runtime is not the expected existing CPython 3.12 folder.')
+# with_suffix would turn a versioned folder such as pler-0.2.5 into pler-0.2.zip.
+archive_path = args.output.with_name(args.output.name + '.zip')
+if args.output.exists() or archive_path.exists():
+    parser.error('Output folder or archive already exists; select a new folder. Nothing was overwritten.')
+libraries = [p for p in args.runtime.glob('python3*.dll') if p.name != 'python3.dll']
+if len(libraries) != 1 or not all((args.runtime/name).is_file() for name in ('python.exe', 'LICENSE.txt')):
+    parser.error('The supplied runtime is not an existing CPython folder.')
+tag = libraries[0].stem  # python312, python314, ...
+python_version = tag[6] + '.' + tag[7:]
+if int(tag[7:]) < 12:
+    parser.error('CPython 3.12 or newer is required.')
+embedded = (args.runtime/(tag + '.zip')).is_file()
+extensions = args.runtime if embedded else args.runtime/'DLLs'
 sys.path.insert(0, str(PRODUCT/'src'))
 from pler import __version__
 
@@ -36,19 +47,26 @@ out = args.output
 out.mkdir(parents=True)
 runtime = out/'runtime'
 (runtime/'DLLs').mkdir(parents=True)
-for name in ('python.exe', 'python312.dll', 'python3.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'LICENSE.txt'):
+for name in ('python.exe', tag + '.dll', 'python3.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'LICENSE.txt'):
     shutil.copy2(args.runtime/name, runtime/name)
-# These modules support the local HTTP server, select and Unicode handling. No TLS, database,
-# third-party package, pip, compiler or development environment is included in the private candidate.
-for name in ('_socket.pyd', 'select.pyd', 'unicodedata.pyd'):
-    shutil.copy2(args.runtime/'DLLs'/name, runtime/'DLLs'/name)
-excluded = {'site-packages', '__pycache__', 'test', 'tests', 'idlelib', 'tkinter', 'turtledemo', 'ensurepip', 'venv'}
-with zipfile.ZipFile(runtime/'python312.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-    for path in sorted((args.runtime/'Lib').rglob('*')):
-        relative = path.relative_to(args.runtime/'Lib')
-        if path.is_file() and not (set(relative.parts)&excluded) and path.suffix not in ('.pyc', '.pyo'):
-            archive.write(path, relative.as_posix())
-(runtime/'python312._pth').write_text('python312.zip\nDLLs\n../app\n', 'utf-8')
+# These modules support the local HTTP server, select, Unicode handling and (3.14+) zstd. No TLS,
+# database, third-party package, pip, compiler or development environment is included in the candidate.
+for name in ('_socket.pyd', 'select.pyd', 'unicodedata.pyd', '_zstd.pyd'):
+    if (extensions/name).is_file():
+        shutil.copy2(extensions/name, runtime/'DLLs'/name)
+    elif name != '_zstd.pyd' or int(tag[7:]) >= 14:
+        parser.error('The supplied runtime lacks %s.' % name)
+if embedded:
+    # The official embeddable package already holds the compiled standard library.
+    shutil.copy2(args.runtime/(tag + '.zip'), runtime/(tag + '.zip'))
+else:
+    excluded = {'site-packages', '__pycache__', 'test', 'tests', 'idlelib', 'tkinter', 'turtledemo', 'ensurepip', 'venv'}
+    with zipfile.ZipFile(runtime/(tag + '.zip'), 'w', zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted((args.runtime/'Lib').rglob('*')):
+            relative = path.relative_to(args.runtime/'Lib')
+            if path.is_file() and not (set(relative.parts)&excluded) and path.suffix not in ('.pyc', '.pyo'):
+                archive.write(path, relative.as_posix())
+(runtime/(tag + '._pth')).write_text(tag + '.zip\nDLLs\n../app\n', 'utf-8')
 app = out/'app'
 shutil.copytree(PRODUCT/'src'/'pler', app/'pler', ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
 (app/'start.py').write_text('from pler.cli import main\nraise SystemExit(main())\n', 'utf-8')
@@ -83,19 +101,15 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'Bu paket Windows sisteminin C Runtime ve .NET Framework 4.5+ bilesenlerini kullanir.\n', 'utf-8')
 (out/'THIRD-PARTY-NOTICES.txt').write_text(
     'Private local candidate; no public redistribution has been authorized.\n'
-    'CPython 3.12 is bundled unmodified; its complete supplied notice is runtime/LICENSE.txt.\n'
-    'The Python runtime is selected from the existing local development runtime.\n'
+    'CPython '+python_version+' is bundled unmodified; its complete supplied notice is runtime/LICENSE.txt.\n'
+    'The Python runtime is copied from the supplied '+('official embeddable package' if embedded else 'local installation')+'.\n'
     'Microsoft runtime components accompany that runtime. Publisher/license/redistribution review\n'
     'and code signing remain release gates. This file grants no new license to the PLER application.\n', 'utf-8')
 files = [p for p in out.rglob('*') if p.is_file()]
 manifest = dict(version=__version__,platform='windows-x64',private_candidate=True,signed=False,
-                runtime='CPython 3.12',files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
+                runtime='CPython '+python_version,files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
                                            for p in sorted(files)})
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2),'utf-8')
-# with_suffix would turn a versioned folder such as pler-0.2.5 into pler-0.2.zip.
-archive_path = out.with_name(out.name + '.zip')
-if archive_path.exists():
-    parser.error('Archive already exists; candidate folder preserved, no archive overwritten.')
 with zipfile.ZipFile(archive_path,'w',zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(out.rglob('*')):
         if path.is_file(): archive.write(path,out.name+'/'+path.relative_to(out).as_posix())

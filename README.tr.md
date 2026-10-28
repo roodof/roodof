@@ -91,7 +91,7 @@ Yalnız mevcut PLER kurulumunun ürettiği, değiştirilmemiş satır kaldırıl
 | Claude Code | `~/.claude/projects`, `~/.config/claude/projects` | `CLAUDE_CONFIG_DIR` |
 | Codex | `~/.codex/sessions`, `~/.codex/archived_sessions` (sıkıştırılmış olanlar dahil) | `CODEX_HOME` |
 
-Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. İlk okuma büyük arşivlerde biraz sürebilir; `pip install "pler[fast]"` bunu hızlandırır.
+Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. Python 3.14 ve üstünde standart kütüphane bunları hızlı açar. Daha eski Python'da `pip install "pler[fast]"` aynı hızı verir. İkisi de yoksa yerleşik çözücü çalışır ama yavaştır: bir test bilgisayarında ilk okuma 7 yerine 23 saniye sürdü. Sonraki okumalar önbellekten gelir.
 
 Bağımlılıksız okuyucuda tekrarlanan sayaç karşılaştırmaları ve önbelleğin yazılması iyileştirildi. Büyük arşivlerin ilk okunması hâlâ zaman alır; [hız doğrulaması](../reports/cold-start-v1/REPORT.md), boş PLER önbelleğiyle okumayı sonraki okumalardan ayrı ölçer.
 
@@ -118,7 +118,7 @@ Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirile
 
 Bu kaynak kopyadan güncellerken PLER'i kapat, dış klasörden `pip install --upgrade ./product` çalıştır ve yeniden aç. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için PLER'i yeniden başlat. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
 
-[Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta geçiyor (macOS'ta Python 3.9 ve 3.12; diğerlerinde 3.9–3.14). İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
+[Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta Python 3.9–3.14 ile geçiyor. İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
 
 ## Sınırlar
 
