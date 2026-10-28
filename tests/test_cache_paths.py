@@ -91,9 +91,15 @@ class CachePathTests(unittest.TestCase):
             self.assertIsNone(paths.cache_folder())
 
     def test_local_and_relative_configured_directories_stay_supported(self):
-        for folder in (str(self.root / 'cache'), os.path.relpath(self.root / 'cache')):
+        # Relative to a working folder inside the temporary folder: on CI the checkout and the
+        # temporary folder can be on different Windows drives, where no relative path exists.
+        previous = os.getcwd()
+        os.chdir(self.root)
+        self.addCleanup(os.chdir, previous)
+        for folder, expected in ((str(self.root / 'cache'), self.root / 'cache'),
+                                 ('cache', Path(os.getcwd()) / 'cache')):
             with self.subTest(folder=folder), patch.dict(os.environ, PLER_CACHE_DIR=folder):
-                self.assertEqual(paths.cache_folder(), self.root / 'cache')
+                self.assertEqual(paths.cache_folder(), expected)
 
     def test_unreadable_or_invalid_cache_location_is_disabled_without_fallback(self):
         for error in (PermissionError('invented denial'), ValueError('invalid local path')):
