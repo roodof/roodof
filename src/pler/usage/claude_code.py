@@ -1,0 +1,254 @@
+"""Claude Code transcripts: <config>/projects/<project>/<session>.jsonl (subagents in subfolders).
+
+One model reply is written as several lines (one per content block) that repeat the same usage, and a
+resumed session copies earlier lines into its new file. A reply is therefore counted once, by its message
+id and request id, across all files; when copies differ, the largest usage is kept.
+"""
+import os
+import math
+from pathlib import Path
+
+from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
+from . import accounting, discovery
+
+EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
+
+
+def roots(skipped=None):
+    """Claude Code config folders: CLAUDE_CONFIG_DIR (comma-separated allowed), else ~/.config/claude and ~/.claude."""
+    configured = os.environ.get('CLAUDE_CONFIG_DIR')
+    bases = ([Path(part.strip()).expanduser() for part in configured.split(',') if part.strip()] if configured
+             else [Path.home() / '.config' / 'claude', Path.home() / '.claude'])
+    return discovery.folders(bases,('projects',),skipped)
+
+
+def files(folders=None, skipped=None):
+    return discovery.files(roots(skipped) if folders is None else folders,lambda name:name.endswith('.jsonl'),skipped)
+
+
+def _tokens(usage):
+    return accounting.tokens(usage,'claude-code')
+
+
+def _int(value):
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else 0
+
+
+def _zeroed_copy(message, request):
+    """Retain only a narrow, unverified repeated-snapshot shape, never a usage estimate.
+
+    Some retained copies zero all primary counts but leave the thinking breakdown unchanged.
+    read() must find an exact witness in a valid snapshot before treating this copy as reconciled.
+    """
+    usage = message.get('usage')
+    fields = ('input_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens', 'output_tokens')
+    if (not isinstance(usage, dict) or not all(type(usage.get(k)) is int and usage[k] == 0 for k in fields)
+            or not isinstance(message.get('id'), str) or not message['id'].strip()
+            or not isinstance(request, str) or not request.strip()
+            or not isinstance(message.get('model'), str) or not message['model'].strip()
+            or message['model'].strip() in ('<synthetic>', 'unknown')):
+        return None
+    details = usage.get('output_tokens_details')
+    thinking = details.get('thinking_tokens') if isinstance(details, dict) else None
+    return thinking if type(thinking) is int and 0 < thinking <= accounting.MAX_COUNT else None
+
+
+def _prompt(message):
+    content = message.get('content') if isinstance(message, dict) else None
+    if isinstance(content, str):
+        return bool(content.strip())
+    if isinstance(content, list):
+        kinds = [item.get('type') for item in content if isinstance(item, dict)]
+        return 'text' in kinds and 'tool_result' not in kinds
+    return False
+
+
+def _lines(path, issues):
+    try:
+        with open(str(path), encoding='utf-8', errors='replace') as stream:
+            yield from stream
+    except OSError as error:
+        note_file_issue(issues, path, type(error).__name__)
+
+
+def _slim(row):
+    """Whitelist metadata before caching; retain no prompt, reply, command or tool result."""
+    kind, identity = row.get('type'), row.get('sessionId')
+    if not isinstance(identity, str):
+        if kind in ('assistant', 'user'):
+            raise ValueError('invalid session identity')
+        return None
+    kept = dict(type=kind if isinstance(kind, str) else None, sessionId=identity,
+                timestamp=row.get('timestamp') if timestamp(row.get('timestamp')) else None)
+    for name in ('cwd', 'gitBranch', 'version'):
+        if isinstance(row.get(name), str):
+            kept[name] = row[name]
+    if kind == 'user':
+        kept.update(prompt=_prompt(row.get('message')), isMeta=bool(row.get('isMeta')),
+                    uuid=row.get('uuid') if isinstance(row.get('uuid'), str) else None)
+    elif kind == 'cost-state' and type(row.get('totalCostUSD')) in (int, float):
+        try:
+            if not math.isfinite(row['totalCostUSD']):
+                raise ValueError('invalid running figure')
+            kept['totalCostUSD'] = float(row['totalCostUSD'])
+        except OverflowError as error:
+            raise ValueError('invalid running figure') from error
+    elif kind == 'assistant' and isinstance(row.get('message'), dict):
+        message = row['message']
+        for value in (message.get('id'), row.get('requestId')):
+            if value is not None and not isinstance(value, str):
+                raise ValueError('invalid response identity')
+        kept.update(requestId=row.get('requestId'), isApiErrorMessage=bool(row.get('isApiErrorMessage')),
+                    effort=row.get('effort') if isinstance(row.get('effort'), str) else None)
+        quota = row.get('quotaLimits')
+        kept['quotaLimits'] = dict(status=quota.get('status') if isinstance(quota, dict) and isinstance(quota.get('status'), str) else None)
+        usage = message.get('usage')
+        slim_usage = None
+        zeroed = _zeroed_copy(message, row.get('requestId'))
+        if isinstance(usage, dict) and usage and zeroed is None:
+            _tokens(usage)
+            slim_usage = {name: _int(usage.get(name)) for name in
+                          ('input_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens', 'output_tokens')}
+            details = usage.get('output_tokens_details')
+            slim_usage['output_tokens_details'] = dict(thinking_tokens=_int(details.get('thinking_tokens')) if isinstance(details, dict) else 0)
+        blocks = []
+        for item in message.get('content') if isinstance(message.get('content'), list) else []:
+            if not isinstance(item, dict) or item.get('type') != 'tool_use' or not isinstance(item.get('name'), str):
+                continue
+            field = EDIT_TOOLS.get(item['name'])
+            value = item.get('input', {}).get(field) if field and isinstance(item.get('input'), dict) else None
+            blocks.append(dict(type='tool_use', name=item['name'], id=item.get('id') if isinstance(item.get('id'), str) else None,
+                               input={field: value} if isinstance(value, str) and value else {}))
+        kept['message'] = dict(id=message.get('id'), model=message.get('model') if isinstance(message.get('model'), str) else None,
+                               usage=slim_usage, content=blocks)
+        if zeroed is not None:
+            kept['message']['zeroed_usage_thinking'] = zeroed
+    return kept
+
+
+def _rows(path):
+    rows, issues, malformed = [], [], False
+    for line in _lines(path, issues):
+        if not line.strip():
+            continue
+        try:
+            row = _slim(json_row(line))
+            if row is not None:
+                rows.append(row)
+        except ValueError:
+            malformed = True
+    if malformed and not issues:
+        issues.append((str(path), 'MalformedRows'))
+    rows.extend(dict(type='pler_file_issue', reason=reason) for _, reason in issues)
+    return rows
+
+
+def read(paths, skipped=None, cache=None):
+    """Merge copies before attribution; source order never determines a project's usage."""
+    from collections import defaultdict
+    sessions, replies, prompts = {}, defaultdict(list), defaultdict(list)
+    projects, branches = defaultdict(set), defaultdict(set)
+    for path in sorted(set(map(Path,paths)),key=str):
+        path=discovery.local(path,skipped)
+        if path is None: continue
+        try:
+            rows=cache.get(path) if cache else None
+            if rows is None:
+                rows=_rows(path)
+                if cache and not any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows):
+                    cache.put(path,rows)
+        except OSError as error:
+            note_file_issue(skipped,path,type(error).__name__)
+            continue
+        affected=[]
+        for index,row in enumerate(rows):
+            if row.get('type')=='pler_file_issue':
+                note_file_issue(skipped,path,row['reason'])
+                for session in affected:
+                    session.tokens_complete=False;session.issues.add('invalid_records')
+                continue
+            identity=row.get('sessionId')
+            if not isinstance(identity,str): continue
+            session=sessions.setdefault(identity,Session('claude-code',identity,str(path)))
+            session.source=min(session.source,str(path))
+            if session not in affected: affected.append(session)
+            moment=timestamp(row.get('timestamp'));session.seen(moment)
+            if isinstance(row.get('cwd'),str) and row['cwd']: projects[identity].add(row['cwd'])
+            if isinstance(row.get('gitBranch'),str) and row['gitBranch']: branches[identity].add(row['gitBranch'])
+            if isinstance(row.get('version'),str): session.client_version=row['version']
+            kind=row.get('type')
+            if kind=='cost-state' and type(row.get('totalCostUSD')) in (int,float):
+                session.reported_cost_usd=max(session.reported_cost_usd or 0.0,float(row['totalCostUSD']))
+            elif kind=='user' and not row.get('isMeta') and row.get('prompt'):
+                uid=row.get('uuid')
+                key=('prompt',uid) if isinstance(uid,str) and uid else ('anonymous',str(path),index)
+                prompts[key].append(session)
+                if key[0]=='anonymous': session.counts_complete=False;session.issues.add('unidentified_records')
+            elif kind=='assistant' and isinstance(row.get('message'),dict):
+                message=row['message']
+                key=(message.get('id'),row.get('requestId'))
+                if any(v is not None and not isinstance(v,str) for v in key):
+                    note_file_issue(skipped,path,'MalformedRows');session.tokens_complete=False;continue
+                if key==(None,None):
+                    key=('anonymous',str(path),index)
+                    session.calls_complete=False;session.tokens_complete=False;session.issues.add('unidentified_records')
+                usage=message.get('usage')
+                tokens=_tokens(usage) if usage and message.get('model')!='<synthetic>' else None
+                replies[key].append(dict(session=session,message=message,row=row,at=moment,tokens=tokens,path=str(path),index=index))
+    for identity,session in sessions.items():
+        accounting.metadata(session,projects[identity],branches[identity])
+    for values in prompts.values(): accounting.owner(values).prompts+=1
+    for copies in replies.values():
+        target=accounting.owner([c['session'] for c in copies])
+        target.errors+=any(c['row'].get('isApiErrorMessage') for c in copies)
+        statuses={c['row'].get('quotaLimits',{}).get('status') for c in copies}
+        statuses={value for value in statuses if isinstance(value,str) and value}
+        status='rejected' if 'rejected' in statuses else sorted(statuses)[0] if statuses else None
+        target.count(target.quota_events,status)
+        times=[c['at'] for c in copies if c['at']]
+        if status=='rejected' and times: target.limit_hits.append(min(times))
+        values=[c['tokens'] for c in copies if c['tokens'] is not None]
+        selected=accounting.largest(values) if values else None
+        for copy in copies:
+            thinking=copy['message'].get('zeroed_usage_thinking')
+            if thinking is None: continue
+            witnesses=[c for c in copies if c['tokens'] is not None and c['tokens']==selected
+                       and c['message'].get('model')==copy['message']['model']
+                       and c['tokens']['reasoning']==thinking]
+            if witnesses:
+                target.issues.add('reconciled_copies')
+            else:
+                note_file_issue(skipped,copy['path'],'InconsistentReasoning')
+                copy['session'].tokens_complete=False;copy['session'].issues.add('invalid_records')
+                target.tokens_complete=False;target.issues.add('invalid_records')
+        if values:
+            target.calls+=1
+            tokens=selected
+            if tokens is None:
+                target.tokens_complete=False;target.issues.add('conflicting_usage')
+            else:
+                add_tokens(target.tokens,tokens)
+                model=accounting.model_for([c['message'].get('model') for c in copies])
+                target.count(target.models,model);target.count(target.model_tokens,model,total(tokens))
+                if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
+                efforts={c['row'].get('effort') for c in copies if isinstance(c['row'].get('effort'),str)}
+                if len(efforts)==1: target.count(target.efforts,next(iter(efforts)))
+        tools={}
+        for copy in copies:
+            for index,item in enumerate(copy['message'].get('content') or []):
+                if item.get('type')!='tool_use' or not isinstance(item.get('name'),str): continue
+                uid=item.get('id')
+                key=('tool',uid) if isinstance(uid,str) and uid else ('anonymous',copy['path'],copy['index'],index)
+                if key[0]=='anonymous': target.counts_complete=False;target.issues.add('unidentified_records')
+                tools.setdefault(key,[]).append(item)
+        for items in tools.values():
+            names={item['name'] for item in items}
+            name=next(iter(names)) if len(names)==1 else 'unknown'
+            target.count(target.tools,name)
+            for item in items:
+                field=EDIT_TOOLS.get(item['name'])
+                value=item.get('input',{}).get(field) if field else None
+                if isinstance(value,str) and value: target.files_edited.add(value)
+    for session in sessions.values():
+        session.note('Usage per reply as logged by Claude Code; repeated lines of one reply counted once.')
+    return [s for s in sessions.values() if s.calls or s.prompts or s.errors]

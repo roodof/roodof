@@ -1,0 +1,5 @@
+# Same bytes on every CI runner; compressed fixtures and images are never converted.
+* text=auto eol=lf
+*.zst binary
+*.jpg binary
+*.png binary

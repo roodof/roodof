@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pler"
+dynamic = ["version"]
+description = "See what your AI coding agents (Claude Code, Codex) used, from their own logs on your computer. No model calls; nothing is sent anywhere."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["claude-code", "codex", "tokens", "usage", "quota", "ai-agents"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+]
+
+[project.optional-dependencies]
+# Faster reading of Codex's compressed logs on the first scan; without it a built-in decoder is used.
+fast = ["zstandard"]
+
+[project.scripts]
+pler = "pler.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "pler.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pler = ["web/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

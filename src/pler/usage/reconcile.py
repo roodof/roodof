@@ -1,0 +1,261 @@
+"""Reconcile Codex file copies, response snapshots and cumulative checkpoints before assigning totals."""
+from collections import defaultdict
+import os
+from pathlib import Path
+
+from . import accounting as rules
+from . import discovery
+from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
+from .projects import ProjectRoots
+
+
+def codex_sessions(paths,cache,reader,decode):
+    sessions,streams,issues,projects = {},[],[],defaultdict(set)
+    parents,threads,compactions,activity = defaultdict(list),defaultdict(set),set(),set()
+    responses,events,checkpoints,locations = defaultdict(list),defaultdict(list),defaultdict(list),defaultdict(list)
+    related = {}
+    project_roots,project_keys = ProjectRoots(),{}
+    def project_key(value):
+        if value not in project_keys:
+            found=project_roots._git_root(value)
+            # Group only a safely observed repository or equivalent path spelling. The UI's
+            # temporary-folder bucket is not evidence that two working projects are identical.
+            canonical=os.path.normpath(found or value)
+            project_keys[value]=(os.path.normcase(canonical),canonical)
+        return project_keys[value]
+    def root(key):
+        related.setdefault(key,key)
+        while related[key]!=key:
+            key=related[key]
+        return key
+    def join(a,b):
+        a,b=root(a),root(b)
+        related[max(a,b)]=min(a,b)
+    def incomplete_history(session,ownership=False):
+        session.tokens_complete=False
+        session.issues.add('unreconciled_totals')
+        if ownership:
+            session.attribution_complete=False
+            session.issues.add('shared_attribution')
+    for path in sorted(set(map(Path,paths)),key=str):
+        path=discovery.local(path,issues)
+        if path is None: continue
+        try:
+            rows=cache.get(path) if cache else None
+            if rows is None:
+                rows=reader(path,decode)
+                if cache: cache.put(path,rows)
+        except (OSError,ValueError,RuntimeError) as error:
+            note_file_issue(issues,path,type(error).__name__)
+            continue
+        metas=[r.get('payload',{}) for r in rows if r.get('type')=='session_meta']
+        ids=[m.get('session_id') or m.get('id') for m in metas]
+        identity=next((v for v in reversed(ids) if isinstance(v,str) and v),str(path))
+        session=sessions.setdefault(identity,Session('codex',identity,str(path)))
+        session.source=min(session.source,str(path))
+        root(identity)
+        for meta in metas:
+            if isinstance(meta.get('cwd'),str) and meta['cwd']: projects[identity].add(meta['cwd'])
+            if isinstance(meta.get('cli_version'),str): session.client_version=meta['cli_version']
+            own=[meta[name] for name in ('id','session_id') if isinstance(meta.get(name),str) and meta[name]]
+            threads[identity].update(own)
+            if isinstance(meta.get('parent_thread_id'),str) and meta['parent_thread_id']:
+                parents[identity].append((own[0] if own else None,meta['parent_thread_id']))
+            session.seen(timestamp(meta.get('timestamp')))
+        streams.append((path,session,rows))
+    for identity,session in sessions.items():
+        # Subagent threads of one Codex session share its session_id and name the root or a sibling
+        # thread as parent. That lineage stays inside the merged session; only outside parents count.
+        candidates={parent for _,parent in parents[identity] if parent not in threads[identity]}
+        if any(thread==parent for thread,parent in parents[identity]) or len(candidates)>1:
+            # Self-parent or contradictory metadata is not a file-order tie-breaker.
+            incomplete_history(session,ownership=True)
+        elif candidates:
+            session.parent_id=next(iter(candidates))
+    checked,cyclic=set(),set()
+    for identity in sessions:
+        trail={}
+        current=identity
+        while current in sessions and current not in checked:
+            if current in trail:
+                cyclic.update(list(trail)[trail[current]:])
+                break
+            trail[current]=len(trail)
+            current=sessions[current].parent_id
+        checked.update(trail)
+    for identity in cyclic:
+        sessions[identity].parent_id=None
+        incomplete_history(sessions[identity],ownership=True)
+    for identity,session in sessions.items():
+        if session.parent_id in sessions: join(identity,session.parent_id)
+    # First collect all response owners. Copied anonymous events are compared only within related histories.
+    for path,session,rows in streams:
+        model=None
+        for index,row in enumerate(rows):
+            moment=timestamp(row.get('timestamp'))
+            session.seen(moment)
+            payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
+            kind,sub=row.get('type'),payload.get('type')
+            if kind=='pler_incomplete_log':
+                note_file_issue(issues,path,'MalformedRows')
+                session.tokens_complete=False
+                session.issues.add('invalid_records')
+            elif kind=='compacted':
+                compactions.add(session.session_id)
+                incomplete_history(session)
+            elif kind=='turn_context':
+                if isinstance(payload.get('model'),str): model=payload['model']
+                if isinstance(payload.get('cwd'),str) and payload['cwd']:
+                    projects[session.session_id].add(payload['cwd'])
+                session.count(session.efforts,payload.get('effort') if isinstance(payload.get('effort'),str) else None)
+            elif kind=='token_usage_record' and isinstance(payload.get('usage'),dict):
+                try: tokens=rules.tokens(payload['usage'],'codex')
+                except ValueError:
+                    note_file_issue(issues,path,'MalformedRows')
+                    session.tokens_complete=False;session.issues.add('invalid_records');continue
+                identity=payload.get('response_id')
+                key=('response',identity) if isinstance(identity,str) and identity else ('anonymous',str(path),index)
+                responses[key].append(dict(session=session,tokens=tokens,model=model,path=str(path),index=index,at=moment))
+                locations[(session.session_id,key)].append((str(path),index,moment))
+                if key[0]=='anonymous':
+                    session.calls_complete=False;session.tokens_complete=False;session.issues.add('unidentified_records')
+            elif kind=='event_msg' and sub=='token_count':
+                info=payload.get('info') or {}
+                if isinstance(info.get('total_token_usage'),dict):
+                    checkpoints[session.session_id].append(dict(tokens=rules.tokens(info['total_token_usage'],'codex'),
+                                                                 path=str(path),index=index,at=moment))
+                limits=payload.get('rate_limits') or {}
+                if isinstance(limits.get('plan_type'),str): session.quota_plan=limits['plan_type']
+                for name in ('primary','secondary'):
+                    window=limits.get(name) if isinstance(limits.get(name),dict) else {}
+                    used,minutes=percentage(window.get('used_percent')),window.get('window_minutes')
+                    if moment and used is not None and type(minutes) is int and minutes>0:
+                        sample=(moment,minutes,used,timestamp(window.get('resets_at')))
+                        if sample not in session.quota: session.quota.append(sample)
+    for candidates in responses.values():
+        ids=sorted({c['session'].session_id for c in candidates})
+        for identity in ids[1:]: join(ids[0],identity)
+    groups=defaultdict(set)
+    for identity in sessions:
+        groups[root(identity)].add(identity)
+    for identity in checkpoints:
+        session=sessions[identity]
+        if session.parent_id and session.parent_id not in sessions:
+            incomplete_history(session)
+        group=groups[root(identity)]
+        if len(group)>1:
+            # Different retained session counters do not prove disjoint history. Keep their
+            # existing numbers, but never present an unproven parent/child sum as complete.
+            for member in group:
+                incomplete_history(sessions[member])
+    for identity,session in sessions.items():
+        evidence={}
+        for value in sorted(projects[identity]):
+            key,canonical=project_key(value)
+            evidence.setdefault(key,canonical)
+        rules.metadata(session,evidence)
+        if len(evidence)==1:
+            # Retain the reader's original spelling for a single logged path, while ownership
+            # comparisons use canonical evidence even across different native session IDs.
+            session.project=next(iter(projects[identity])) if len(projects[identity])==1 else next(iter(evidence.values()))
+    for path,session,rows in streams:
+        occurrences=defaultdict(int)
+        for row in rows:
+            payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
+            kind,sub=row.get('type'),payload.get('type')
+            if not (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted')
+                    or kind=='response_item' and sub in ('function_call','custom_tool_call')): continue
+            identity=payload.get('call_id') if kind=='response_item' else payload.get('turn_id')
+            if isinstance(identity,str) and identity:
+                key=(sub,identity)
+            else:
+                signature=rules.fingerprint(row)
+                nth=occurrences[signature];occurrences[signature]+=1
+                key=(sub,root(session.session_id),signature,nth)
+                session.counts_complete=False;session.issues.add('unidentified_records')
+            events[key].append((session,payload))
+    chosen={}
+    for key,candidates in responses.items():
+        target=rules.owner([c['session'] for c in candidates])
+        value=rules.largest([c['tokens'] for c in candidates])
+        chosen[key]=value
+        target.calls+=1
+        if value is None:
+            target.tokens_complete=False;target.issues.add('conflicting_usage');continue
+        add_tokens(target.tokens,value)
+        model=rules.model_for([c['model'] for c in candidates])
+        target.count(target.models,model)
+        target.count(target.model_tokens,model,total(value))
+        if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
+    residuals=defaultdict(list)
+    for identity,values in checkpoints.items():
+        session=sessions[identity]
+        # Decreasing checkpoints can be a reset or a changed accounting boundary. Do not present
+        # a maximum from the retained records as a proven complete lifetime total.
+        for path in {v['path'] for v in values}:
+            ordered=sorted((v for v in values if v['path']==path),key=lambda v:v['index'])
+            if any(not rules.dominates(b['tokens'],a['tokens']) for a,b in zip(ordered,ordered[1:])):
+                session.tokens_complete=False;session.issues.add('unreconciled_totals')
+        value=rules.largest([v['tokens'] for v in values])
+        if value is None:
+            session.tokens_complete=False;session.issues.add('unreconciled_totals');continue
+        equivalent=[v for v in values if v['tokens']==value]
+        selected=sorted(equivalent,key=lambda v:(v['at'].isoformat() if v['at'] else '',v['index'],v['path']))[-1]
+        covered,uncertain=set(),False
+        for (sid,key),occurrences in locations.items():
+            if sid!=identity: continue
+            for path,index,moment in occurrences:
+                if any(path==v['path'] and index<=v['index'] for v in equivalent):
+                    covered.add(key);break
+                if moment and selected['at'] and moment<selected['at']:
+                    covered.add(key);break
+                if path!=selected['path'] and (moment is None or selected['at'] is None or moment==selected['at']): uncertain=True
+        before=empty_tokens()
+        for key in covered:
+            if chosen[key] is None: uncertain=True
+            else:
+                included=[c['tokens'] for c in responses[key] if c['session'].session_id==identity and
+                          (any(c['path']==v['path'] and c['index']<=v['index'] for v in equivalent)
+                           or c['at'] and selected['at'] and c['at']<selected['at'])]
+                if not included or rules.largest(included)!=chosen[key]: uncertain=True
+                add_tokens(before,chosen[key])
+        if uncertain or not rules.dominates(value,before):
+            session.tokens_complete=False;session.issues.add('unreconciled_totals');continue
+        residual=rules.subtract(value,before)
+        if total(residual):
+            # Identical cumulative history can be replayed by related threads. Count that evidence once,
+            # mark uncertain ownership, and never invent a model for the residual.
+            signature=(root(identity),selected['at'],tuple(residual.values()))
+            residuals[signature].append((session,residual))
+            session.calls_complete=False;session.models_complete=False
+            session.issues.add('cumulative_usage')
+            session.note('Older Codex log: session total includes cumulative usage; per-call split unknown.')
+    for entries in residuals.values():
+        target=rules.owner([entry[0] for entry in entries])
+        value=entries[0][1]
+        add_tokens(target.tokens,value)
+        target.count(target.model_tokens,'unknown',total(value))
+        if len(entries)>1:
+            target.tokens_complete=False;target.issues.add('unreconciled_totals')
+    for candidates in events.values():
+        target=rules.owner([s for s,_ in candidates])
+        activity.add(target.session_id)
+        payloads=[p for _,p in candidates]
+        sub=payloads[0]['type']
+        if sub=='task_started': target.prompts+=1
+        elif sub=='turn_aborted': target.aborted+=1
+        elif sub=='task_complete':
+            target.errors+=any(p.get('error') for p in payloads)
+            durations=[p['duration_ms'] for p in payloads if type(p.get('duration_ms')) is int]
+            if durations: target.active_ms=(target.active_ms or 0)+max(durations)
+        else:
+            names={p.get('name') for p in payloads if isinstance(p.get('name'),str)}
+            target.count(target.tools,next(iter(names)) if len(names)==1 else 'unknown')
+    for session in sessions.values():
+        session.quota.sort(key=lambda sample:sample[0])
+        if 'codex-auto-review' in session.model_tokens:
+            session.note('codex-auto-review is a routing alias; the effective model is not logged.')
+        if session.quota: session.note('Quota samples are account-wide; concurrent sessions move the same meter.')
+    return [s for s in sessions.values() if total(s.tokens) or s.calls or s.prompts or s.errors
+            or s.quota or s.session_id in activity or s.session_id in compactions
+            or 'invalid_records' in s.issues],issues

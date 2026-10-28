@@ -1,0 +1,108 @@
+name: Product acceptance
+
+# Keep this file in .github/workflows when product/ becomes the repository root.
+# This checkout has no connected repository; adding the file does not run CI.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  supported-python:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        python: ["3.9", "3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Prepare build tools
+        run: python -m pip install "setuptools>=61" wheel
+      - name: Source acceptance with synthetic data
+        shell: python
+        run: |
+          import sys, unittest
+          sys.path.insert(0, "src")
+          result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+          sys.exit(not result.wasSuccessful())
+      - name: Browser logic
+        run: node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs
+      - name: Require the Python 3.14 decoder path
+        if: matrix.python == '3.14'
+        shell: python
+        run: |
+          import sys
+          sys.path.insert(0, "src")
+          from pler.usage.zstd import decoder
+          assert decoder()[1] == "standard library", "This Python build has no compression.zstd module"
+      - name: Build wheel without fetching product dependencies
+        run: python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist
+      - name: Fresh environment installation and installed acceptance
+        shell: python
+        run: |
+          import os, pathlib, subprocess, sys, venv
+          root = pathlib.Path.cwd()
+          target = root / ".qa-venv"
+          venv.EnvBuilder(with_pip=True).create(target)
+          executable = target / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+          wheels = list((root / "dist").glob("pler-*.whl"))
+          assert len(wheels) == 1, "Build must produce exactly one candidate wheel"
+          subprocess.run([str(executable), "-m", "pip", "install", "--no-index", "--no-deps", str(wheels[0])], check=True)
+          env = os.environ.copy()
+          env.pop("PYTHONPATH", None)
+          check = """
+          import pathlib, sys, unittest
+          import pler
+          assert pathlib.Path(pler.__file__).resolve().is_relative_to(pathlib.Path(sys.prefix).resolve())
+          result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover('tests'))
+          sys.exit(not result.wasSuccessful())
+          """
+          # is_relative_to is supported by every Python in this matrix (3.9+).
+          subprocess.run([str(executable), "-c", __import__("textwrap").dedent(check)], env=env, check=True)
+          subprocess.run([str(executable), "-m", "pler", "--version"], env=env, check=True)
+          subprocess.run([str(executable), "-m", "pip", "uninstall", "--yes", "pler"], env=env, check=True)
+          subprocess.run([str(executable), "-c", "import importlib.util; assert importlib.util.find_spec('pler') is None"], env=env, check=True)
+
+  optional-fast-decoder:
+    name: Optional zstandard / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install the optional decoder for this isolated CI job
+        run: python -m pip install zstandard
+      - name: Exercise all acceptance tests using the optional decoder
+        shell: python
+        run: |
+          import sys, unittest
+          sys.path.insert(0, "src")
+          from pler.usage.zstd import decoder
+          assert decoder()[1] == "zstandard"
+          result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+          sys.exit(not result.wasSuccessful())
