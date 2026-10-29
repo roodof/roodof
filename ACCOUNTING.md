@@ -4,6 +4,15 @@ PLER 0.2.12 describes the local agent records it can read. It does not reconcile
 
 ## Identity and copies
 
+### Dated usage and comparable observations (0.2.13)
+
+These rules are fixed before measuring new real-data results. The existing active-session selection and whole-session totals remain available and unchanged in meaning.
+
+- **Dated usage:** count only accepted, stable-ID per-response usage with exactly one unambiguous aware timestamp among copies carrying the selected actual snapshot. Use UTC and the scan's fixed observation time: `since <= response_time <= cutoff`. Missing, naive, contradictory or future timestamps cannot be allocated to a period. Do not split a cumulative residual across dates or use a session's end as the response time.
+- **Coverage:** exclude old/unverified archive evidence, uncertain history and incomplete usage/attribution from dated claims, with reason counts. Show the number of sessions with unallocated retained usage. A dated sum describes recorded responses; it never proves complete account coverage. Keep raw paths, native IDs and individual usage events out of this projection.
+- **Comparable session-length observations:** compare only the same agent, known project and single known model, with complete token/call/model/attribution evidence. Keep the existing call boundaries (short: under 50, long: at least 100; each session at least 5 calls) and ratio threshold 2, but require at least three sessions on each side. Tasks and settings are still uncontrolled; no causal, savings or quality claim follows.
+- **Quota scope:** exact copies of meter samples are deduplicated. Conflicting samples or decreases before a known reset withhold both the current percentage and forecast. This detects inconsistent history, not account identity. Compatible records do not prove a single account.
+
 ### Preregistered subsequent-edit observation (0.2.12)
 
 These rules are fixed before inspecting any real subsequent-edit result. They describe logged edit intentions, not successful changes, waste, savings, causality or code quality.
