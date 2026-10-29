@@ -66,7 +66,7 @@ class SourceTests(unittest.TestCase):
 
     def test_the_package_ships_the_page(self):
         project = (SOURCE.parent.parent / 'pyproject.toml').read_text(encoding='utf-8')
-        self.assertIn('pler = ["web/*"]', project)
+        self.assertIn('pler = ["web/*", "help/*.html", "help/*.txt"]', project)
         self.assertIn('pler = "pler.cli:main"', project)
         self.assertIn('dependencies = []', project)
 

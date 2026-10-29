@@ -2,6 +2,8 @@
 
 PLER currently describes retained Claude Code/Codex records on one computer. It is not an account bill, team service or complete history guarantee. A quota may be unknown or stale; an unknown project/model is preferable to an invented allocation. Start with the quality warning and [accounting contract](../ACCOUNTING.md) when a number looks wrong.
 
+The installed application includes versioned English/Turkish Help and its accounting contract. Use the page's Help link even when the source checkout or Internet connection is unavailable. This document is the maintainer's longer issue procedure.
+
 ## First checks
 
 - Confirm the running version with `pler --version`. Stop and restart after an update; use the new complete startup address in a manually opened tab.
@@ -9,7 +11,8 @@ PLER currently describes retained Claude Code/Codex records on one computer. It 
 - Check period/agent/project filters. The period selects sessions by their last activity, then includes their full retained totals. Search narrows only the session list.
 - If no records appear, confirm the agent has written supported local logs and the configured log root is local. A link or junction to the log folder itself is followed when it leads to a local folder; links inside it and network locations are intentionally skipped. The app should retain readable data and report affected files when reading is incomplete.
 - For a prepared export that did not save, use **Download again** and inspect browser downloads. The JSON still contains short project names, times and model names; review it before sharing.
-- For a cache problem, prefer an isolated temporary `PLER_CACHE_DIR` for diagnosis. Deleting only PLER's cache rebuilds metadata later; never delete Claude/Codex log directories to troubleshoot PLER. Do not share the private cache file.
+- For a cache problem, close PLER and use `pler cache reset`. It removes only known rebuildable Claude/Codex reader caches; retained archive history, quota samples and retention preferences are preserved. An isolated temporary `PLER_CACHE_DIR` is another diagnostic choice, but it will not include your saved archive. **Do not delete the whole PLER data/cache folder:** `metadata-archive.json` may be the only remaining metadata from deleted sources and cannot rebuild without those sources. Never delete Claude/Codex log directories to troubleshoot PLER. Do not share private cache/archive files.
+- To pause retained history, use `pler archive off`; this stops archive use and new retention without erasing it. `pler archive on` enables it again. `pler archive clear` is a separate, immediate deletion command; the page's clear action asks first. Metadata of sources already deleted is irrecoverable afterwards. Application removal does not automatically erase the private data folder. Close PLER before making a private archive backup.
 
 ## Privacy-conscious issue template
 
@@ -41,5 +44,7 @@ Do not include a startup address with `#access=`, access headers, browser sessio
 Maintainers should first reproduce a report with synthetic data and the stated application/parser version. Treat wrong totals, privacy boundary failures, broken updates or a crash as release blockers. Preserve observed and expected results, the exact artifact hash and an independent regression. When the retained evidence cannot prove a number or attribution, keep the uncertainty visible instead of inventing a repair.
 
 Back up any exported reports needed for audit. An export records the parser/schema used at that time; later updates do not rewrite it. Retain the previous installer/wheel for rollback until the new candidate has passed the acceptance procedure.
+
+Read the two period concepts separately: selected active sessions include whole-session totals, while dated usage within the period includes only complete, unambiguous records whose response identities and times support that allocation. Unknown/cumulative coverage stays excluded and visible. Mixed or contradictory quota histories must not be interpreted as a verified account forecast. Distinct project labels can include stable opaque suffixes to disambiguate identical folder names.
 
 Shared computers, multiple provider accounts in one log root, SSO/roles, shared-server hosting, untested operating systems and Claude desktop quota capture are outside the currently demonstrated personal-local scope. Do not ask users for provider credentials or imply that granting them would close a retained-log gap.

@@ -7,12 +7,12 @@ const renderer=source.slice(source.indexOf('function appendSubsequentEdit('),sou
 function element(tag,cls,text){return {tag,className:cls,textContent:text??'',children:[],listeners:{},append(...items){this.children.push(...items);},addEventListener(name,run){this.listeners[name]=run;}};}
 function descendants(root){return [root,...root.children.flatMap(descendants)];}
 function page(lang='en'){
-  const card=element('article'),opened=[];
+  const card=element('article'),opened=[],inspected=[];
   const t=(key,values={})=>table[lang][key].replace(/\{(\w+)\}/g,(match,name)=>name in values?values[name]:match);
   const context=vm.createContext({node:element,t,number:value=>String(value),usageDate:value=>value,usageDuration:value=>Math.floor(value)+' s',
-    usageAgents:{'claude-code':'Claude Code',codex:'Codex'},openUsageSession:session=>opened.push(session)});
+    usageAgents:{'claude-code':'Claude Code',codex:'Codex'},openUsageSession:session=>opened.push(session),inspectUsageSession:id=>inspected.push(id)});
   vm.runInContext(renderer,context);
-  return {card,opened,context,t,nodes:()=>descendants(card),text:()=>descendants(card).map(item=>item.textContent).join('\n')};
+  return {card,opened,inspected,context,t,nodes:()=>descendants(card),text:()=>descendants(card).map(item=>item.textContent).join('\n')};
 }
 const origin='a'.repeat(24),later='b'.repeat(24);
 const base={origin_sessions:4,eligible_sessions:2,timeline_eligible_sessions:5,timeline_sessions:8,observed_unmatched_sessions:1,
@@ -28,11 +28,12 @@ test('shows fixed observation coverage and positive subsecond gaps in both langu
     assert(!text.includes('0 s'));assert(!text.includes('undefined'));
   }
 });
-test('opens only available selected sessions; later evidence outside filters stays readable',()=>{
+test('opens selected sessions directly and looks up a session outside the filters by its code only',()=>{
   const p=page(),session={id:origin};p.context.appendSubsequentEdit(p.card,{sessions:[session]},base);
-  const buttons=p.nodes().filter(item=>item.tag==='button');assert.equal(buttons.length,1);
+  const buttons=p.nodes().filter(item=>item.tag==='button');assert.equal(buttons.length,2);
   buttons[0].listeners.click();assert.deepEqual(p.opened,[session]);
-  assert(p.text().includes('aaaaaaaa'));assert(p.text().includes('bbbbbbbb'));assert(p.text().includes(p.t('reedit_outside')));
+  buttons[1].listeners.click();assert.deepEqual(p.inspected,[later]);
+  assert(p.text().includes('aaaaaaaa'));assert(p.text().includes('bbbbbbbb'));assert(p.text().includes(p.t('open_outside')));
 });
 test('private extra fields never render and malformed identities or agents are not copied',()=>{
   const p=page();const privateText='C:/private-project/SECRET-CANARY.txt';

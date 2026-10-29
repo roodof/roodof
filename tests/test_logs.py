@@ -264,7 +264,8 @@ class ProjectRootTests(unittest.TestCase):
             home, scratch = Path(temp) / 'home', Path(temp) / 'tmp'
             (scratch / 'run-1' / 'project' / '.git').mkdir(parents=True)
             roots = ProjectRoots(home, scratch)
-            for folder in (scratch / 'run-1' / 'project', scratch / 'run-2', scratch):
+            self.assertEqual(roots.root(str(scratch/'run-1'/'project')),os.path.normpath(str(scratch/'run-1'/'project')))
+            for folder in (scratch / 'run-2', scratch):
                 self.assertEqual(roots.root(str(folder)), os.path.normpath(str(scratch)))
             self.assertEqual(roots.root(str(Path(temp) / 'tmpfiles')), os.path.normpath(str(Path(temp) / 'tmpfiles')))
             self.assertEqual(label(str(scratch), home, scratch), 'Temporary folders')
@@ -310,8 +311,10 @@ class InsightTests(unittest.TestCase):
     def sessions(self):
         from pler.usage.records import Session
         rows = []
-        for index, (calls, per_call) in enumerate([(10, 40000), (20, 50000), (30, 45000), (150, 180000)]):
-            rows.append(Session('codex', str(index), 'x', calls=calls, prompts=10,
+        for index, (calls, per_call) in enumerate([(10, 40000), (20, 50000), (30, 45000),
+                                                  (150, 180000), (100, 180000), (100, 180000)]):
+            rows.append(Session('codex', str(index), 'x', project='/work/invented-project',calls=calls,prompts=10,
+                                models={'invented-model':calls},model_tokens={'invented-model':calls*per_call},
                                 tokens=dict(input=0, cache_read=calls * per_call, cache_write=0, output=0, reasoning=0)))
         return rows
 
@@ -323,7 +326,7 @@ class InsightTests(unittest.TestCase):
         self.assertIn('4 kat', found['long_sessions']['detail'])
         self.assertIn('sabit tutulmadı', found['long_sessions']['detail'])
         self.assertIn('kanıtlamaz', found['long_sessions']['detail'])
-        self.assertEqual(round(found['concentration']['evidence']['share'], 2), 0.91)
+        self.assertEqual(round(found['concentration']['evidence']['share'], 2), 0.41)
         self.assertNotIn('long_sessions', {n['kind'] for n in insights(self.sessions()[2:], [])})  # too few short ones
 
     def test_zero_token_baseline_does_not_break_an_otherwise_readable_snapshot(self):
@@ -332,14 +335,14 @@ class InsightTests(unittest.TestCase):
         for row in rows[:3]:
             row.tokens = dict.fromkeys(row.tokens, 0)
         value = project_view(rows, {}, days=0)
-        self.assertEqual(value['totals']['sessions'], 4)
+        self.assertEqual(value['totals']['sessions'], 6)
         self.assertNotIn('long_sessions', [note['kind'] for note in value['insights']])
 
     def test_concentration_does_not_invent_a_call_count_for_old_records(self):
         from pler.usage.insights import insights
         rows = self.sessions()
-        rows[-1].notes = ['Older Codex log: cumulative totals only.']
-        rows[-1].calls = 0
+        rows[3].notes = ['Older Codex log: cumulative totals only.']
+        rows[3].calls = 0
         note = next(note for note in insights(rows, [], lang='tr') if note['kind'] == 'concentration')
         self.assertIn('çağrı sayısı bilinmiyor', note['detail'])
         self.assertNotIn('0 çağrı', note['detail'])

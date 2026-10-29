@@ -30,7 +30,14 @@ TEXT = {
         'quality.archive_unverified': 'Some sources could not be checked. Previous PLER metadata is shown; deletion and current usage are unverified.',
         'quality.archive_evicted': 'The bounded PLER archive has discarded metadata. Earlier coverage may be missing.',
         'quality.archive_invalid': 'Some PLER archive metadata could not be used or saved. Historical coverage may be incomplete.',
-        'archive.clear_help': 'Clear the PLER metadata archive; original agent logs and quota samples stay unchanged.',
+        'archive.clear_help': 'Manage PLER retained metadata: on/off preserves history; clear deletes its archive. Agent logs stay unchanged.',
+        'archive.retention_on': 'PLER history retention is on. Refresh open pages; current logs can be archived again.',
+        'archive.retention_off': 'PLER history retention is off. Existing archive bytes are preserved but are not loaded or updated.',
+        'cache.reset_help': 'Reset only rebuildable reader caches; retained history, quota samples and preferences stay unchanged.',
+        'cache.reset_done': 'Reader caches reset. Retained history is preserved; the next read may take longer.',
+        'error.metadata_settings': 'PLER metadata settings could not be changed safely. Existing history and agent logs were not removed.',
+        'error.session_missing': 'This session is no longer in the current snapshot. Read the logs again.',
+        'export.project_alias': 'Project {n}',
         'archive.cleared': 'PLER archive cleared. Refresh any open PLER page; surviving logs can be read again.',
         'archive.source_deleted': 'Source deleted · from the PLER archive',
         'archive.source_unverified': 'Source unavailable · from the PLER archive',
@@ -64,6 +71,11 @@ TEXT = {
         'export_file': 'pler-usage-summary.json',
         # observations
         'insight.quota_name': '{agent} {window} quota',
+        'insight.quota_ambiguous.title': '{name}: conflicting meter history',
+        'insight.quota_ambiguous.detail': 'The records cannot establish one consistent meter. The current percentage and forecast are withheld. Keep personal/work profiles separate; compatible records still do not prove account identity.',
+        'report.quota_ambiguous': '  {window}: conflicting meter history; current quota and forecast unknown.',
+        'report.dated_usage': 'Dated recorded responses in this period: {tokens} tokens, {calls} calls. Eligible retained sessions: {eligible}/{selected}; sessions with unallocated usage: {unallocated}.',
+        'report.dated_limit': 'Only reconciled responses whose recorded times all fall in the period are included. Cumulative/undated/uncertain usage is not allocated; this is not a complete account total.',
         'insight.full.title': 'Last sample: {name} is full',
         'insight.full.detail': 'It was 100% full at the last record ({at}); it resets {resets}.',
         'insight.pace.hour': 'at this window\'s pace ({rate}% an hour)',
@@ -71,9 +83,9 @@ TEXT = {
         'insight.fills.title': '{name} may fill before it resets',
         'insight.fills.detail': '{used}% used at the last record. {pace} it fills around {full}; it resets {resets}.',
         'insight.long.title': 'Logged token use differs by session length',
-        'insight.long.detail': ('{agent}: in sessions with {long} or more calls, a model call used a median of {long_tokens} tokens; '
-                                'in sessions under {short} calls, {short_tokens} ({ratio}x). Tasks, models and settings were not '
-                                'held constant. This observation does not establish waste or savings from a new session.'),
+        'insight.long.detail': ('{agent}, {model}, within one project: {long_n} sessions with {long} or more calls used a median of '
+                                '{long_tokens} tokens per call; {short_n} sessions under {short} calls used {short_tokens} ({ratio}x). '
+                                'Tasks and settings were not held constant. This observation does not establish waste or savings from a new session.'),
         'insight.calls_unknown': 'call count unknown',
         'insight.git.title': 'Commits during your sessions',
         'insight.git.detail': ('{commits} were recorded during {sessions}, in repositories the agents changed. '
@@ -168,7 +180,14 @@ TEXT = {
         'quality.archive_unverified': 'Bazı kaynaklar denetlenemedi. Önceki PLER üst bilgisi gösteriliyor; silinme durumu ve güncel kullanım doğrulanamadı.',
         'quality.archive_evicted': 'Sınırlı PLER arşivinden üst bilgi çıkarıldı. Önceki geçmişin bir bölümü eksik olabilir.',
         'quality.archive_invalid': 'Bazı PLER arşiv kayıtları kullanılamadı veya kaydedilemedi. Geçmişin kapsamı eksik olabilir.',
-        'archive.clear_help': 'PLER üst bilgi arşivini temizler; ajan kayıtları ve kota örnekleri değişmez.',
+        'archive.clear_help': 'PLER geçmişini yönetir: on/off arşivi korur; clear arşivi siler. Ajan kayıtları değişmez.',
+        'archive.retention_on': 'PLER geçmiş saklama açık. Açık sayfaları yenileyin; yerinde duran kayıtlar yeniden arşivlenebilir.',
+        'archive.retention_off': 'PLER geçmiş saklama kapalı. Mevcut arşiv korunur; yüklenmez veya güncellenmez.',
+        'cache.reset_help': 'Yalnız yeniden kurulabilir okuma önbelleklerini sıfırlar; arşiv, kota örnekleri ve tercihler korunur.',
+        'cache.reset_done': 'Okuma önbellekleri sıfırlandı. Saklanan geçmiş korundu; sonraki okuma daha uzun sürebilir.',
+        'error.metadata_settings': 'PLER üst bilgi ayarları güvenle değiştirilemedi. Mevcut geçmiş ve ajan kayıtları silinmedi.',
+        'error.session_missing': 'Bu oturum güncel görüntüde artık yok. Kayıtları yeniden okuyun.',
+        'export.project_alias': 'Proje {n}',
         'archive.cleared': 'PLER arşivi temizlendi. Açık PLER sayfasını yenileyin; duran kaynaklar yeniden okunabilir.',
         'archive.source_deleted': 'Kaynağı silinmiş · PLER arşivinden',
         'archive.source_unverified': 'Kaynak doğrulanamadı · PLER arşivinden',
@@ -201,6 +220,11 @@ TEXT = {
         'error.fields': 'İstek klasör, komut veya başka bir alan içermemeli.',
         'export_file': 'pler-kullanim-ozeti.json',
         'insight.quota_name': '{agent} {window} kotası',
+        'insight.quota_ambiguous.title': '{name}: çelişkili kota geçmişi',
+        'insight.quota_ambiguous.detail': 'Kayıtların tutarlı tek bir sayaca ait olduğu doğrulanamıyor. Güncel yüzde ve tahmin gösterilmiyor. Kişisel/iş profillerini ayırın; uyumlu kayıtlar da hesap kimliğini kanıtlamaz.',
+        'report.quota_ambiguous': '  {window}: çelişkili kota geçmişi; güncel kota ve tahmin bilinmiyor.',
+        'report.dated_usage': 'Dönem içindeki tarihli yanıt kayıtları: {tokens} token, {calls} çağrı. Uygun saklanan oturum: {eligible}/{selected}; kullanımı tarihe dağıtılamayan oturum: {unallocated}.',
+        'report.dated_limit': 'Yalnız kayıtlı zamanlarının hepsi dönem içinde olan uzlaştırılmış yanıtlar dahil. Birikimli/tarihsiz/belirsiz kullanım dağıtılmaz; hesabın eksiksiz toplamı değildir.',
         'insight.full.title': 'Son kayda göre {name} dolu',
         'insight.full.detail': 'Son kayıtta ({at}) %100 doluydu; {resets} sıfırlanıyor.',
         'insight.pace.hour': 'bu penceredeki çalışma hızıyla (saatte %{rate})',
@@ -208,9 +232,9 @@ TEXT = {
         'insight.fills.title': '{name} sıfırlanmadan dolabilir',
         'insight.fills.detail': 'Son kayıtta %{used} dolu. {pace} {full} civarı dolar; sıfırlanma {resets}.',
         'insight.long.title': 'Kayıtlı token kullanımı oturum uzunluğuna göre değişiyor',
-        'insight.long.detail': ('{agent}: {long} ve daha fazla çağrılı oturumlarda bir model çağrısı ortanca {long_tokens} token '
-                                'kullandı; {short} çağrıdan kısa oturumlarda {short_tokens} ({ratio} kat). İşler, modeller ve ayarlar '
-                                'sabit tutulmadı. Bu gözlem israfı veya yeni oturum açmanın tasarruf sağlayacağını kanıtlamaz.'),
+        'insight.long.detail': ('{agent}, {model}, aynı proje içinde: {long} ve daha fazla çağrılı {long_n} oturumda çağrı başına '
+                                'ortanca {long_tokens} token; {short} çağrıdan kısa {short_n} oturumda {short_tokens} ({ratio} kat). '
+                                'İşler ve ayarlar sabit tutulmadı. Bu gözlem israfı veya yeni oturum açmanın tasarruf sağlayacağını kanıtlamaz.'),
         'insight.calls_unknown': 'çağrı sayısı bilinmiyor',
         'insight.git.title': 'Oturumlarındaki commit\'ler',
         'insight.git.detail': ('{sessions} boyunca, ajanların değiştirdiği depolarda {commits} kaydedildi. '

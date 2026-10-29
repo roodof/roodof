@@ -8,7 +8,7 @@ From `product/`, with Python and build tools already installed:
 
 ```text
 python -m unittest discover -s tests
-node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs
+node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs
 python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist
 python -m venv .qa-venv
 ```
@@ -40,6 +40,9 @@ Do not put the source tree on the installed run's `PYTHONPATH`. A passing import
 | Candidate update over previous candidate | Old process is closed, new version/link is used; unchanged logs produce the same supported accounting result unless a documented parser correction applies |
 | Roll back using retained previous artifact | Previous version starts; original agent records remain unchanged |
 | Uninstall/remove | Executables and optional integration are removed as documented; user logs are untouched; retained cache/backup policy is stated |
+| Rebuildable cache reset | `pler cache reset` removes only the known reader caches; retained history, preferences, quota samples and demo data remain intact |
+| Retention pause and resume | Pausing retention stops archive use/new retention without erasing saved history; an in-flight scan cannot save after the preference changed; enabling restores eligible archive coverage |
+| Offline installed help | English/Turkish help and the exact accounting contract open from the installed artifact without a checkout or external request; displayed version matches that artifact |
 | Signature and artifact hash | The final artifact hash and approved publisher signature verify on the target machine; unsigned candidates remain labelled unsigned |
 
 A venv on a developer's computer is a useful package check, not a clean Windows/macOS/Linux or Python-free test. Disconnecting the network during the clean-machine test is useful when checking that the artifact does not download a missing runtime. Do not disable endpoint protection or bypass a browser/OS trust warning as a test shortcut.
@@ -56,5 +59,7 @@ Run all tasks with the same invented fixture and record the browser/OS version. 
 6. With Windows NVDA and macOS VoiceOver, read the title, language, filter labels, loading/status changes, quality warnings, quota state, table headers, row actions, download result and dialog. Confirm no unreachable controls or focus trap. Automated DOM checks do not substitute for this run.
 7. With reduced motion, forced colors/high contrast and dark/light OS settings, confirm visible focus, legible values, identifiable warnings and usable buttons. Check that no meaning depends on color alone.
 8. Close PLER; controls become inactive and explain how to reopen. No provider API/model request or real Claude configuration change should occur during these tasks.
+
+For the 0.2.13 candidate also verify that quality warnings lead to affected sessions, ambiguous project suffixes remain consistent across filters, temporary repositories stay separate, mixed-meter examples withhold forecasts, and dated-period usage does not include unallocatable cumulative totals. The date cutoff stays fixed until a new read. Check that local Help explains archive deletion before any history-clearing action.
 
 Record each task as **pass**, **fail** or **not run** with actual evidence. Screen-reader conformance and every-browser download support remain unverified until those runs occur.

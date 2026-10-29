@@ -13,6 +13,12 @@ These rules are fixed before measuring new real-data results. The existing activ
 - **Comparable session-length observations:** compare only the same agent, known project and single known model, with complete token/call/model/attribution evidence. Keep the existing call boundaries (short: under 50, long: at least 100; each session at least 5 calls) and ratio threshold 2, but require at least three sessions on each side. Tasks and settings are still uncontrolled; no causal, savings or quality claim follows.
 - **Quota scope:** exact copies of meter samples are deduplicated. Conflicting samples or decreases before a known reset withhold both the current percentage and forecast. This detects inconsistent history, not account identity. Compatible records do not prove a single account.
 
+**Corrected after the first real-data check (29 October 2026).** Two of these rules failed on one user's real logs and were changed before release; the counts below are from that check.
+
+- *Quota:* the real Codex meter is not monotonic. Within one window the 5-hour level fell by 1 point 622 times and by at most 11; the provider also restarted windows early (a later reset with a lower level). The original rule hid both real Codex windows. A contradiction is now a reset moving back to an earlier time while its window is active, a fall of more than 25 points within a window, or different readings at the same instant.
+- *Dated usage:* Claude Code writes each content block of a response as its own row with the same usage and its own time; 75% of real responses had such copies, seconds apart (90th percentile 14 s). A response is now dated by its earliest and latest copy: it counts when both fall in the interval, and stays undated when they straddle the start. A copy without an aware time still leaves it undated.
+- *Display:* even after this, 23 of 29 real sessions were excluded for incomplete usage or ownership, and the last seven days had no dated tokens beside 1.5 billion whole-session tokens. The page and terminal therefore show dated usage only when every selected session's usage could be dated; the JSON export always carries it with its coverage counts.
+
 ### Preregistered subsequent-edit observation (0.2.12)
 
 These rules are fixed before inspecting any real subsequent-edit result. They describe logged edit intentions, not successful changes, waste, savings, causality or code quality.

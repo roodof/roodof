@@ -8,6 +8,7 @@ from . import discovery
 from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
 from .edit_paths import canonical_target
+from .period_usage import event_time, record_response
 
 
 def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
@@ -137,7 +138,8 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                     session.tokens_complete=False;session.issues.add('invalid_records');continue
                 identity=payload.get('response_id')
                 key=('response',identity) if isinstance(identity,str) and identity else ('anonymous',str(path),index)
-                responses[key].append(dict(session=session,tokens=tokens,model=model,path=str(path),index=index,at=moment))
+                responses[key].append(dict(session=session,tokens=tokens,model=model,path=str(path),index=index,at=moment,
+                                          usage_at=event_time(row.get('timestamp'))))
                 locations[(session.session_id,key)].append((str(path),index,moment))
                 if key[0]=='anonymous':
                     session.calls_complete=False;session.tokens_complete=False;session.issues.add('unidentified_records')
@@ -212,6 +214,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         if value is None:
             target.tokens_complete=False;target.issues.add('conflicting_usage');continue
         add_tokens(target.tokens,value)
+        if key[0]=='response' and key[1].strip(): record_response(target,value,candidates)
         model=rules.model_for([c['model'] for c in candidates])
         target.count(target.models,model)
         target.count(target.model_tokens,model,total(value))

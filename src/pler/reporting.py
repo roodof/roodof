@@ -3,7 +3,7 @@ from . import __version__
 from .i18n import say
 
 SCHEMA_VERSION=2
-PARSER_VERSION='accounting-2026-10-29.2'
+PARSER_VERSION='accounting-2026-10-29.3'
 ISSUES={'invalid_records':'quality.invalid_records','conflicting_usage':'quality.conflicting_usage',
         'unreconciled_totals':'quality.unreconciled_totals','shared_attribution':'quality.shared_attribution',
         'unknown_model':'quality.unknown_model','cumulative_usage':'quality.cumulative_usage',
@@ -16,6 +16,30 @@ ISSUES={'invalid_records':'quality.invalid_records','conflicting_usage':'quality
 def provenance(archived=False):
     return dict(version=__version__,schema_version=SCHEMA_VERSION,parser_version=PARSER_VERSION,
                 source_scope='retained_local_agent_logs_with_pler_archive' if archived else 'retained_local_agent_logs')
+
+
+def affected(value):
+    """A data-quality issue is distinct from a recorded agent error or interruption."""
+    return any(value.get(name) is False for name in
+               ('tokens_complete','calls_complete','counts_complete','attribution_complete','models_complete'))
+
+
+def mask_projects(value,lang='en'):
+    """Mask project labels consistently in the fixed public dashboard export.
+
+    Opaque row/project codes, times, models and counts remain: this is reduced
+    disclosure, not anonymization. The input projection is not modified.
+    """
+    from copy import deepcopy
+    result=deepcopy(value)
+    keys=sorted({p['id'] for p in result.get('projects',())}|
+                {s['project_id'] for s in result.get('sessions',())})
+    names={key:say(lang,'export.project_alias',n=index+1) for index,key in enumerate(keys)}
+    for project in result.get('projects',()): project['name']=names[project['id']]
+    for session in result.get('sessions',()): session['project']=names[session['project_id']]
+    result.pop('project_options',None)
+    result['project_names_masked']=True
+    return result
 
 
 def quality(rows,sources,lang='en'):

@@ -14,7 +14,43 @@ const I18N=/*I18N*/{
 "head_title": "My usage",
 "head_intro": "Which agent used how much, in which project?",
 "refresh": "Read logs again",
-"export": "Download summary ↓",
+"export": "Download JSON ↓",
+"help": "Help",
+"mask_projects": "Hide project names in JSON",
+"mask_projects_note": "Times, models and session codes remain; the file is not anonymous.",
+"quality_show": "Show affected sessions ({n})",
+"quality_only": "Only sessions with data-quality limits",
+"quality_clear": "Show all selected sessions",
+"quality_filter_note": "This list filter does not change totals or JSON scope.",
+"reedit_brief": "{matched} earlier sessions matched among {eligible} eligible; {pending} unmatched sessions await follow-up. Not evaluable: {excluded}.",
+"reedit_caution": "Logged targets do not prove completed changes, waste or quality. Tokens belong to whole sessions.",
+"reedit_method": "Scope, method and limits",
+"open_outside": "Find this session outside the filters",
+"quota_ambiguous": "Conflicting meter history. The current percentage and forecast are unknown. Separate personal/work profiles before comparing their meters.",
+"metadata_settings": "Local history and reader cache",
+"retention_label": "Keep metadata after source logs disappear",
+"retention_on": "History retention is on. Stored archive: {bytes}; at most {days} unseen days, {files} files and {limit}.",
+"retention_off": "History retention is off. Existing archive bytes ({bytes}) are preserved, but are not loaded or updated.",
+"retention_help": "The local archive includes identifiers, project/edited paths, models and counts, never prompts or replies. Turning retention off preserves it; clearing deletes the retained history.",
+"cache_reset": "Rebuild reader cache",
+"cache_reset_help": "Only disposable reader caches are reset. Archive, quota samples and preferences stay unchanged; the next read may take longer.",
+"cache_reset_done": "Reader caches reset; retained history is preserved. Reading the logs again.",
+"retention_changed": "History retention preference saved. Reading the selected sources again.",
+"retention_short_on": "retention on",
+"retention_short_off": "retention off",
+"quality_session": "Data-quality limits",
+"dated_title": "Dated recorded usage in this period",
+"dated_result": "{tokens} tokens · {calls} recorded responses · {sessions} contributing sessions",
+"dated_coverage": "Eligible retained sessions: {eligible} of {selected}. Sessions with unallocated usage: {unallocated}.",
+"dated_scope": "Only reconciled responses whose recorded times all fall in this interval are counted. Cumulative, undated and uncertain usage is not distributed across dates. This is not a complete account total.",
+"dated_interval": "From {since} through {cutoff}. The observation time stays fixed until logs are read again.",
+"dated_all": "all dated records",
+"dated_exclusions": "Coverage details",
+"dated_undated": "Undated responses: {undated}; future responses excluded: {future}; responses before the period: {outside}.",
+"dated_incomplete_usage": "Incomplete session usage",
+"dated_unverified_attribution": "Unverified ownership",
+"dated_missing_event_evidence": "No verified per-response time evidence",
+"version_label": "Version {version}",
 "archive_clear": "Clear PLER archive",
 "archive_clearing": "Clearing archive…",
 "archive_clear_help": "Clears the whole PLER archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.",
@@ -281,7 +317,43 @@ const I18N=/*I18N*/{
 "head_title": "Kullanımım",
 "head_intro": "Hangi ajan, hangi projede, ne kadar kaynak kullandı?",
 "refresh": "Kayıtları yenile",
-"export": "Özeti indir ↓",
+"export": "JSON indir ↓",
+"help": "Yardım",
+"mask_projects": "JSON içinde proje adlarını gizle",
+"mask_projects_note": "Zamanlar, modeller ve oturum kodları kalır; dosya anonim değildir.",
+"quality_show": "Etkilenen oturumları göster ({n})",
+"quality_only": "Yalnız veri kalitesi sınırlı oturumlar",
+"quality_clear": "Seçili oturumların tümünü göster",
+"quality_filter_note": "Bu liste filtresi toplamları ve JSON kapsamını değiştirmez.",
+"reedit_brief": "Değerlendirilebilen {eligible} önceki oturumdan {matched} tanesi eşleşti; eşleşmeyen {pending} oturum takip bekliyor. Değerlendirilemeyen: {excluded}.",
+"reedit_caution": "Hedef kaydı tamamlanmış değişikliği, israfı veya kaliteyi kanıtlamaz. Tokenlar bütün oturuma aittir.",
+"reedit_method": "Kapsam, yöntem ve sınırlar",
+"open_outside": "Bu oturumu filtrelerin dışında bul",
+"quota_ambiguous": "Kota geçmişi çelişkili. Güncel yüzde ve tahmin bilinmiyor. Kişisel/iş profillerinin sayaçlarını ayırarak inceleyin.",
+"metadata_settings": "Yerel geçmiş ve okuma önbelleği",
+"retention_label": "Kaynak kayıtlar kaybolunca üst bilgiyi sakla",
+"retention_on": "Geçmiş saklama açık. Arşiv: {bytes}; en fazla {days} görülmeyen gün, {files} dosya ve {limit}.",
+"retention_off": "Geçmiş saklama kapalı. Mevcut arşiv ({bytes}) korunuyor; yüklenmiyor veya güncellenmiyor.",
+"retention_help": "Yerel arşiv kimlikleri, proje/düzenleme yollarını, modelleri ve sayıları içerir; istek ve yanıt içermez. Saklamayı kapatmak arşivi korur; silmek saklanan geçmişi kaldırır.",
+"cache_reset": "Okuma önbelleğini yeniden kur",
+"cache_reset_help": "Yalnız yeniden kurulabilir okuma önbellekleri sıfırlanır. Arşiv, kota örnekleri ve tercihler korunur; sonraki okuma daha uzun sürebilir.",
+"cache_reset_done": "Okuma önbellekleri sıfırlandı; saklanan geçmiş korundu. Kayıtlar yeniden okunuyor.",
+"retention_changed": "Geçmiş saklama tercihi kaydedildi. Seçili kaynaklar yeniden okunuyor.",
+"retention_short_on": "saklama açık",
+"retention_short_off": "saklama kapalı",
+"quality_session": "Veri kalitesi sınırlı",
+"dated_title": "Dönem içindeki tarihli kullanım kayıtları",
+"dated_result": "{tokens} token · {calls} kayıtlı yanıt · katkı veren {sessions} oturum",
+"dated_coverage": "Uygun saklanan oturum: {selected} içinden {eligible}. Kullanımı tarihe dağıtılamayan oturum: {unallocated}.",
+"dated_scope": "Yalnız kayıtlı zamanlarının hepsi bu aralıkta olan uzlaştırılmış yanıtlar sayılır. Birikimli, tarihsiz ve belirsiz kullanım günlere dağıtılmaz. Hesabın eksiksiz toplamı değildir.",
+"dated_interval": "{since} ile {cutoff} arası. Kayıtlar yeniden okunana kadar gözlem sonu sabittir.",
+"dated_all": "tüm tarihli kayıtlar",
+"dated_exclusions": "Kapsam ayrıntıları",
+"dated_undated": "Tarihsiz yanıt: {undated}; dışlanan gelecek tarihli yanıt: {future}; dönemden önceki yanıt: {outside}.",
+"dated_incomplete_usage": "Eksik oturum kullanımı",
+"dated_unverified_attribution": "Doğrulanamayan atıf",
+"dated_missing_event_evidence": "Doğrulanmış yanıt zamanı yok",
+"version_label": "Sürüm {version}",
 "archive_clear": "PLER arşivini sil",
 "archive_clearing": "Arşiv temizleniyor…",
 "archive_clear_help": "Tüm PLER arşivi temizlenir. Ajan kayıtları değişmez; silinmiş kaynakların kopyaları geri alınamaz.",
@@ -512,8 +584,9 @@ function applyLanguage(){
   for(const item of document.querySelectorAll('[data-i18n]'))item.textContent=t(item.dataset.i18n);
   for(const item of document.querySelectorAll('[data-i18n-placeholder]'))item.placeholder=t(item.dataset.i18nPlaceholder);
   for(const item of document.querySelectorAll('[data-i18n-label]'))item.setAttribute('aria-label',t(item.dataset.i18nLabel));
+  $('usage-help').href='/help?lang='+LANG;
 }
-function switchLanguage(){const other=LANG==='tr'?'en':'tr';try{localStorage.setItem('pler-lang',other);}catch(_){}location.search='?lang='+other;}
+function switchLanguage(){const other=LANG==='tr'?'en':'tr';try{localStorage.setItem('pler-lang',other);sessionStorage.setItem('pler-view',JSON.stringify({days:$('usage-period').value,agent:$('usage-agent').value,project:$('usage-project').value,search:$('usage-session-search').value,sort:$('usage-session-sort').value,quality:Boolean($('usage-quality-only').checked),mask:Boolean($('usage-export-mask').checked)}));}catch(_){}location.search='?lang='+other;}
 async function api(path,options={}){
   let response;
   try{response=await fetch(path,{cache:'no-store',...options,headers:{...options.headers,'X-PLER-Token':token}});}catch(_){throw new Error(t('err_unreachable'));}
@@ -528,6 +601,7 @@ async function closeApp(){
   catch(error){notice(error.message);}
 }
 const usageState={data:null,revision:0,pageSize:20,timer:null,clock:null,stopped:false,loading:false,exporting:false,downloadUrl:null};
+try{const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null');sessionStorage.removeItem('pler-view');if(saved&&['0','7','30','90'].includes(saved.days)&&['all','codex','claude-code'].includes(saved.agent)&&typeof saved.project==='string'&&/^(all|[a-f0-9]{24})$/.test(saved.project)){usageState.restore=saved;$('usage-period').value=saved.days;$('usage-agent').value=saved.agent;if(typeof saved.search==='string')$('usage-session-search').value=saved.search.slice(0,160);if(['tokens','recent','started','issues'].includes(saved.sort))$('usage-session-sort').value=saved.sort;$('usage-quality-only').checked=saved.quality===true;$('usage-export-mask').checked=saved.mask!==false;}}catch(_){}
 const usageAgents={'claude-code':'Claude Code',codex:'Codex'};
 const usageTokens=[['input',t('token_input')],['cache_read',t('token_cache')],['cache_write',t('token_write')],['output',t('token_output')]];
 const usagePct=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{style:'percent',maximumFractionDigits:1}).format(value);
@@ -569,6 +643,7 @@ function renderUsage(data){
   $('usage-status').textContent=data.state==='scanning'?t('scanning')+(data.has_snapshot?t('showing_previous'):''):data.error||t('last_read',{at:usageDate(data.scanned_at),claude:count(data.sources.claude_files,'claude_file'),codex:count(data.sources.codex_files,'codex_file')});
   const selected=$('usage-project').value;$('usage-project').replaceChildren(node('option','',t('project_all')));$('usage-project').firstChild.value='all';
   for(const project of data.project_options){const option=node('option','',project.name);option.value=project.id;$('usage-project').append(option);}$('usage-project').value=data.project_options.some(p=>p.id===selected)?selected:'all';
+  if(usageState.restore){const desired=usageState.restore.project;usageState.restore=null;if(desired!=='all'&&data.project_options.some(p=>p.id===desired)&&data.filters.project!==desired){$('usage-project').value=desired;loadUsage();return;}}
   $('usage-content').hidden=!data.has_snapshot;$('usage-empty').hidden=!data.has_snapshot||Boolean(data.totals.sessions);
   for(const id of ['usage-totals','usage-mix','usage-columns','usage-session-section'])$(id).hidden=!data.totals.sessions;
   const noFiles=!data.sources.claude_files&&!data.sources.codex_files;
@@ -579,6 +654,9 @@ function renderUsage(data){
   const qualityIssues=data.quality?.issues||[];
   $('usage-quality').hidden=!qualityIssues.length;
   $('usage-quality').textContent=qualityIssues.length?t('quality_header')+' '+qualityIssues.map(item=>item.detail).join(' '):'';
+  const affected=data.quality_affected_sessions??data.sessions.filter(sessionHasQualityLimits).length;
+  $('usage-quality-show').hidden=!affected;$('usage-quality-show').textContent=t('quality_show',{n:number(affected)});
+  renderDatedUsage(data.dated_usage);
   $('usage-coverage').textContent=(data.sources.unreadable?t('unreadable_coverage',{files:count(data.sources.unreadable,'file')})+data.sources.issues.map(i=>i.reason+': '+i.files).join(' · '):t('all_read'))+(data.period.cross_period_sessions?t('cross_period',{sessions:count(data.period.cross_period_sessions,'session')}):'');
   if(data.sources.unreadable)$('usage-status').textContent+=t('status_unreadable',{files:count(data.sources.unreadable,'file')});
   if(data.unknown_call_sessions)$('usage-coverage').textContent+=t('unknown_calls',{sessions:count(data.unknown_call_sessions,'session')});
@@ -595,23 +673,35 @@ function renderUsage(data){
   $('usage-models').replaceChildren(...data.models.slice(0,8).map(model=>{const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',usageShort(model.total_tokens)),node('small','',(usageAgents[model.agent]||model.agent)+' · '+count(model.calls,'call')));return row;}));
   renderUsageSessions();
 }
+function renderDatedUsage(value){
+  // A partial dated sum beside whole-session totals reads as a contradiction; the JSON keeps its coverage counts.
+  const box=$('usage-dated');box.hidden=!value?.retained_usage_fully_dated;if(box.hidden)return;
+  box.replaceChildren(node('h2','',t('dated_title')),node('p','dated-result',t('dated_result',{tokens:number(value.total_tokens),calls:number(value.response_calls),sessions:number(value.contributing_sessions)})),node('p','section-note',t('dated_coverage',{eligible:number(value.eligible_sessions),selected:number(value.selected_sessions),unallocated:number(value.unallocated_sessions)})),node('p','section-note',t('dated_scope')));
+  const details=node('details','');details.append(node('summary','',t('dated_exclusions')),node('p','section-note',t('dated_interval',{since:value.since?usageDate(value.since):t('dated_all'),cutoff:usageDate(value.cutoff)})),node('p','section-note',t('dated_undated',{undated:number(value.undated_response_calls),future:number(value.future_response_calls),outside:number(value.outside_period_calls)})));
+  const reasons={archive_old_parser:'reedit_archive_old_parser',archive_unverified:'reedit_archive_unverified',uncertain_history:'reedit_uncertain_history',incomplete_usage:'dated_incomplete_usage',unverified_attribution:'dated_unverified_attribution',missing_event_evidence:'dated_missing_event_evidence'};
+  const list=node('ul','');for(const reason of Object.keys(reasons))if(value.excluded?.[reason])list.append(node('li','',t(reasons[reason])+': '+number(value.excluded[reason])));details.append(list);box.append(details);
+}
 function renderUsageInsights(data){
   usageState.insightQuotaStates=quotaInsightStates(data);
-  const box=$('usage-insights'),notes=(data.insights||[]).filter(note=>note.kind!=='quota'||['full','fills_before_reset'].includes(quotaWindowNow(note.evidence).state));box.hidden=!notes.length;
+  const box=$('usage-insights'),notes=(data.insights||[]).filter(note=>note.kind!=='quota'||['full','fills_before_reset','ambiguous'].includes(quotaWindowNow(note.evidence).state));box.hidden=!notes.length;
   box.replaceChildren(node('span','eyebrow',t('insights_eyebrow')),node('h2','',t('insights_title')));
   const list=node('div','usage-insight-list');
-  for(const note of notes){const card=node('article','usage-insight '+note.level);card.append(node('h3','',note.title),node('p','',note.detail));if(note.kind==='concentration'){const button=node('button','text-button',t('inspect_session'));button.addEventListener('click',()=>{if(data.sessions.length)openUsageSession(data.sessions[0]);});card.append(button);}if(note.kind==='subsequent_edit')appendSubsequentEdit(card,data,note.evidence||data.reedit);list.append(card);}
+  for(const note of notes){const card=node('article','usage-insight '+note.level);card.append(node('h3','',note.title));if(note.kind==='subsequent_edit')appendSubsequentEdit(card,data,note.evidence||data.reedit,note.detail);else card.append(node('p','',note.detail));if(note.kind==='concentration'){const button=node('button','text-button',t('inspect_session'));button.addEventListener('click',()=>{if(data.sessions.length)openUsageSession(data.sessions[0]);});card.append(button);}list.append(card);}
   box.append(list,node('p','section-note',t('insights_note')));
 }
-function appendSubsequentEdit(card,data,observation){
+function appendSubsequentEdit(card,data,observation,detail=''){
   if(!observation)return;
   card.className+=' usage-reedit';
-  card.append(node('p','section-note',t('reedit_coverage',{eligible:number(observation.eligible_sessions),selected:number(observation.origin_sessions),timeline:number(observation.timeline_eligible_sessions),total:number(observation.timeline_sessions)})));
-  card.append(node('p','section-note',t('reedit_followup',{n:number(observation.observed_unmatched_sessions)})));
-  card.append(node('p','section-note',t('reedit_cutoff',{at:usageDate(observation.cutoff)})));
+  const excludedCount=Object.values(observation.excluded||{}).reduce((sum,n)=>sum+n,0);
+  card.append(node('p','',t('reedit_brief',{matched:number(observation.matched_sessions||0),eligible:number(observation.eligible_sessions),pending:number(observation.pending_sessions||0),excluded:number(excludedCount)})),node('p','section-note',t('reedit_caution')));
+  const method=node('details','');method.append(node('summary','',t('reedit_method')));
+  if(detail)method.append(node('p','section-note',detail));
+  method.append(node('p','section-note',t('reedit_coverage',{eligible:number(observation.eligible_sessions),selected:number(observation.origin_sessions),timeline:number(observation.timeline_eligible_sessions),total:number(observation.timeline_sessions)})));
+  method.append(node('p','section-note',t('reedit_followup',{n:number(observation.observed_unmatched_sessions)})));
+  method.append(node('p','section-note',t('reedit_cutoff',{at:usageDate(observation.cutoff)})));
   const reasons={archive_old_parser:'reedit_archive_old_parser',archive_unverified:'reedit_archive_unverified',uncertain_history:'reedit_uncertain_history',invalid_time:'reedit_invalid_time',missing_targets:'reedit_missing_targets'};
   const excluded=Object.keys(reasons).filter(reason=>observation.excluded?.[reason]>0);
-  if(excluded.length){const details=node('details','');details.append(node('summary','',t('reedit_excluded')));const list=node('ul','');for(const reason of excluded)list.append(node('li','',t(reasons[reason])+': '+number(observation.excluded[reason])));details.append(list);card.append(details);}
+  if(excluded.length){method.append(node('p','section-note',t('reedit_excluded')));const list=node('ul','');for(const reason of excluded)list.append(node('li','',t(reasons[reason])+': '+number(observation.excluded[reason])));method.append(list);}card.append(method);
   const matches=(observation.matches||[]).slice(0,5);
   if(!matches.length)return;
   const pairs=node('details','');pairs.append(node('summary','',t('reedit_matches')));
@@ -627,6 +717,7 @@ function appendSubsequentEdit(card,data,observation){
       const session=(data.sessions||[]).find(row=>row.id===id);
       const line=node('p',''),label=t(role==='origin'?'reedit_origin':'reedit_later',{agent,code});
       if(session){const button=node('button','text-button',label);button.addEventListener('click',()=>openUsageSession(session));line.append(button);}
+      else if(typeof id==='string'&&/^[a-f0-9]{24}$/.test(id)){const button=node('button','text-button',label+' · '+t('open_outside'));button.addEventListener('click',()=>inspectUsageSession(id));line.append(button);}
       else line.append(node('span','',label+' · '+t('reedit_outside')));
       const tokens=match[role+'_tokens'];
       line.append(node('br',''),node('small','',t('reedit_tokens',{tokens:number(tokens),partial:match[role+'_usage_complete']?'':t('reedit_partial')})));
@@ -637,6 +728,7 @@ function appendSubsequentEdit(card,data,observation){
   pairs.append(list);card.append(pairs);
 }
 function quotaWindowNow(window,now=Date.now()){
+  if(window.state==='ambiguous')return window;
   const reset=Date.parse(window.resets_at),at=Date.parse(window.at);
   if(!Number.isFinite(reset))return {...window,state:'historical'};
   if(reset<=now)return {...window,state:'reset'};
@@ -645,6 +737,7 @@ function quotaWindowNow(window,now=Date.now()){
   return window;
 }
 function usageOutlookText(window){
+  if(window.state==='ambiguous')return t('quota_ambiguous');
   const reset=usageDate(window.resets_at);
   if(window.state==='reset')return t('out_reset',{used:usagePct(window.used_percent/100),reset});
   if(window.state==='stale')return t('out_stale',{used:usagePct(window.used_percent/100)});
@@ -659,17 +752,18 @@ function renderUsageQuota(data){
   // Codex rows come from its logs; Claude Code rows only from PLER's status line (pler statusline --install).
   const outlook=data.outlook||[],codex=outlook.filter(row=>row.agent!=='claude-code'),claude=outlook.filter(row=>row.agent==='claude-code');
   const windows=[...(codex.length?codex:data.quota.latest),...claude].map(window=>quotaWindowNow(window)),box=$('usage-quota');box.hidden=!windows.length&&!data.totals.sessions;box.replaceChildren(node('span','eyebrow',t('quota_eyebrow')),node('h2','',t('quota_title')));
-  for(const window of windows){const agent=window.agent==='claude-code'?'Claude Code':'Codex';const card=node('div','usage-quota-row'+(window.state==='fills_before_reset'||window.state==='full'?' warn':''));const label=usageWindow(window.window_minutes);const unknown=['reset','stale','historical'].includes(window.state);const progress=node('progress');progress.max=100;progress.value=unknown?0:window.used_percent;progress.hidden=unknown;progress.setAttribute('aria-label',t('quota_aria',{agent,window:label}));card.append(node('span','',agent+' · '+label),progress,node('strong','',unknown?'—':usagePct(window.used_percent/100)),node('small','',usageOutlookText(window)+t('last_record',{at:usageDate(window.at)})));if(unknown)card.classList.add('quota-old');box.append(card);}
+  for(const window of windows){const agent=window.agent==='claude-code'?'Claude Code':'Codex';const card=node('div','usage-quota-row'+(window.state==='fills_before_reset'||window.state==='full'?' warn':''));const label=usageWindow(window.window_minutes);const unknown=['reset','stale','historical','ambiguous'].includes(window.state);const progress=node('progress');progress.max=100;progress.value=unknown?0:window.used_percent;progress.hidden=unknown;progress.setAttribute('aria-label',t('quota_aria',{agent,window:label}));card.append(node('span','',agent+' · '+label),progress,node('strong','',unknown?'—':usagePct(window.used_percent/100)),node('small','',usageOutlookText(window)+t('last_record',{at:usageDate(window.at)})));if(unknown)card.classList.add('quota-old');box.append(card);}
   if(!codex.length&&!data.quota.latest.length&&data.sources.codex_files)box.append(node('p','quota-unavailable',t('codex_unknown')));
   const rejected=data.claude_limit_events.rejected||0;
   if(!claude.length&&data.sources.claude_files){const note=node('p','quota-unavailable',t('claude_unknown')+(rejected?t('claude_events',{events:count(rejected,'limit_event')}):''));note.append(document.createElement('br'),t('claude_setup_before'),node('code','','pler statusline --install'),t('claude_setup_after'));box.append(note);}
   else if(rejected)box.append(node('p','section-note',t('claude_events_selected',{events:count(rejected,'limit_event')})));
   box.append(node('p','section-note',t('quota_note')));
 }
+function sessionHasQualityLimits(session){return ['tokens_complete','calls_complete','counts_complete','attribution_complete','models_complete'].some(key=>session.quality?.[key]===false);}
 function renderUsageSessions(){
   if(!usageState.data)return;
   const all=usageState.data.sessions,query=$('usage-session-search').value.trim().toLocaleLowerCase(LOCALE);
-  const sessions=all.filter(session=>[session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model)].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
+  const sessions=all.filter(session=>(!$('usage-quality-only').checked||sessionHasQualityLimits(session))&&[session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model)].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
   const order=$('usage-session-sort').value;
   const stamp=value=>value?Date.parse(value):-Infinity;
   const byTime=(a,b,key)=>stamp(b[key])-stamp(a[key])||b.total_tokens-a.total_tokens||a.id.localeCompare(b.id);
@@ -683,6 +777,7 @@ function renderUsageSessions(){
     if(session.source_note)first.append(node('small','session-issues',session.source_note));
     if(session.models.length)first.append(node('small','session-model',session.models.map(model=>model.model).join(', ')));
     if(session.errors||session.aborted)first.append(node('small','session-issues',count(session.errors,'error')+' · '+count(session.aborted,'interruption')));
+    if(sessionHasQualityLimits(session))first.append(node('small','session-issues',t('quality_session')));
     if(session.git_activity?.matched_events)first.append(node('small','session-git-hint',t('git_row',{events:count(session.git_activity.matched_events,'git_event')})));
     const dates=node('td','session-dates');
     for(const [name,value] of [[t('start'),session.started],[t('last_activity'),session.ended]]){const line=node('div'),time=node('time','',usageDate(value));if(value)time.dateTime=value;line.append(node('span','date-label',name+': '),time);dates.append(line);}
@@ -726,6 +821,10 @@ function openUsageSession(session){
   renderGitActivity(content,session.git_activity);
   content.append(node('p','section-note',t('metadata_note')));$('usage-session-dialog').showModal();
 }
+async function inspectUsageSession(id){
+  try{const value=await api('/api/usage/session?'+new URLSearchParams({id,lang:LANG}));if(!usageState.stopped)openUsageSession(value.session);}
+  catch(error){if(!usageState.stopped)notice(error.message);}
+}
 function clearUsageDownload(){
   if(usageState.downloadUrl)URL.revokeObjectURL(usageState.downloadUrl);
   usageState.downloadUrl=null;
@@ -736,19 +835,31 @@ function clearUsageDownload(){
 function syncArchiveButton(){
   const button=$('usage-archive-clear'),archive=usageState.data?.archive;
   if(!button)return;
-  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||!archive?.enabled||(!archive?.stored_files&&!archive?.errors);
+  const busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging;
+  button.disabled=busy||!archive?.available||(!archive?.stored_bytes&&!archive?.stored_files&&!archive?.errors);
   button.textContent=t(usageState.archiveClearing?'archive_clearing':'archive_clear');
   button.setAttribute('aria-busy',String(Boolean(usageState.archiveClearing)));
+  for(const id of ['usage-retention','usage-cache-reset'])if($(id))$(id).disabled=busy||!archive?.available;
 }
 function renderUsageArchive(data){
   const archive=data.archive,box=$('usage-archive-controls');
-  const hasHistory=archive&&(archive.archive_files||archive.unverified_files||archive.old_parser_files||archive.errors);
-  box.hidden=Boolean(data.demo)||!data.has_snapshot||!archive||Boolean(archive.enabled&&!hasHistory);
+  box.hidden=Boolean(data.demo)||!data.has_snapshot||!archive;
   if(!box.hidden){
-    $('usage-archive-status').textContent=t(archive.enabled?'archive_summary':'archive_disabled',{n:number(archive.sessions||0)});
-    $('usage-archive-clear').hidden=!archive.enabled;
+    const bytes=value=>number(Math.round((value||0)/1024))+' KiB';
+    $('usage-archive-status').textContent=archive.available?t(archive.retention_enabled?'retention_on':'retention_off',{bytes:bytes(archive.stored_bytes),days:number(archive.max_days),files:number(archive.max_files),limit:bytes(archive.max_bytes)}):t('archive_disabled');
+    $('usage-retention-summary').textContent=t(archive.retention_enabled?'retention_short_on':'retention_short_off');
+    $('usage-retention').checked=Boolean(archive.retention_enabled);
+    $('usage-archive-clear').hidden=!archive.available;
   }
   syncArchiveButton();
+}
+async function changeMetadata(action){
+  if(usageState.stopped||usageState.metadataChanging||usageState.exporting||usageState.archiveClearing)return;
+  const retention=action==='retention',control=$(retention?'usage-retention':'usage-cache-reset');
+  rememberActionFocus(control);usageState.metadataChanging=true;clearUsageDownload();syncArchiveButton();syncExportButton();notice('');
+  try{await post(retention?'/api/usage/retention':'/api/usage/cache/reset',retention?{enabled:Boolean(control.checked)}:{});if(usageState.stopped)return;usageState.revision=(usageState.revision||0)+1;usageState.data=null;notice(t(retention?'retention_changed':'cache_reset_done'));await loadUsage();}
+  catch(error){if(!usageState.stopped){notice(error.message);if(retention)control.checked=Boolean(usageState.data?.archive?.retention_enabled);}}
+  finally{usageState.metadataChanging=false;syncArchiveButton();syncExportButton();restoreActionFocus();}
 }
 async function clearUsageArchive(){
   const button=$('usage-archive-clear');
@@ -779,18 +890,18 @@ function syncExportButton(){
   const filters=usageState.data?.filters;
   const matches=filters&&String(filters.days)===$('usage-period').value&&filters.agent===$('usage-agent').value&&filters.project===$('usage-project').value;
   const button=$('usage-export');
-  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||!usageState.data?.has_snapshot||!matches;
+  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||!usageState.data?.has_snapshot||!matches;
   button.textContent=t(usageState.exporting?'export_preparing':'export');
   button.setAttribute('aria-busy',String(usageState.exporting));
 }
 async function exportUsage(){
   if(usageState.stopped||usageState.exporting||!usageState.data?.has_snapshot||$('usage-export').disabled)return;
-  const query=usageQuery(),revision=usageState.revision;
+  const query=usageQuery(),revision=usageState.revision,mask=Boolean($('usage-export-mask')?.checked);
   rememberActionFocus($('usage-export'));
   usageState.exporting=true;clearUsageDownload();syncExportButton();syncArchiveButton();notice('');
   try{
-    const data=await api('/api/usage/export?'+query);
-    if(usageState.stopped||query!==usageQuery()||revision!==usageState.revision)return;
+    const data=await api('/api/usage/export?'+query+'&mask_projects='+(mask?'1':'0'));
+    if(usageState.stopped||query!==usageQuery()||revision!==usageState.revision||mask!==Boolean($('usage-export-mask')?.checked))return;
     usageState.downloadUrl=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
     usageState.downloadQuery=query;
     const link=$('usage-download-link');link.href=usageState.downloadUrl;link.download=t('export_file');
@@ -807,9 +918,14 @@ function reconnectFromAccessLink(){if(/^#access=[a-f0-9]{64}$/.test(location.has
 applyLanguage();
 $('lang-toggle').addEventListener('click',switchLanguage);$('close-app').addEventListener('click',closeApp);$('usage-refresh').addEventListener('click',refreshUsage);$('usage-export').addEventListener('click',exportUsage);$('usage-close-session').addEventListener('click',()=>$('usage-session-dialog').close());$('usage-more').addEventListener('click',showMoreUsageSessions);
 $('usage-archive-clear').addEventListener('click',clearUsageArchive);
+$('usage-retention').addEventListener('change',()=>changeMetadata('retention'));
+$('usage-cache-reset').addEventListener('click',()=>changeMetadata('cache'));
+$('usage-export-mask').addEventListener('change',()=>{clearUsageDownload();syncExportButton();});
+$('usage-quality-only').addEventListener('change',()=>{usageState.pageSize=20;renderUsageSessions();});
+$('usage-quality-show').addEventListener('click',()=>{$('usage-quality-only').checked=true;$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-section').scrollIntoView({block:'start'});$('usage-quality-only').focus();});
 for(const id of ['usage-period','usage-agent','usage-project'])$(id).addEventListener('change',()=>{usageState.pageSize=20;loadUsage();});
 for(const id of ['usage-session-search','usage-session-sort'])$(id).addEventListener(id==='usage-session-search'?'input':'change',()=>{usageState.pageSize=20;renderUsageSessions();});
-$('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
+$('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';$('usage-quality-only').checked=false;usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
 $('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
 function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}

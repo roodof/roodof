@@ -2,6 +2,17 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 29 Ekim: 0.2.13 — günlük kullanıma engel olan küçük sorunlar
+
+Çevrimdışı yardım, arşivi silmeden durdurma, yalnız okuma önbelleğini sıfırlama, JSON'da proje adlarını gizleme, aynı adlı projeleri ayırma ve kalite uyarısından etkilenen oturumlara geçiş eklendi. Kurallar ölçümden önce `2f0689c`'de sabitlendi.
+
+- **Gerçek veride iki kural çöktü, yayından önce düzeltildi:**
+  - *Kota:* Codex sayacı aynı pencere içinde sık sık 1 puan geri düşüyor (5 saatlik pencerede 622 kez, en çok 11 puan); sağlayıcı pencereyi bazen erken sıfırlıyor. İlk kural ikisini de "çelişki" sayıp iki gerçek Codex penceresini de gizledi. Düzeltmeden sonra gerçek sonuç 0.2.12 ile aynı.
+  - *Dönem içi kullanım:* Claude yanıtlarının %75'i saniyeler arayla birkaç satıra yazılıyor; "tek zaman" kuralı bunları tarihsiz bıraktı (174 yanıt). Yanıt artık ilk ve son satırının zamanıyla tarihleniyor; dönem başlangıcına denk gelirse tarihsiz kalıyor.
+- **Görünüm kararı:** Düzeltmeden sonra da gerçek 29 oturumun 23'ü eksik kullanım veya belirsiz sahiplik yüzünden dışlanıyor. Son 7 günde 1,5 milyar token kullanılmışken tarihli toplam 0. Bu yüzden sayfa ve terminal tarihli kullanımı yalnız seçilen her oturum tarihlenebildiğinde gösteriyor; JSON her zaman kapsam sayılarıyla taşıyor.
+- **Hız:** Gerçek veri büyüdü (29 oturum, 9.672 çağrı). Python 3.9'da `zstandard` olmadan ilk okuma 78 sn, sonraki okumalar 9–17 sn sürüyor. 0.2.12 ile aynı, yani bu sürüm yavaşlatmadı, ama 0.2.11'deki 4,1 sn artık geçerli değil. Hız açık sorundur.
+- **Doğrulama:** Windows'ta Python 3.9'da 459 test geçti, 10'u atlandı; 3.12'de 460; 3.14.10'da 469. Linux WSL'de Python 3.14.4 ile düz `/tmp` ve sistem bağlantısı arkasındaki `TMPDIR` için ayrı ayrı 469'ar test geçti. Node 24/24. Yeni testler gerçek önbellek klasörüne hiçbir şey yazmıyor.
+
 ## 29 Ekim: 0.2.12 — aynı hedefe sonraki oturumda dönüldü mü?
 
 Profesyonel, yalnız token toplamından hangi oturumları inceleyeceğini bulamıyordu. Artık aynı düzenleme hedefini yedi gün içinde kaydeden bağımsız sonraki oturumlar gösteriliyor. Tanım gerçek sonuçlar görülmeden `8917914` commit'inde sabitlendi.

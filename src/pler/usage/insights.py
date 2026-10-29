@@ -2,8 +2,8 @@
 
 They describe what the logs show and suggest what to try; none of them is a controlled comparison. Rules:
 - quota: a Codex or Claude Code window is full, or fills before it resets at the current pace;
-- long sessions: in long sessions each model call costs several times more than in short ones (the
-  context is read again at every step); shown only with enough sessions on both sides;
+- long sessions: recorded tokens per call differ between sessions of the same agent, project and
+  single model, with at least three complete sessions on both sides; no cause is inferred;
 - concentration: one session holds a large share of the period;
 - limit hits: Claude Code refused requests at its limit;
 - interrupted work: many failed or interrupted turns.
@@ -17,6 +17,7 @@ from .records import total
 
 AGENTS = {'claude-code': 'Claude Code', 'codex': 'Codex'}
 SHORT, LONG = 50, 100   # model calls per session
+MIN_COHORT = 3          # fixed before measuring the comparable observation
 
 
 def _time(iso, lang):
@@ -28,7 +29,10 @@ def _quota(outlook, lang):
     for row in outlook:
         name = say(lang, 'insight.quota_name', agent=AGENTS.get(row.get('agent'), 'Codex'), window=window(row['window_minutes'], lang))
         name = name[0].upper() + name[1:]
-        if row['state'] == 'full':
+        if row['state']=='ambiguous':
+            found.append(dict(kind='quota',level='warn',title=say(lang,'insight.quota_ambiguous.title',name=name),
+                              detail=say(lang,'insight.quota_ambiguous.detail'),evidence=row))
+        elif row['state'] == 'full':
             found.append(dict(kind='quota', level='warn', title=say(lang, 'insight.full.title', name=name),
                               detail=say(lang, 'insight.full.detail', at=_time(row['at'], lang), resets=_time(row['resets_at'], lang)),
                               evidence=row))
@@ -44,26 +48,42 @@ def _quota(outlook, lang):
 
 
 def _long_sessions(rows, lang):
+    cohorts = {}
+    for session in rows:
+        if (session.agent not in AGENTS or session.calls < 5 or not session.calls_complete
+                or not session.tokens_complete or not session.attribution_complete or not session.models_complete
+                or not isinstance(session.project,str) or not session.project.strip() or session.project=='unknown'
+                or not isinstance(session.models,dict) or not isinstance(session.model_tokens,dict)):
+            continue
+        models=set(session.models) | set(session.model_tokens)
+        if len(models)!=1:
+            continue
+        model=next(iter(models))
+        if not isinstance(model,str) or not model.strip() or model in ('unknown','<synthetic>'):
+            continue
+        cohorts.setdefault((session.agent,session.project,model),[]).append(session)
     best = None
-    for agent in AGENTS:
-        mine = [s for s in rows if s.agent == agent and s.calls >= 5 and s.calls_complete and s.tokens_complete and s.attribution_complete]
+    for agent,project,model in sorted(cohorts):
+        mine=cohorts[(agent,project,model)]
         short = [total(s.tokens) / s.calls for s in mine if s.calls < SHORT]
         long = [total(s.tokens) / s.calls for s in mine if s.calls >= LONG]
-        if len(short) < 3 or not long:
+        if len(short) < MIN_COHORT or len(long) < MIN_COHORT:
             continue
         baseline = statistics.median(short)
         if baseline <= 0:
             continue  # a zero-token record is not a usable comparison, nor a reason to fail the scan
         ratio = statistics.median(long) / baseline
         if ratio >= 2 and (best is None or ratio > best[0]):
-            best = (ratio, agent, statistics.median(short), statistics.median(long), len(short), len(long))
+            best = (ratio, agent, model, baseline, statistics.median(long), len(short), len(long))
     if not best:
         return []
-    ratio, agent, short, long, n_short, n_long = best
-    return [dict(kind='long_sessions', level='tip', title=say(lang, 'insight.long.title'),
+    ratio, agent, model, short, long, n_short, n_long = best
+    return [dict(kind='long_sessions', level='info', title=say(lang, 'insight.long.title'),
                  detail=say(lang, 'insight.long.detail', agent=AGENTS[agent], long=LONG, long_tokens=big(long, lang),
-                            short=SHORT, short_tokens=big(short, lang), ratio=decimal(ratio, lang)),
-                 evidence=dict(agent=agent, median_tokens_per_call_short=round(short), median_tokens_per_call_long=round(long),
+                            short=SHORT, short_tokens=big(short, lang), ratio=decimal(ratio, lang),
+                            model=model,short_n=n_short,long_n=n_long),
+                 evidence=dict(agent=agent,model=model,same_project=True,
+                               median_tokens_per_call_short=round(short),median_tokens_per_call_long=round(long),
                                short_sessions=n_short, long_sessions=n_long, ratio=round(ratio, 2)))]
 
 

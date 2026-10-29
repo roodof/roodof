@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import re
 import threading
 from urllib.parse import parse_qs, urlsplit
 
@@ -86,14 +87,28 @@ class Handler(BaseHTTPRequestHandler):
             if request.path == '/':
                 page = self.server.assets['/'].decode('utf-8').replace('__SESSION_TOKEN__', '')
                 self._send(200, page, 'text/html; charset=utf-8')
+            elif request.path=='/help':
+                query=parse_qs(request.query,keep_blank_values=True)
+                if set(query)-{'lang','chapter'} or any(len(v)!=1 for v in query.values()):
+                    raise ValueError(say(lang,'error.query'))
+                from .help import render
+                self._send(200,render(lang,query.get('chapter',['guide'])[0]),'text/html; charset=utf-8')
             elif request.path in FILES:
                 self._send(200, self.server.assets[request.path], FILES[request.path])
-            elif request.path in ('/api/usage', '/api/usage/export'):
+            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session'):
                 if not secrets.compare_digest(self.headers.get('X-PLER-Token', ''), self.server.token):
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
                     return
                 query = parse_qs(request.query, keep_blank_values=True)
-                if (set(query) - {'days', 'agent', 'project', 'lang'} or any(len(v) != 1 for v in query.values())
+                if request.path=='/api/usage/session':
+                    if (set(query)-{'id','lang'} or any(len(v)!=1 for v in query.values())
+                            or not re.fullmatch('[a-f0-9]{24}',query.get('id',[''])[0])):
+                        raise ValueError(say(lang,'error.query'))
+                    session=self.server.dashboard.session(query['id'][0],lang)
+                    self._send(200,dict(session=session)) if session else self._send(404,dict(error=say(lang,'error.session_missing')))
+                    return
+                fields={'days','agent','project','lang'}|({'mask_projects'} if request.path.endswith('/export') else set())
+                if (set(query) - fields or any(len(v) != 1 for v in query.values())
                         or query.get('lang', ['en'])[0] not in LANGUAGES):
                     raise ValueError(say(lang, 'error.query'))
                 days = query.get('days', ['30'])[0]
@@ -104,6 +119,12 @@ class Handler(BaseHTTPRequestHandler):
                     if not value['has_snapshot']:
                         raise ValueError(say(lang, 'error.no_snapshot'))
                     value.pop('project_options', None)  # no project names outside the selected scope
+                    mask=query.get('mask_projects',['0'])[0]
+                    if mask not in ('0','1'): raise ValueError(say(lang,'error.query'))
+                    if mask=='1':
+                        from .reporting import mask_projects
+                        value=mask_projects(value,lang)
+                    else: value['project_names_masked']=False
                     self._send(200, value, filename=say(lang, 'export_file'))
                 else:
                     self._send(200, value)
@@ -120,7 +141,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._local():
             return
         route = urlsplit(self.path).path
-        if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/quit'):
+        if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset','/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -131,7 +152,10 @@ class Handler(BaseHTTPRequestHandler):
             size = int(self.headers.get('Content-Length', '0'))
             if not 0 < size <= 64 or self.headers.get_content_type() != 'application/json':
                 raise ValueError(say(self._lang(), 'error.bad_request'))
-            if json.loads(self.rfile.read(size)) != {}:
+            body=json.loads(self.rfile.read(size))
+            valid=(isinstance(body,dict) and set(body)=={'enabled'} and type(body['enabled']) is bool
+                   if route=='/api/usage/retention' else body=={})
+            if not valid:
                 raise ValueError(say(self._lang(), 'error.fields'))
         except ValueError as error:
             self._send(400, dict(error=str(error)))
@@ -144,6 +168,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, result)
             else:
                 self._send(500, dict(error=say(self._lang(), 'error.archive_clear')))
+        elif route in ('/api/usage/retention','/api/usage/cache/reset'):
+            result=(self.server.dashboard.set_retention(body['enabled']) if route.endswith('/retention')
+                    else self.server.dashboard.reset_cache())
+            self._send(200,result) if result.get('ok') else self._send(500,dict(error=say(self._lang(),'error.metadata_settings')))
         else:
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()

@@ -2,34 +2,36 @@
 
 This is the maintainer's release procedure. It is not a statement that a public release exists. The product is a personal application reading retained logs on the same computer. It has no team identity, access roles, shared server, complete account ledger or billing reconciliation.
 
+**Current candidate: 0.2.13, 29 October 2026 — verification in progress.** The latest completed platform and kit evidence belongs to [0.2.12](../../reports/reedit-v1/REPORT.md), commit `3d64ffb`; its [12-job CI run](https://github.com/OguzayYildiz/pler/actions/runs/40842551693) passed. This is not evidence that a later candidate already passed. Record 0.2.13's exact artifact/hash and results before replacing this status. No real professional pilot, trusted application signature or public release has been recorded.
+
 ## Evidence required for a release
 
 | Gate | Available evidence | What still counts as completion |
 |---|---|---|
 | Reader correctness and privacy | Synthetic regressions, local package checks and dated reports in `../../reports/` | All tests pass on the exact candidate; unexplained totals and unsupported histories remain labelled incomplete |
-| Windows source/wheel | Local Windows Python 3.9/3.12 runs; GitHub CI on Windows Server 2025 with Python 3.9, 3.12 and 3.14: source and installed-wheel suites, version check and uninstall pass | Browser, export and restart checks on a real Windows desktop |
-| Windows without Python | 0.2.5 x64 candidate built offline with the official CPython 3.14.10 embeddable package (SHA-256 checked against python.org, PSF/Microsoft Authenticode signatures valid). On the developer machine, with no Python on `PATH`, it passed the self-check, terminal report and the full local server flow; first read 7.2 s instead of 23.1 s with CPython 3.12 | Run that exact artifact on a clean Windows account/machine with no Python and no developer checkout; record architecture and hash |
-| macOS and Linux | GitHub CI: Ubuntu 24.04 and macOS 26 arm64 with Python 3.9, 3.12 and 3.14 pass the source and installed-wheel suites. Also green on WSL2 Ubuntu with Python 3.14.4 | A real browser acceptance on macOS and a Linux desktop |
-| Fast decoders | Python 3.14 `compression.zstd` and optional `zstandard` pass the full suite on Windows, Linux and macOS CI | — |
+| Windows source/wheel | 0.2.12: local Python 3.9/3.12 acceptance and native 3.14 tests; Windows CI with Python 3.9, 3.12 and 3.14 passed source and installed-wheel suites, version check and uninstall. 0.2.13 rerun pending | Exact current candidate passes, plus browser/export/restart checks on the selected Windows desktop combinations |
+| Windows without Python | 0.2.12 kit: bundled CPython 3.14.10, with no Python on `PATH`, opened the invented demo, reported expected counts and closed cleanly. The historical 0.2.5 runtime comparison measured 23.1 to 7.2 s; it is not a current candidate speed guarantee. 0.2.13 rebuild/check pending | Run that exact artifact on a clean Windows account/machine with no Python and no developer checkout; record architecture and hash |
+| macOS and Linux | 0.2.12 CI source and installed-wheel suites passed Python 3.9, 3.12 and 3.14; WSL2 Ubuntu Python 3.14.4 passed 362 tests. 0.2.13 rerun pending | Exact current candidate passes, plus real browser acceptance on macOS and a Linux desktop |
+| Fast decoders | 0.2.12 Python 3.14 `compression.zstd` and optional `zstandard` passed the full suite on Windows, Linux and macOS CI | Repeat on the exact current candidate |
 | Accessibility and browser downloads | Existing keyboard, narrow-layout and browser-logic checks | Physical browser/screen-reader matrix in [ACCEPTANCE.md](ACCEPTANCE.md) is completed |
 | Useful professional work | Proposed tasks and measures | A real professional pilot meets the criteria in [PILOT.md](PILOT.md); no participant results have been invented |
 | Distribution rights and identity | No product distribution license or publisher decision recorded | Owner approves the license, public name, publisher identity, channels and support contact |
 | Signing and clean update | No claim of a trusted publisher signature | Signed final bytes, signature verification and clean install/update/remove evidence, using the approved publisher |
 
-The quality register remains authoritative about specific known defects. A prepared test procedure or CI file is not a passed gate. Evidence for the rows above: [0.2.5 completion report](../../reports/completion-v1/REPORT.md).
+The quality register remains authoritative about specific known defects. A prepared test procedure or CI file is not a passed gate. Current completed evidence is the [0.2.12 report and artifact checks](../../reports/reedit-v1/REPORT.md); the [0.2.5 completion report](../../reports/completion-v1/REPORT.md) is historical. User-facing help and the accounting contract are bundled inside the application, so source-relative evidence links are not required for using installed help.
 
 To rebuild the private Windows candidate: `python tools/build_windows_portable.py --runtime <CPython folder> --compiler <Windows .NET csc.exe> --output <new folder>`. Use the extracted official Windows embeddable package of CPython 3.14 or newer: verify its SHA-256 against the python.org release page and its Authenticode signatures first. The 3.14 standard-library zstd decoder makes the first read about three times faster than an installed 3.12 folder, which the tool still accepts. The tool downloads nothing, refuses to overwrite and writes a manifest of SHA-256 hashes plus a ZIP next to the folder.
 
 ## Candidate procedure
 
-1. Stop the running application. Build from `product/` after the full Python and Node suites pass. Record application, parser and schema versions; keep a copy of the exact candidate and its SHA-256.
-2. Build without product dependencies: `python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist`. Build tools must already be available for an offline build. This command does not install Python or signing tools.
+1. Stop the running application. Build from this repository's root (where `pyproject.toml` is) after the full Python and Node suites pass. In the enclosing workspace that root is named `product/`. Record application, parser and schema versions; keep a copy of the exact candidate and its SHA-256.
+2. Build without fetching dependencies: `python -m pip wheel . --no-index --no-deps --no-build-isolation --wheel-dir dist`. Build tools must already be available. This command does not install Python or signing tools.
 3. Install only that wheel into a new environment with `python -m pip install --no-index --no-deps <candidate.whl>`. Test the installed package, not an accidental checkout on `PYTHONPATH`. Check `pler --version` and confirm imported files are inside the new environment.
 4. Follow [ACCEPTANCE.md](ACCEPTANCE.md) using invented logs before allowing a real pilot. Keep failing checks open; changing a label does not complete a test.
 5. Finish the owner's decisions below. Keep test evidence with the artifact. Only publish the tested, approved artifact; this procedure itself performs no upload or publication.
 6. Record the channel, version, artifact hash, compatibility, known limits and withdrawal route. Never include real transcripts, startup access links or local source paths in public evidence.
 
-For a local update, stop PLER, install the new wheel in the same environment and restart from the new startup link. If the new version fails, stop it and reinstall the retained previous wheel; the original agent logs are unchanged. Metadata caches can rebuild. Old JSON exports keep their original parser/schema interpretation.
+For a local update, stop PLER, install the new wheel in the same environment and restart from the new startup link. If the new version fails, stop it and reinstall the retained previous wheel; the original agent logs are unchanged. Rebuildable reader caches can be reset with `pler cache reset`, which preserves retained history. Do not delete the whole cache/data folder: metadata of already-deleted sources can exist only in its archive. Preserve a private archive backup when needed before update/rollback. Old JSON exports keep their original parser/schema interpretation.
 
 ## Platform CI
 

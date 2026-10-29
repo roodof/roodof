@@ -32,7 +32,7 @@ version = {attr = "pler.__version__"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-pler = ["web/*"]
+pler = ["web/*", "help/*.html", "help/*.txt"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

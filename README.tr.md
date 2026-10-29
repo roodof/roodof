@@ -13,14 +13,13 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 Python 3.9 veya üstü yeter; başka bağımlılık yoktur.
 
-Dış proje klasöründen:
+Bu kaynak deponun kökünden (`pyproject.toml` dosyasının bulunduğu klasör):
 
 ```
-pipx install ./product
+pipx install .
 ```
 
-`pipx` yoksa `pip install ./product` da olur. (PyPI'da yayımlanınca: `pipx install pler`.)
-Zaten `product/` klasöründeysen `pipx install .` kullan.
+`pipx` yoksa `pip install .` da olur. Bu depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pipx install ./product` kullan. Genel PyPI paket adı henüz onaylanmadı; doğrulanmamış genel bir paket yerine verilen kaynağı veya tam aday wheel dosyasını kur.
 
 ## Kullanım
 
@@ -33,6 +32,8 @@ Tarayıcıda **Kullanımım** sayfası açılır. Kapatmak için sayfadaki **Kap
 Sekmeyi elle açarken başlangıçta yazılan tam adresi kullanın. Bu adres çalışan rapora erişim sağlar; yeniden başlatınca değişir, paylaşmayın. Sayfa erişim bölümünü görünen adresten kaldırır. Raporu okumak ve indirmek de bu erişim anahtarını gerektirir. Ürün kişisel ve yereldir; ekip hesapları ve paylaşımlı sunucu kurulumu desteklenmez.
 
 **Dil:** Sayfa tarayıcının diliyle açılır; üstteki düğmeyle İngilizce ve Türkçe arasında geçilir. Terminal Türkçe bir sistemde Türkçe, diğerlerinde İngilizce konuşur; `PLER_LANG=tr` ya da `PLER_LANG=en` ile seçilebilir.
+
+**Çevrimdışı yardım:** Sayfadaki Yardım bağlantısı, kurulu paketle birlikte gelen sürümlü Türkçe/İngilizce açıklamayı açar. Mahremiyet, güvenli önbellek sıfırlama, saklanan geçmiş, dönemler, kalite ve destek anlatılır. Sayım sözleşmesi de pakettedir; kaynak klasörü veya İnternet bağlantısı gerekmez.
 
 ```
 pler report             # son 30 günde etkin oturumlar
@@ -70,6 +71,8 @@ Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerin
 ![Uydurma örnek kayıtlarla oturum arama ve sıralama](docs/sessions.jpg)
 
 Arama yalnız oturum listesini daraltır. Sayfanın üstündeki özet ve indirilen JSON, dönem / ajan / proje seçimini izler. İndirilen özette liste aramasının dışındaki oturumlar da bulunabilir.
+
+**Dönem içindeki tarihli kullanım**, tam, belirsizliği giderilmiş ve zamanlı yanıt kayıtlarının ayrı, temkinli görünümüdür. Birikimli toplamlar ve çözülemeyen geçmiş tarihlere dağıtılamaz; kapsam sayılarıyla dışlanır. Aralık taramanın sabit gözlem zamanında biter. Seçilen etkin oturumların tam toplamının yerine geçmez ve hesabın eksiksiz kapsandığını kanıtlamaz. Sayfa ve terminal bunu yalnız seçilen her oturumun kullanımı tarihlenebildiğinde gösterir; aksi hâlde JSON dışa aktarımı kapsam sayılarıyla taşır.
 
 Özet hazırlanırken indirme düğmesi durumu gösterir. Hazırlanan dosya için **Yeniden indir** bağlantısı görünür kalır. Kaydedildiğini tarayıcı indirmelerinden kontrol edin. Ana filtreleri değiştirmek veya kayıtları yeniden okumak eski bağlantıyı kaldırır. Dar ekranda diğer sütunlar için tablo alanına odaklanıp sol/sağ oklarını kullanabilirsiniz.
 
@@ -124,7 +127,7 @@ Yalnız mevcut PLER kurulumunun ürettiği, değiştirilmemiş satır kaldırıl
 
 Bu klasörlerden birini başka bir diske taşıyıp yerine bir bağlantı (sembolik bağlantı veya Windows junction'ı) bıraktıysan, PLER bu bağlantıyı izleyip asıl yerel klasörü okur. Kayıt klasörlerinin içindeki bağlantılar ve ağ konumuna giden bağlantılar izlenmez.
 
-Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. Python 3.14 ve üstünde standart kütüphane bunları hızlı açar. Daha eski Python'da `pip install "pler[fast]"` aynı hızı verir. İkisi de yoksa yerleşik çözücü çalışır ama yavaştır: bir test bilgisayarında ilk okuma 7 yerine 23 saniye sürdü. Sonraki okumalar önbellekten gelir.
+Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. Python 3.14 ve üstünde standart kütüphane bunları hızlı açar. Daha eski Python'da isteğe bağlı `zstandard` çözücüsü bu kaynak kopyadan `pip install ".[fast]"` ile kurulabilir; bu ekin kurulması bağımlılık indirebilir. İkisi de yoksa yerleşik çözücü çalışır ama yavaştır: bir test bilgisayarında geçmiş bir adayın ilk okuması 7 yerine 23 saniye sürdü. Bu değerler güncel aday veya başka geçmiş için hız garantisi değildir. Sonraki okumalar önbellekten gelir.
 
 Bağımlılıksız okuyucuda tekrarlanan sayaç karşılaştırmaları ve önbelleğin yazılması iyileştirildi. Büyük arşivlerin ilk okunması hâlâ zaman alır; [hız doğrulaması](../reports/cold-start-v1/REPORT.md), boş PLER önbelleğiyle okumayı sonraki okumalardan ayrı ölçer.
 
@@ -133,7 +136,7 @@ Değişmeyen Claude Code ve Codex kayıtlarının üst bilgileri önbellekte tut
 - macOS: `~/Library/Caches/pler`
 - Linux: `~/.cache/pler`
 
-`PLER_CACHE_DIR` ile yeri değiştirilebilir. Silinirse bir sonraki açılışta yeniden oluşur.
+`PLER_CACHE_DIR` ile yeri değiştirilebilir. Yeniden kurulabilen okuyucu önbellekleri, saklanan arşiv geçmişi ve kota örnekleri şu anda bu klasörü paylaşır. **Önbellek onarımı için klasörün tamamını silme.** `pler cache reset` yalnız bilinen Claude/Codex okuyucu önbelleklerini kaldırır; arşivi, kota örneklerini ve saklama tercihini korur. Silinmiş kaynak kayıtlarının üst bilgisi yalnız `metadata-archive.json` içinde kalmış olabilir; bu dosya silinirse yeniden kurulamaz.
 Bozulmuş veya eski biçimdeki önbellek girdileri özgün kayıttan yeniden okunur. Sağlama toplamı kazara değişiklikleri yakalar; önbelleği ve sağlama toplamını birlikte değiştirebilen birine karşı koruma değildir.
 Okuyucuyu veya doğrulama yardımcılarını değiştiren güncellemeden sonra ilgili önbellek ilk okumada yeniden kurulur. Okunurken büyüyen ya da erişimi yarıda kesilen dosya sonraki okumada tekrar denenir. Önbellek değiştirilemezse önceki dosya korunur; izin verildiği sürece geçici dosya temizlenir.
 
@@ -143,8 +146,11 @@ Claude Code varsayılan olarak 30 günden eski konuşmaları siler. Aylık karş
 - **Ne tutulur:** Önbellektekiyle aynı alanlar: sayılar, zamanlar, kimlikler, modeller, proje yolları, dal adları ve düzenlenen dosya yolları. İstek, yanıt, komut ve araç çıktısı tutulmaz.
 - **Hangi klasörler:** Varsayılan klasörler ile `CLAUDE_CONFIG_DIR` ya da `CODEX_HOME` ile seçilenler. `--claude-dir`/`--codex-dir` ile verilen klasörler okunur ama arşivlenmez.
 - **Sınırlar:** 365 gün görülmeyen dosya düşer. Arşiv en çok 2.048 dosya ve 64 MB tutar, önce en eskiler gider; kapsam kaybı sayfada söylenir.
+- **Denetim:** Kaynak kayıtları hâlâ canlıyken de sayfada saklama durumu görünür. `pler archive off` saklanan geçmişi silmeden arşiv kullanımını ve yeni saklamayı durdurur; `pler archive on` yeniden açar. Canlı kaynaklar yine okunabilir. Saklamayı durdurmak ile kalıcı olarak silmek farklı işlemlerdir.
 - **Kopyalar:** Arşivdeki yanıtları kopyalayan devam oturumu bir kez sayılır. Eski okuyucuyla çıkarılmış ya da kaynağı yerinde olduğu hâlde okunamayan arşiv verisi kalite uyarısıyla gösterilir.
 - **Silmek:** Sayfadaki **PLER arşivini sil** düğmesi (önce onay ister) ya da `pler archive clear`. Ajan kayıtlarına ve kota örneklerine dokunulmaz. Silinmiş kayıtların kopyaları sonra geri getirilemez.
+
+PLER'i kaldırmak özel veri klasörünü kendiliğinden silmez. Arşivin özel yedeğini almadan önce PLER'i kapat. Destek kaydına önbellek veya arşiv ekleme.
 
 ## Güven ve veri kalitesi
 
@@ -158,7 +164,7 @@ Claude kayıtları sabit kimlik veriyorsa kopyalanmış istek ve araç çağrıl
 
 Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirilen özet ve `pler report --json --sessions`; kaynak dosya yolu, ham oturum kimliği, dal adı, düzenlenen dosyaların yolları ve kayıttaki serbest notları içermez. Kısaltılmış proje adları, zamanlar, model adları ve sayılar içerir; anonim paylaşım dosyası değildir. Ayrıntılı terminal JSON'u ekranla aynı oturum alanlarını kullanır. Günlük harcama çağrıştıran `days` dizisi kaldırılmıştır: dönem, etkin oturumları seçer ve bu oturumların tamamının toplamını içerir.
 
-Bu kaynak kopyadan güncellerken PLER'i kapat, dış klasörden `pip install --upgrade ./product` çalıştır ve yeniden aç. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için PLER'i yeniden başlat. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
+Bu deponun kökünden güncellerken PLER'i kapat, `pip install --upgrade .` çalıştır ve yeniden aç. Depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pip install --upgrade ./product` kullan. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için PLER'i yeniden başlat. Güncelleme ve geri dönüşte saklanan geçmiş korunmalıdır. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
 
 [Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta Python 3.9–3.14 ile geçiyor. İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
 

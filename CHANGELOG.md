@@ -1,5 +1,18 @@
 # Changes
 
+## 0.2.13 — 2026-10-29 (candidate)
+
+- Open versioned English/Turkish Help and the exact accounting contract from the page, offline, from the installed package.
+- Pause and resume retained history with `pler archive off`/`on` or the page's collapsed "Local history and reader cache" section; pausing never deletes it. `pler cache reset` removes only the rebuildable Claude/Codex reader caches and keeps the archive, quota samples and preferences.
+- Hide project names in the downloaded JSON by default (consistent aliases). Times, models and session codes remain; the file is reduced, not anonymous.
+- Give distinct projects with the same short name stable opaque suffixes instead of merging them; separate repositories in the temporary folder stay separate.
+- Link the data-quality warning to the affected sessions, with a list-only filter. Open a later re-edit session that lies outside the current filters by its opaque code.
+- Report dated usage within the period from complete, unambiguous per-response records. JSON always carries it with coverage counts; the page and terminal show it only when every selected session could be dated.
+- Compare session lengths only within one agent, known project and single model, with at least three sessions on each side.
+- Withhold the current percentage and forecast when meter histories contradict each other (a reset moving back, a fall of more than 25 points within a window, different readings at one instant).
+
+The rules were fixed before measurement (`2f0689c`). The first real-data check hid both real Codex meters and left 75% of Claude responses undated, so the meter and dating rules and the display rule were corrected; see the correction note in [ACCOUNTING.md](ACCOUNTING.md). After the correction, the real meters match 0.2.12.
+
 ## 0.2.12 — 2026-10-29
 
 - Observe when an independent, nonoverlapping session starts within seven days after another session ended and names the same edited target. The definition was committed before real measurement (`8917914`). Counts describe recorded edit intentions; they do not measure waste, savings, authorship or code quality.

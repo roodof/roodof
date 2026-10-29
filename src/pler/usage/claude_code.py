@@ -11,6 +11,7 @@ from pathlib import Path
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
 from . import accounting, discovery
 from .edit_paths import canonical_target
+from .period_usage import event_time, record_response
 
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
 
@@ -225,7 +226,8 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                     session.calls_complete=False;session.tokens_complete=False;session.issues.add('unidentified_records')
                 usage=message.get('usage')
                 tokens=_tokens(usage) if usage and message.get('model')!='<synthetic>' else None
-                replies[key].append(dict(session=session,message=message,row=row,at=moment,tokens=tokens,path=str(path),index=index))
+                replies[key].append(dict(session=session,message=message,row=row,at=moment,tokens=tokens,path=str(path),index=index,
+                                         usage_at=event_time(row.get('timestamp'))))
     for identity,session in sessions.items():
         accounting.metadata(session,projects[identity],branches[identity])
     related={identity:identity for identity in sessions}
@@ -274,6 +276,9 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 target.tokens_complete=False;target.issues.add('conflicting_usage')
             else:
                 add_tokens(target.tokens,tokens)
+                if any(isinstance(value,str) and value.strip() for copy in copies
+                       for value in (copy['message'].get('id'),copy['row'].get('requestId'))):
+                    record_response(target,tokens,copies)
                 model=accounting.model_for([c['message'].get('model') for c in copies])
                 target.count(target.models,model);target.count(target.model_tokens,model,total(tokens))
                 if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')

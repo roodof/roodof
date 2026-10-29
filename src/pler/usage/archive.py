@@ -20,7 +20,7 @@ import threading
 import time
 
 from ..paths import cache_file, cache_folder
-from . import accounting, discovery
+from . import accounting, discovery, preferences
 from .cache import _checksum
 from .records import timestamp
 
@@ -288,7 +288,9 @@ def _load(base):
 class Archive:
     def __init__(self,enabled=True,now=None):
         self.base=cache_folder() if enabled else None
-        self.enabled=self.base is not None
+        self.available=self.base is not None
+        self.enabled=False
+        self.retention_enabled=False
         self.now=time.time() if now is None else now
         self.entries={}
         self.keys={}
@@ -301,16 +303,22 @@ class Archive:
         self.evicted=0
         self._evicted=set()
         self.generation=0
+        self.scan_generation=0
+        self.stale_snapshot=False
         self.dirty=False
         self._clean=set()  # entries whose rows crossed the allowlist in this process
         self._sizes={}
         self._loaded=None
-        if self.enabled:
+        if self.available:
             try:
                 with _locked(self.base):
                     self.generation=_generation(self.base)
-                    self.entries,self.errors=_load(self.base)
-                    self._loaded=_signature(self.base)
+                    self.scan_generation=self.generation
+                    self.retention_enabled=preferences.read(self.base)
+                    self.enabled=self.retention_enabled
+                    if self.enabled:
+                        self.entries,self.errors=_load(self.base)
+                        self._loaded=_signature(self.base)
             except (OSError,ValueError,TypeError,OverflowError): self.errors+=1
         self._bound()
 
@@ -483,12 +491,20 @@ class Archive:
 
     def finish(self):
         self._bound()
-        if self.enabled:
+        if self.available:
             try:
                 with _locked(self.base):
                     current=_generation(self.base)
+                    retained=preferences.read(self.base)
                     if current!=self.generation:
                         self.generation=current
+                        self.entries={}
+                        self.enabled=self.retention_enabled=retained
+                        self.stale_snapshot=True
+                        return self.info()
+                    self.enabled=self.enabled and retained
+                    self.retention_enabled=retained
+                    if not self.enabled:
                         self.entries={}
                         return self.info()
                     if not self.dirty: return self.info()
@@ -508,10 +524,16 @@ class Archive:
 
     def info(self):
         retained=[state for state in self.used.values() if state['state']=='archive']
-        return dict(enabled=self.enabled,stored_files=len(self.entries),archive_files=len(retained),
+        signature=_signature(self.base) if self.available else None
+        return dict(enabled=self.enabled,available=self.available,retention_enabled=self.retention_enabled,
+                    stored_files=len(self.entries),stored_files_known=self.enabled and not self.stale_snapshot,
+                    stored_bytes=signature[0] if signature is not None else 0,
+                    max_bytes=MAX_BYTES,max_files=MAX_FILES,max_days=MAX_DAYS,
+                    archive_files=len(retained),
                     old_parser_files=sum(state['old'] for state in retained),
                     unverified_files=sum(state['unverified'] for state in retained),
-                    evicted_files=self.evicted,errors=self.errors,clear_generation=self.generation)
+                    evicted_files=self.evicted,errors=self.errors,clear_generation=self.generation,
+                    scan_generation=self.scan_generation,stale_snapshot=self.stale_snapshot)
 
 
 def archive_info():
@@ -547,4 +569,65 @@ def clear_archive():
             path.unlink(missing_ok=True)
             result['ok']=True
     except (OSError,ValueError,TypeError,OverflowError): result['errors']=1
+    return result
+
+
+def set_retention(enabled):
+    """Change future retention/replay without deleting existing retained metadata.
+
+    The shared generation changes before the preference is replaced. Any scan
+    started before either a disable or a later re-enable must be discarded, and
+    its finish() cannot write an old projection over the current archive.
+    """
+    result=dict(ok=False,retention_enabled=None,clear_generation=0,errors=0)
+    if type(enabled) is not bool:
+        result['errors']=1
+        return result
+    base=cache_folder()
+    if base is None:
+        result['errors']=1
+        return result
+    try:
+        with _locked(base):
+            try: prior=preferences.read(base)
+            except (OSError,ValueError,TypeError,OverflowError): prior=None
+            broken_generation=False
+            try: current=_generation(base)
+            except (ValueError,TypeError,OverflowError):
+                current=time.time_ns();broken_generation=True
+            if prior is not enabled or broken_generation:
+                current+=1
+                _write(cache_file(GENERATION,base),dict(generation=current))
+                _write(cache_file(preferences.FILENAME,base),preferences.value(enabled))
+            result.update(ok=True,retention_enabled=enabled,clear_generation=current)
+    except (OSError,ValueError,TypeError,OverflowError): result['errors']=1
+    return result
+
+
+def reset_cache():
+    """Remove only rebuildable reader caches; preserve archive, quota and preferences.
+
+    No folder is recursively removed, no archived source is opened, and an
+    unsafe file is never followed. A concurrent scan may rebuild these caches;
+    the caller refreshes its snapshot after this action.
+    """
+    result=dict(ok=False,cleared_files=0,errors=0)
+    base=cache_folder()
+    if base is None:
+        result['errors']=1
+        return result
+    try:
+        with _locked(base):
+            for name in ('claude.json','codex.json'):
+                path=cache_file(name,base)
+                if path is None:
+                    result['errors']+=1
+                    continue
+                try:
+                    path.unlink()
+                    result['cleared_files']+=1
+                except FileNotFoundError: pass
+                except OSError: result['errors']+=1
+            result['ok']=not result['errors']
+    except (OSError,ValueError,TypeError,OverflowError): result['errors']+=1
     return result

@@ -9,13 +9,13 @@ from datetime import datetime, timedelta, timezone
 import json
 import sys
 
-from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths
+from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths, period_usage
 from ..i18n import LANGUAGES, big, count, decimal, language, moment, say, window
 from ..statusline import samples as claude_quota
 from .cache import FileCache, version
 from .forecast import outlook
 from .insights import insights
-from .projects import assign, label
+from .projects import assign, label, labels
 from .records import total
 from .reedit import analyze as subsequent_edits, insight as edit_insight
 from .summary import summarize
@@ -39,14 +39,14 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
-    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,archive_rules)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
     codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_key=version(claude_code,records,accounting,edit_paths,archive_rules)
+    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules)
     claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
     archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
@@ -69,7 +69,7 @@ def _pct(share, lang):
 def render(summary, sources, notes=(), windows=(), lang='en'):
     """The terminal summary, in the given language (i18n.py)."""
     lines, n = [], lambda value: big(value, lang)
-    project = lambda path: label(path, lang=lang) or say(lang, 'unknown_project')
+    project = lambda path: sources.get('_project_names',{}).get(path) or label(path, lang=lang) or say(lang, 'unknown_project')
     lines.append((say(lang, 'report.period', sources['days']) if sources.get('days') else say(lang, 'report.all'))
                  + say(lang, 'report.header'))
     if sources.get('days'):
@@ -86,6 +86,11 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         lines.append(say(lang, 'report.agent', agent=AGENTS.get(agent, agent), tokens=n(row['total_tokens']),
                          sessions=count(lang, row['sessions'], 'session'), share=_pct(row['cache_read_share'], lang),
                          errors=count(lang, row['errors'], 'error'), aborted=count(lang, row['aborted'], 'interrupted')))
+    dated=sources.get('_dated_usage')
+    if dated is not None and dated['retained_usage_fully_dated']:  # same rule as the page
+        lines.append(say(lang,'report.dated_usage',tokens=n(dated['total_tokens']),calls=dated['response_calls'],
+                         eligible=dated['eligible_sessions'],selected=dated['selected_sessions'],unallocated=dated['unallocated_sessions']))
+        lines.append(say(lang,'report.dated_limit'))
     if notes:
         lines.append('')
         lines.append(say(lang, 'report.notes'))
@@ -123,6 +128,9 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
             current = next((item for item in windows if item.get('agent') == 'codex'
                             and item['window_minutes'] == row['window_minutes']), None)
             state = current['state'] if current else None
+            if state=='ambiguous':
+                lines.append(say(lang,'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
+                continue
             key = 'report.reset' if state == 'reset' else 'report.stale' if state == 'stale' else 'report.quota_line'
             lines.append(say(lang, key, window=window(row['window_minutes'], lang), used=decimal(row['used_percent'], lang)))
     claude = [row for row in windows if row.get('agent') == 'claude-code']
@@ -130,6 +138,9 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         lines.append('')
         lines.append(say(lang, 'report.claude_quota', at=_local(max(row['at'] for row in claude), lang)))
         for row in claude:
+            if row['state']=='ambiguous':
+                lines.append(say(lang,'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
+                continue
             key = 'report.reset' if row['state'] == 'reset' else 'report.stale' if row['state'] == 'stale' else 'report.quota_line'
             lines.append(say(lang, key, window=window(row['window_minutes'], lang), used=decimal(row['used_percent'], lang)))
     rejected = summary['claude_limit_events'].get('rejected')
@@ -145,7 +156,8 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         archived=sum(row.get('source_state','live')!='live' for row in summary.get('largest_sessions',()))
         # Counts are already scoped by scan roots; the report period still selects whole sessions.
         if archive.get('archive_files'): lines.append(say(lang,'archive.coverage',n=archive['archive_files']))
-        elif not archive.get('enabled'): lines.append(say(lang,'archive.disabled'))
+        elif not archive.get('enabled'):
+            lines.append(say(lang,'archive.retention_off' if archive.get('available') and not archive.get('retention_enabled') else 'archive.disabled'))
     if sources['skipped']:
         lines.append(say(lang, 'report.unreadable', count=count(lang, len(sources['skipped']), 'log_file'),
                          reasons=', '.join(sorted({reason for _, reason in sources['skipped']}))))
@@ -170,12 +182,22 @@ def main(argv=None):
     summary = summarize(sessions, since)
     rows = [s for s in sessions if since is None or (s.ended and s.ended >= since)]
     windows = outlook(sessions, now, sources['claude_quota'])
+    for row in summary['quota']['latest']:
+        current=next((value for value in windows if value['agent']=='codex' and value['window_minutes']==row['window_minutes']),None)
+        row['state']=current['state'] if current else 'historical'
+        if current and current['state']=='ambiguous':
+            row.update(used_percent=None,reason='conflicting_meter_history')
     lang = args.lang or language()
     trust=quality(rows,sources,lang)
     notes = insights(rows, windows, since, lang=lang,usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
     reedit = subsequent_edits(sessions, rows, records.timestamp(sources.get('observed_at')) or now)
     notes += edit_insight(reedit, lang)
+    observed=records.timestamp(sources.get('observed_at')) or now
+    dated=period_usage.analyze(sessions,observed-timedelta(days=args.days) if args.days else None,observed)
+    sources['_dated_usage']=dated
     sources['days'] = args.days
+    project_names=labels([s.project for s in sessions],lang=lang)
+    sources['_project_names']=project_names
     if args.json:
         # The terminal and page share one allowlist for session metadata.
         from ..dashboard import session_view
@@ -183,15 +205,16 @@ def main(argv=None):
         summary.pop('days', None)  # whole-session totals are not a daily spending series
         summary['period']['mode'] = 'active_sessions_full_totals'
         for row in summary['projects']:
-            row['project'] = label(None if row['project'] == 'unknown' else row['project'], lang=lang) or say(lang,'unknown_project')
+            raw=None if row['project']=='unknown' else row['project']
+            row['project']=project_names.get(raw,label(raw,lang=lang) or say(lang,'unknown_project'))
         for row in summary['largest_sessions']:
-            row['project'] = label(row['project'], lang=lang) or say(lang,'unknown_project')
-        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows, insights=notes,reedit=reedit,
+            row['project']=project_names.get(row['project'],label(row['project'],lang=lang) or say(lang,'unknown_project'))
+        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))
         if args.sessions:
-            value['sessions'] = [session_view(s,lang) for s in rows]
+            value['sessions'] = [session_view(s,lang,project_names=project_names) for s in rows]
         print(json.dumps(value, ensure_ascii=False, indent=2))
     else:
         if hasattr(sys.stdout, 'reconfigure'):

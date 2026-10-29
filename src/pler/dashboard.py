@@ -17,11 +17,12 @@ from .git_activity import CREATED, check_branches, read_repository, session_acti
 from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
-from .usage.projects import ProjectRoots, label
+from .usage.projects import ProjectRoots, label, labels
 from .usage.records import total, timestamp
 from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
+from .usage.period_usage import analyze as dated_usage
 from .usage.summary import summarize, quota_burn
-from .reporting import provenance,quality
+from .reporting import provenance,quality,affected
 
 PERIODS = (0, 7, 30, 90)
 
@@ -131,14 +132,14 @@ def _git_insight(outcome, lang, usage_complete):
                  evidence=outcome)]
 
 
-def session_view(session, lang='en', git=None):
+def session_view(session, lang='en', git=None, project_names=None):
     inputs = sum(session.tokens[k] for k in ('input', 'cache_read', 'cache_write'))
     span = (session.ended - session.started).total_seconds() if session.started and session.ended else None
     active = session.active_ms
     # Forked/copied logs can carry the same provider session ID. The visible
     # code identifies the row's source too, without disclosing either value.
     return dict(id=_id(session.agent, session.source + '\0' + session.session_id), agent=session.agent,
-                project_id=_id('project', session.project), project=_project(session.project, lang),
+                project_id=_id('project', session.project), project=(project_names or {}).get(session.project,_project(session.project, lang)),
                 started=_iso(session.started), ended=_iso(session.ended),
                 span_seconds=span if span is not None and span >= 0 else None,
                 active_ms=active if type(active) is int and active >= 0 else None,
@@ -173,6 +174,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     if project != 'all' and project not in known_projects:
         raise UnknownProject(say(lang, 'error.unknown_project'))
     now = now or datetime.now(timezone.utc)
+    project_names=labels([s.project for s in sessions],lang=lang)
     since = now - timedelta(days=days) if days else None
     rows = [s for s in sessions if (since is None or (s.ended is not None and s.ended >= since))
             and (agent == 'all' or s.agent == agent) and (project == 'all' or _id('project', s.project) == project)]
@@ -185,36 +187,49 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     for p in summary['projects']:
         raw = p['project']
         value = {k: v for k, v in p.items() if k != 'project'}
-        projects.append(dict(value, id=_id('project', None if raw == 'unknown' else raw), name=_project(None if raw == 'unknown' else raw, lang)))
-    options = sorted({(_id('project', s.project), _project(s.project, lang)) for s in sessions}, key=lambda row: row[1].casefold())
+        original=None if raw=='unknown' else raw
+        projects.append(dict(value, id=_id('project',original), name=project_names.get(original,_project(original,lang))))
+    options = sorted({(_id('project', s.project),project_names[s.project]) for s in sessions}, key=lambda row: row[1].casefold())
     # The meter is account-wide, so every session counts here, plus the Claude Code status line samples.
     windows = quota_outlook(sessions, now, sources.get('claude_quota', ()))
     # Older logs lack reset timestamps, but their last meter sample is still account-wide.
     # Do not switch to a project's older percentage when a UI filter changes.
     account_rows = [replace(s, started=s.started or s.ended or epoch, ended=s.ended or s.started or epoch) for s in sessions]
     account_quota = summarize(account_rows, top=0)['quota']
+    ambiguous={row['window_minutes'] for row in windows if row['agent']=='codex' and row['state']=='ambiguous'}
+    for row in account_quota['latest']:
+        if row['window_minutes'] in ambiguous:
+            row.update(used_percent=None,state='ambiguous',reason='conflicting_meter_history')
     skipped = sources.get('skipped', [])
     reason_keys={'MalformedRows':'malformed_file','InconsistentReasoning':'inconsistent_reasoning_file'}
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)
     trust=quality(rows,sources,lang)
     outcome=git_outcome(rows,sources)
     reedit=subsequent_edits(sessions,rows,timestamp(sources.get('observed_at')) or now)
+    observed=timestamp(sources.get('observed_at')) or now
+    dated=dated_usage([s for s in sessions if (agent=='all' or s.agent==agent) and
+                      (project=='all' or _id('project',s.project)==project)],
+                      observed-timedelta(days=days) if days else None,observed)
     archive=sources.get('archive') or {}
-    archive_public={key:archive.get(key,False if key=='enabled' else 0) for key in
-                    ('enabled','stored_files','archive_files','old_parser_files','unverified_files','evicted_files','errors')}
+    boolean_fields=('enabled','available','retention_enabled','stored_files_known')
+    archive_public={key:archive.get(key,False if key in boolean_fields else 0) for key in
+                    (*boolean_fields,'stored_files','stored_bytes','max_bytes','max_files','max_days',
+                     'archive_files','old_parser_files','unverified_files','evicted_files','errors')}
     archive_public['sessions']=sum(getattr(s,'source_state','live')!='live' for s in rows)
+    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names) for s in rows),
+                           key=lambda row:(row['total_tokens'],row['ended'] or ''),reverse=True)
     return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
                 totals=summary['totals'], agents=summary['agents'], models=summary['models'], projects=projects,
                 project_options=[dict(id=key, name=name) for key, name in options],
-                sessions=sorted((session_view(s, lang, _git_for(s, sources)) for s in rows),
-                                key=lambda row: (row['total_tokens'], row['ended'] or ''), reverse=True),
+                sessions=public_sessions,
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
                     + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']) + edit_insight(reedit,lang),
-                git_outcome=outcome, reedit=reedit, archive=archive_public, lang=lang, demo=bool(sources.get('demo')),
+                git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
+                quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),
@@ -257,6 +272,46 @@ class UsageDashboard:
             self.refresh(force=True)
             return dict(ok=True, cleared_files=result.get('cleared_files',0), errors=0, state='scanning')
 
+    def set_retention(self,enabled):
+        from .usage.archive import set_retention
+        with self.lock:
+            result=set_retention(enabled)
+            if not result.get('ok'): return dict(ok=False,errors=result.get('errors',1))
+            self._replace_after_settings()
+            return dict(ok=True,retention_enabled=enabled,state='scanning')
+
+    def reset_cache(self):
+        from .usage.archive import reset_cache
+        with self.lock:
+            result=reset_cache()
+            if not result.get('ok'): return result
+            self._replace_after_settings()
+            return dict(ok=True,cleared_files=result['cleared_files'],state='scanning')
+
+    def _replace_after_settings(self):
+        self.generation+=1
+        self.sessions,self.sources=[],{}
+        self.scanned_at,self.error,self.state=None,None,'idle'
+        self.refresh(force=True)
+
+    def _check_archive_generation(self):
+        archive=self.sources.get('archive') or {}
+        if archive.get('available',archive.get('enabled')) and self.scanned_at is not None:
+            from .usage.archive import archive_generation
+            current=archive_generation()
+            if current is not None and current!=archive.get('scan_generation',archive.get('clear_generation')):
+                self._replace_after_settings()
+
+    def session(self,identity,lang='en'):
+        """An already-read row outside the current filters; never opens a source."""
+        with self.lock:
+            self._check_archive_generation()
+            project_names=labels([s.project for s in self.sessions],lang=lang)
+            for session in self.sessions:
+                if _id(session.agent,session.source+'\0'+session.session_id)==identity:
+                    return session_view(session,lang,_git_for(session,self.sources),project_names)
+        return None
+
     def _scan(self, generation=None):
         if generation is None:
             with self.lock:
@@ -264,6 +319,10 @@ class UsageDashboard:
         try:
             sessions, sources = self.reader()
             sources = dict(sources)
+            if (sources.get('archive') or {}).get('stale_snapshot'):
+                with self.lock:
+                    if generation==self.generation: self._replace_after_settings()
+                return
             sources['git_links'] = git_links(sessions)
             folders = {path for linked in sources['git_links'].values() for path in linked}
             sources['git_activity'] = {path: self.git_reader(path) for path in folders}
@@ -292,15 +351,7 @@ class UsageDashboard:
 
     def view(self, days=30, agent='all', project='all', lang='en'):
         with self.lock:
-            archive=self.sources.get('archive') or {}
-            if archive.get('enabled') and self.scanned_at is not None:
-                from .usage.archive import archive_generation
-                current=archive_generation()
-                if current is not None and current != archive.get('clear_generation'):
-                    self.generation += 1
-                    self.sessions,self.sources=[],{}
-                    self.scanned_at,self.state,self.error=None,'idle',None
-                    self.refresh(force=True)
+            self._check_archive_generation()
             value = project_view(self.sessions, self.sources, days, agent, project, lang=lang)
             value.update(state=self.state, scanned_at=self.scanned_at, error=self.error and say(value['lang'], self.error),
                          has_snapshot=self.scanned_at is not None)

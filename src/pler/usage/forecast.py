@@ -9,6 +9,8 @@ The meter is account-wide and moves only while agents work, so the pace depends 
 - day-long or longer windows (weekly): the average rise per calendar day over the last 14 days, across
   resets, because people do not work around the clock.
 A forecast assumes that pace continues.
+Contradictory meter histories are withheld. This detects inconsistent evidence,
+not provider account identity; compatible samples alone cannot prove one account.
 """
 from datetime import datetime, timedelta
 
@@ -20,10 +22,41 @@ HISTORY = timedelta(days=14)
 MIN_HISTORY = timedelta(days=2)
 SHORT_MAX_AGE = timedelta(minutes=30)
 LONG_MAX_AGE = timedelta(hours=24)
+LARGE_DROP = 25  # percentage points within one window; set after measuring real single-account meters (max 11)
 
 
 def _rise(samples):
     return sum(max(0.0, later[2] - earlier[2]) for earlier, later in zip(samples, samples[1:]))
+
+
+def _consistent_history(samples):
+    """Discard a contradictory expired episode only after a later reset is observed.
+
+    A single real meter is not monotonic: in one user's Codex logs the 5-hour
+    level fell by 1 point 622 times and by at most 11 within a window, and the
+    provider sometimes restarted a window early (a later reset, a lower level).
+    Neither is a contradiction. Within a still-active window these are: a reset
+    moving back to an earlier time, a fall of more than LARGE_DROP points, or
+    different readings at exactly the same instant. A known elapsed reset
+    permits a lower level in the next window. Old contradictions must not poison
+    a newly observed window, but none of their artificial rises enter its forecast.
+    """
+    first, previous, uncertain_until = 0, None, None
+    for index, sample in enumerate(samples):
+        if uncertain_until is not None:
+            if sample[0] >= uncertain_until:
+                first, previous, uncertain_until = index, None, None
+            else:
+                uncertain_until = max(uncertain_until, sample[3])
+                continue
+        if previous is not None and sample[0] < previous[3]:
+            moved = sample[3] - previous[3]
+            if (moved < -SAME_RESET
+                    or abs(moved) <= SAME_RESET and previous[2] - sample[2] > LARGE_DROP
+                    or sample[0] == previous[0] and (sample[2] != previous[2] or abs(moved) > SAME_RESET)):
+                uncertain_until = max(previous[3], sample[3])
+        previous = sample
+    return samples[first:], uncertain_until is not None
 
 
 def outlook(sessions, now, claude=()):
@@ -31,7 +64,8 @@ def outlook(sessions, now, claude=()):
     status line samples (time, window minutes, used percent, resets_at).
 
     States: full, fills_before_reset (with full_at), lasts_until_reset, no_pace (too little history or no
-    rise), reset (the window ended after the last record, so the current percentage is unknown)."""
+    rise), reset (the window ended after the last record), ambiguous (conflicting
+    meter histories; neither a current level nor a forecast can be established)."""
     windows = {}
     sources = [(session.agent, session.quota) for session in sessions] + [('claude-code', claude)]
     for agent, quota in sources:
@@ -40,14 +74,25 @@ def outlook(sessions, now, claude=()):
                     and isinstance(sample[3], datetime) and sample[3].tzinfo is not None
                     and type(sample[1]) is int and sample[1] > 0 and percentage(sample[2]) is not None
                     and sample[0] <= now):
-                windows.setdefault((agent, sample[1]), []).append(sample)
+                # Different files and copied sessions often repeat one account
+                # sample. They supply no additional rise or ordering evidence.
+                windows.setdefault((agent, sample[1]), set()).add(
+                    (sample[0], sample[1], percentage(sample[2]), sample[3]))
     rows = []
     for (agent, minutes), samples in sorted(windows.items()):
-        samples.sort(key=lambda sample: sample[0])
+        samples = sorted(samples, key=lambda sample: (sample[0], sample[3], sample[2]))
+        if minutes >= 24 * 60:
+            samples = [sample for sample in samples if sample[0] >= samples[-1][0] - HISTORY]
+        samples, ambiguous = _consistent_history(samples)
         at, _, used, resets = samples[-1]
         max_age = SHORT_MAX_AGE if minutes < 24 * 60 else LONG_MAX_AGE
         row = dict(agent=agent, window_minutes=minutes, used_percent=used, at=at.isoformat(), resets_at=resets.isoformat(),
                    max_age_seconds=max_age.total_seconds())
+        if ambiguous:
+            row.update(state='ambiguous', used_percent=None, resets_at=None,
+                       reason='conflicting_meter_history')
+            rows.append(row)
+            continue
         if resets <= now:
             row['state'] = 'reset'
             rows.append(row)
