@@ -69,9 +69,10 @@ class CodexPatchTargetTests(unittest.TestCase):
                                   input=patch_text('b.py', os.path.join(folder, 'abs.py'), escaped=True))),
             ])
             session, = codex.read([log])[0]
-            self.assertEqual(session.files_edited, {os.path.normpath(os.path.join(first, 'a.py')),
-                                                    os.path.normpath(os.path.join(second, 'b.py')),
-                                                    os.path.normpath(os.path.join(folder, 'abs.py'))})
+            expected={os.path.normpath(os.path.join(first, 'a.py')),
+                      os.path.normpath(os.path.join(second, 'b.py')),
+                      os.path.normpath(os.path.join(folder, 'abs.py'))}
+            self.assertEqual(session.files_edited,{os.path.normcase(path).casefold() if os.name=='nt' else path for path in expected})
 
 
 class GitLinkTests(unittest.TestCase):

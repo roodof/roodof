@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
 from . import accounting, discovery
+from .edit_paths import canonical_target
 
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
 
@@ -150,7 +151,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
     """Merge copies before attribution; source order never determines a project's usage."""
     from collections import defaultdict
     sessions, replies, prompts = {}, defaultdict(list), defaultdict(list)
-    projects, branches = defaultdict(set), defaultdict(set)
+    projects, branches, source_paths = defaultdict(set), defaultdict(set), defaultdict(set)
     if access is not None: access.read_phase()
     live=discovery.unique(paths)
     replay=archive.replay('claude-code') if archive is not None else []
@@ -195,6 +196,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             identity=row.get('sessionId')
             if not isinstance(identity,str): continue
             session=sessions.setdefault(identity,Session('claude-code',identity,str(path)))
+            source_paths[identity].add(str(path))
             if archive is not None: archive.mark(session,'claude-code',path)
             session.source=min(session.source,str(path))
             if session not in affected: affected.append(session)
@@ -226,8 +228,23 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 replies[key].append(dict(session=session,message=message,row=row,at=moment,tokens=tokens,path=str(path),index=index))
     for identity,session in sessions.items():
         accounting.metadata(session,projects[identity],branches[identity])
-    for values in prompts.values(): accounting.owner(values).prompts+=1
+    related={identity:identity for identity in sessions}
+    def root(identity):
+        while related[identity]!=identity:
+            related[identity]=related[related[identity]]
+            identity=related[identity]
+        return identity
+    def join(values):
+        ids=sorted({session.session_id for session in values})
+        if not ids: return
+        for identity in ids[1:]:
+            a,b=root(ids[0]),root(identity)
+            related[max(a,b)]=min(a,b)
+    for values in prompts.values():
+        join(values)
+        accounting.owner(values).prompts+=1
     for copies in replies.values():
+        join([copy['session'] for copy in copies])
         target=accounting.owner([c['session'] for c in copies])
         target.errors+=any(c['row'].get('isApiErrorMessage') for c in copies)
         statuses={c['row'].get('quotaLimits',{}).get('status') for c in copies}
@@ -269,15 +286,24 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 uid=item.get('id')
                 key=('tool',uid) if isinstance(uid,str) and uid else ('anonymous',copy['path'],copy['index'],index)
                 if key[0]=='anonymous': target.counts_complete=False;target.issues.add('unidentified_records')
-                tools.setdefault(key,[]).append(item)
+                tools.setdefault(key,[]).append((item,copy['row'].get('cwd')))
         for items in tools.values():
-            names={item['name'] for item in items}
+            names={item['name'] for item,_ in items}
             name=next(iter(names)) if len(names)==1 else 'unknown'
             target.count(target.tools,name)
-            for item in items:
+            for item,cwd in items:
                 field=EDIT_TOOLS.get(item['name'])
                 value=item.get('input',{}).get(field) if field else None
-                if isinstance(value,str) and value: target.files_edited.add(value)
+                value=canonical_target(value,cwd)
+                if value is not None: target.files_edited.add(value)
     for session in sessions.values():
         session.note('Usage per reply as logged by Claude Code; repeated lines of one reply counted once.')
+    def subagent_only(session):
+        sources=source_paths[session.session_id]
+        def child(value):
+            parts=str(value).replace('\\','/').split('/')
+            return len(parts)>1 and parts[-2]=='subagents' and parts[-1].startswith('agent-')
+        return all(child(value) for value in sources)
+    main_groups={root(identity) for identity,session in sessions.items() if not subagent_only(session)}
+    accounting.history_groups(sessions,root,(identity for identity in sessions if root(identity) not in main_groups))
     return [s for s in sessions.values() if s.calls or s.prompts or s.errors]

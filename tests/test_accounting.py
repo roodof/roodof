@@ -15,7 +15,7 @@ from pler.reporting import PARSER_VERSION,SCHEMA_VERSION
 from pler.usage import claude_code,codex,main,scan
 from pler.usage import discovery
 from pler.usage.insights import insights
-from pler.usage.records import Session,total
+from pler.usage.records import Session,total,timestamp
 from test_logs import USAGE,claude_reply,stored_zstd,write_jsonl
 
 
@@ -188,6 +188,8 @@ class AccountingTests(unittest.TestCase):
             with patch.object(codex,'_rows',side_effect=AssertionError('reopened unchanged log')):
                 cached,again=scan()
         self.assertEqual([s.as_dict() for s in first],[s.as_dict() for s in cached])
+        self.assertIsNotNone(timestamp(sources.pop('observed_at')))
+        self.assertIsNotNone(timestamp(again.pop('observed_at')))
         self.assertEqual(sources,again)
         self.assertEqual(total(cached[0].tokens),150)
 

@@ -2,17 +2,12 @@
 from collections import defaultdict
 import os
 from pathlib import Path
-import re
 
 from . import accounting as rules
 from . import discovery
 from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
-
-
-def _absolute(path):
-    # A drive (C:/ or C:\) or root path counts as absolute on every system the log may come from.
-    return os.path.isabs(path) or bool(re.match(r'[A-Za-z]:[\\/]|[\\/]',path))
+from .edit_paths import canonical_target
 
 
 def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
@@ -41,6 +36,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         session.tokens_complete=False
         session.issues.add('unreconciled_totals')
         if ownership:
+            session._history_uncertain=True
             session.attribution_complete=False
             session.issues.add('shared_attribution')
     if access is not None: access.read_phase()
@@ -72,6 +68,8 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         ids=[m.get('session_id') or m.get('id') for m in metas]
         identity=next((v for v in reversed(ids) if isinstance(v,str) and v),str(path))
         session=sessions.setdefault(identity,Session('codex',identity,str(path)))
+        if not any(isinstance(value,str) and value for value in ids):
+            session._history_uncertain=True
         if archive is not None: archive.mark(session,'codex',path)
         session.source=min(session.source,str(path))
         root(identity)
@@ -192,9 +190,8 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                 cwd=payload['cwd']
             if isinstance(payload.get('edited_files'),list):
                 # Patch targets may be relative to the working folder of that moment.
-                payload=dict(payload,edited_files=[os.path.normpath(p if _absolute(p) else os.path.join(cwd,p))
-                                                   for p in payload['edited_files']
-                                                   if isinstance(p,str) and (cwd or _absolute(p))])
+                payload=dict(payload,edited_files=[value for value in
+                    (canonical_target(p,cwd) for p in payload['edited_files']) if value is not None])
             if not (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted')
                     or kind=='response_item' and sub in ('function_call','custom_tool_call')): continue
             identity=payload.get('call_id') if kind=='response_item' else payload.get('turn_id')
@@ -289,6 +286,8 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         if 'codex-auto-review' in session.model_tokens:
             session.note('codex-auto-review is a routing alias; the effective model is not logged.')
         if session.quota: session.note('Quota samples are account-wide; concurrent sessions move the same meter.')
+    rules.history_groups(sessions,root,(identity for identity,s in sessions.items()
+                                      if s.parent_id and s.parent_id not in sessions))
     return [s for s in sessions.values() if total(s.tokens) or s.calls or s.prompts or s.errors
             or s.quota or s.session_id in activity or s.session_id in compactions
             or 'invalid_records' in s.issues],issues

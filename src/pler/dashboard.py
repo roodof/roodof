@@ -18,7 +18,8 @@ from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
 from .usage.projects import ProjectRoots, label
-from .usage.records import total
+from .usage.records import total, timestamp
+from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.summary import summarize, quota_burn
 from .reporting import provenance,quality
 
@@ -197,6 +198,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)
     trust=quality(rows,sources,lang)
     outcome=git_outcome(rows,sources)
+    reedit=subsequent_edits(sessions,rows,timestamp(sources.get('observed_at')) or now)
     archive=sources.get('archive') or {}
     archive_public={key:archive.get(key,False if key=='enabled' else 0) for key in
                     ('enabled','stored_files','archive_files','old_parser_files','unverified_files','evicted_files','errors')}
@@ -211,8 +213,8 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
-                    + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']),
-                git_outcome=outcome, archive=archive_public, lang=lang, demo=bool(sources.get('demo')),
+                    + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']) + edit_insight(reedit,lang),
+                git_outcome=outcome, reedit=reedit, archive=archive_public, lang=lang, demo=bool(sources.get('demo')),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),

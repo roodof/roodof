@@ -1,6 +1,6 @@
 # Professional pilot acceptance
 
-**Ready-to-run kit (28 October 2026, rebuilt as 0.2.9 so that moved log folders behind a link are read):** `pler demo` provides invented data for every task below. The [pilot kit](../../reports/pilot-kit-v1/REPORT.md) bundles the Windows portable package, the wheel, participant guides and task sheets in Turkish and English, a facilitator guide with a measured answer key, and a record template.
+**Ready-to-run kit (29 October 2026, rebuilt and checked as 0.2.12):** `pler demo` provides invented data for every task below, including the subsequent-edit observation. The [current kit evidence](../../reports/reedit-v1/REPORT.md) covers Windows portable and Python 3.9 wheel startup, counts and clean shutdown. The kit bundles both packages and participant guides and task sheets in Turkish and English. The facilitator guide with its measured answer key and the record template stay outside the participant kit. This check is not a completed professional pilot.
 
 This is a proposed pilot protocol. It contains no completed interviews, customer endorsements or measured savings. Run it only after the release candidate passes local correctness/privacy/install acceptance, using participants who agree to the scope and how results are recorded.
 

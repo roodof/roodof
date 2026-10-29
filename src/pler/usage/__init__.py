@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import sys
 
-from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile
+from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths
 from ..i18n import LANGUAGES, big, count, decimal, language, moment, say, window
 from ..statusline import samples as claude_quota
 from .cache import FileCache, version
@@ -17,6 +17,7 @@ from .forecast import outlook
 from .insights import insights
 from .projects import assign, label
 from .records import total
+from .reedit import analyze as subsequent_edits, insight as edit_insight
 from .summary import summarize
 from ..reporting import provenance,quality
 
@@ -29,6 +30,7 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota'].
     Metadata of default (or environment-selected) folders is kept in PLER's archive after a source disappears;
     explicitly given folders only with `retain`."""
+    observed_at=datetime.now(timezone.utc).isoformat()
     skipped=[]
     access=claude_code.discovery.WslRoots()
     from . import archive as archive_rules
@@ -37,20 +39,20 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
-    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,archive_rules)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,archive_rules)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
     codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_key=version(claude_code,records,accounting,archive_rules)
+    claude_key=version(claude_code,records,accounting,edit_paths,archive_rules)
     claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
     archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
     if claude_cache:
         claude_cache.save()
-    return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),
+    return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),observed_at=observed_at,
                           claude_quota=claude_quota() if claude_folders is None else [])
 
 
@@ -171,6 +173,8 @@ def main(argv=None):
     lang = args.lang or language()
     trust=quality(rows,sources,lang)
     notes = insights(rows, windows, since, lang=lang,usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
+    reedit = subsequent_edits(sessions, rows, records.timestamp(sources.get('observed_at')) or now)
+    notes += edit_insight(reedit, lang)
     sources['days'] = args.days
     if args.json:
         # The terminal and page share one allowlist for session metadata.
@@ -182,7 +186,7 @@ def main(argv=None):
             row['project'] = label(None if row['project'] == 'unknown' else row['project'], lang=lang) or say(lang,'unknown_project')
         for row in summary['largest_sessions']:
             row['project'] = label(row['project'], lang=lang) or say(lang,'unknown_project')
-        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows, insights=notes,
+        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows, insights=notes,reedit=reedit,
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))

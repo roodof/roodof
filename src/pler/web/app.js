@@ -159,6 +159,23 @@ const I18N=/*I18N*/{
 "git_outcome": "Commits recorded in this time: {kept} of {total} are still on a local or remote-tracking branch.",
 "git_outcome_off": "No longer on any branch: {n} (amended, rebased, reset or on a deleted branch). A rewritten commit can still carry the same change.",
 "git_outcome_unknown": "Could not be checked: {n} (missing or borrowed objects, a shallow or very long history).",
+"reedit_coverage": "Eligible selected sessions: {eligible} of {selected}. Later-session evidence uses all selected log folders: {timeline} of {total} sessions eligible, across agents and projects.",
+"reedit_followup": "No later edit target observed after a full 7 days: {n}. This means no match was found in the available records.",
+"reedit_cutoff": "Observed through {at}; read the logs again to update this observation.",
+"reedit_excluded": "Why selected sessions could not be evaluated",
+"reedit_archive_old_parser": "Older archived records",
+"reedit_archive_unverified": "Unverified archived sources",
+"reedit_uncertain_history": "Independent session history could not be verified",
+"reedit_invalid_time": "Missing, invalid or future session times",
+"reedit_missing_targets": "No usable absolute edit targets",
+"reedit_matches": "Fastest observed pairs · up to 5",
+"reedit_match_gap": "Session gap: {gap} · shared edit targets: {targets}",
+"reedit_origin": "Earlier: {agent} · {code}",
+"reedit_later": "Later: {agent} · {code}",
+"reedit_tokens": "Recorded tokens for this whole session: {tokens}{partial}",
+"reedit_partial": " · incomplete attribution or token records",
+"reedit_outside": "Outside the current filters",
+"reedit_subsecond": "less than 1 s",
 "git_on_branch": "on a branch",
 "git_off_branch": "not on a branch",
 "git_no_history": "This repository has no readable local HEAD history. It may be disabled or expired; no activity count can be inferred.",
@@ -409,6 +426,23 @@ const I18N=/*I18N*/{
 "git_outcome": "Bu sürede kaydedilen commit'ler: {total} commit'ten {kept} tanesi hâlâ yerel ya da uzak izleme dalında.",
 "git_outcome_off": "{n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı. Yeniden yazılan bir commit aynı değişikliği taşımaya devam edebilir.",
 "git_outcome_unknown": "{n} tanesi kontrol edilemedi: eksik ya da başka depodan ödünç nesneler, sığ ya da çok uzun geçmiş.",
+"reedit_coverage": "Değerlendirilebilen seçili oturum: {selected} içinden {eligible}. Sonraki oturum kanıtı, seçili kayıt klasörlerinin tamamından alınır: ajan ve proje ayrımı olmadan {total} oturumdan {timeline} tanesi değerlendirilebilir.",
+"reedit_followup": "7 günü tamamladığı hâlde sonraki düzenleme hedefi gözlenmeyen: {n}. Bu, mevcut kayıtlarda eşleşme bulunamadığı anlamına gelir.",
+"reedit_cutoff": "Gözlem sonu: {at}; güncellemek için kayıtları yeniden oku.",
+"reedit_excluded": "Seçili oturumların değerlendirilememe nedenleri",
+"reedit_archive_old_parser": "Eski okuyucuyla arşivlenen kayıtlar",
+"reedit_archive_unverified": "Doğrulanamayan arşiv kaynakları",
+"reedit_uncertain_history": "Bağımsız oturum geçmişi doğrulanamadı",
+"reedit_invalid_time": "Eksik, geçersiz veya gelecekteki oturum zamanları",
+"reedit_missing_targets": "Kullanılabilir tam düzenleme hedefi yok",
+"reedit_matches": "En kısa aralıklı gözlenen eşleşmeler · en fazla 5",
+"reedit_match_gap": "Oturumlar arası süre: {gap} · ortak düzenleme hedefi: {targets}",
+"reedit_origin": "Önceki: {agent} · {code}",
+"reedit_later": "Sonraki: {agent} · {code}",
+"reedit_tokens": "Bu oturumun tamamı için kayıtlı token: {tokens}{partial}",
+"reedit_partial": " · token veya atıf kayıtları eksik",
+"reedit_outside": "Geçerli filtrelerin dışında",
+"reedit_subsecond": "1 sn'den az",
 "git_on_branch": "dalda",
 "git_off_branch": "dalda değil",
 "git_no_history": "Bu depoda okunabilir yerel HEAD geçmişi yok. Kayıt kapalı veya süresi dolmuş olabilir; hareket sayısı çıkarılamaz.",
@@ -562,11 +596,45 @@ function renderUsage(data){
   renderUsageSessions();
 }
 function renderUsageInsights(data){
+  usageState.insightQuotaStates=quotaInsightStates(data);
   const box=$('usage-insights'),notes=(data.insights||[]).filter(note=>note.kind!=='quota'||['full','fills_before_reset'].includes(quotaWindowNow(note.evidence).state));box.hidden=!notes.length;
   box.replaceChildren(node('span','eyebrow',t('insights_eyebrow')),node('h2','',t('insights_title')));
   const list=node('div','usage-insight-list');
-  for(const note of notes){const card=node('article','usage-insight '+note.level);card.append(node('h3','',note.title),node('p','',note.detail));if(note.kind==='concentration'){const button=node('button','text-button',t('inspect_session'));button.addEventListener('click',()=>{if(data.sessions.length)openUsageSession(data.sessions[0]);});card.append(button);}list.append(card);}
+  for(const note of notes){const card=node('article','usage-insight '+note.level);card.append(node('h3','',note.title),node('p','',note.detail));if(note.kind==='concentration'){const button=node('button','text-button',t('inspect_session'));button.addEventListener('click',()=>{if(data.sessions.length)openUsageSession(data.sessions[0]);});card.append(button);}if(note.kind==='subsequent_edit')appendSubsequentEdit(card,data,note.evidence||data.reedit);list.append(card);}
   box.append(list,node('p','section-note',t('insights_note')));
+}
+function appendSubsequentEdit(card,data,observation){
+  if(!observation)return;
+  card.className+=' usage-reedit';
+  card.append(node('p','section-note',t('reedit_coverage',{eligible:number(observation.eligible_sessions),selected:number(observation.origin_sessions),timeline:number(observation.timeline_eligible_sessions),total:number(observation.timeline_sessions)})));
+  card.append(node('p','section-note',t('reedit_followup',{n:number(observation.observed_unmatched_sessions)})));
+  card.append(node('p','section-note',t('reedit_cutoff',{at:usageDate(observation.cutoff)})));
+  const reasons={archive_old_parser:'reedit_archive_old_parser',archive_unverified:'reedit_archive_unverified',uncertain_history:'reedit_uncertain_history',invalid_time:'reedit_invalid_time',missing_targets:'reedit_missing_targets'};
+  const excluded=Object.keys(reasons).filter(reason=>observation.excluded?.[reason]>0);
+  if(excluded.length){const details=node('details','');details.append(node('summary','',t('reedit_excluded')));const list=node('ul','');for(const reason of excluded)list.append(node('li','',t(reasons[reason])+': '+number(observation.excluded[reason])));details.append(list);card.append(details);}
+  const matches=(observation.matches||[]).slice(0,5);
+  if(!matches.length)return;
+  const pairs=node('details','');pairs.append(node('summary','',t('reedit_matches')));
+  const list=node('ol','reedit-pairs');
+  for(const match of matches){
+    const item=node('li','');
+    const gap=match.gap_seconds>0&&match.gap_seconds<1?t('reedit_subsecond'):usageDuration(match.gap_seconds);
+    item.append(node('p','',t('reedit_match_gap',{gap,targets:number(match.matching_targets)})));
+    for(const role of ['origin','later']){
+      // Only the public opaque code and fixed agent names enter this view.
+      const id=match[role+'_id'],agent=usageAgents[match[role+'_agent']]||t('unknown');
+      const code=typeof id==='string'&&/^[a-f0-9]{24}$/.test(id)?id.slice(0,8):t('unknown');
+      const session=(data.sessions||[]).find(row=>row.id===id);
+      const line=node('p',''),label=t(role==='origin'?'reedit_origin':'reedit_later',{agent,code});
+      if(session){const button=node('button','text-button',label);button.addEventListener('click',()=>openUsageSession(session));line.append(button);}
+      else line.append(node('span','',label+' · '+t('reedit_outside')));
+      const tokens=match[role+'_tokens'];
+      line.append(node('br',''),node('small','',t('reedit_tokens',{tokens:number(tokens),partial:match[role+'_usage_complete']?'':t('reedit_partial')})));
+      item.append(line);
+    }
+    list.append(item);
+  }
+  pairs.append(list);card.append(pairs);
 }
 function quotaWindowNow(window,now=Date.now()){
   const reset=Date.parse(window.resets_at),at=Date.parse(window.at);
@@ -744,7 +812,8 @@ for(const id of ['usage-session-search','usage-session-sort'])$(id).addEventList
 $('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
 $('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
-function updateSnapshotClock(){if(!usageState.stopped&&!document.hidden&&usageState.data?.has_snapshot){renderUsageQuota(usageState.data);renderUsageInsights(usageState.data);}}
+function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}
+function updateSnapshotClock(){if(!usageState.stopped&&!document.hidden&&usageState.data?.has_snapshot){renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}
 usageState.clock=setInterval(updateSnapshotClock,30000);
 document.addEventListener('visibilitychange',updateSnapshotClock);
 window.addEventListener('focus',updateSnapshotClock);

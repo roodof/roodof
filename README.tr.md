@@ -77,6 +77,12 @@ Oturum ayrıntısındaki **kayıt aralığı**, ilk ve son olay arasındaki zama
 
 **Veri kalitesi:** Kopya yanıtlar sayım öncesinde uzlaştırılır. Kanıtlanamayan model/proje atfı bilinmiyor gösterilir. Geçersiz kayıtlar ve uzlaştırılamayan birikimli/dallanmış/bağlamı özetlenmiş geçmiş açıkça işaretlenir; görünen toplam eksik olabilir. Bilinen toplam, hesabın tüm kullanımının kapsandığını kanıtlamaz. JSON, uygulama/okuyucu/şema sürümleriyle kalite işaretlerini içerir. Karar vermeden önce [sayım sözleşmesini](ACCOUNTING.md) inceleyin. Oturum uzunluğu karşılaştırmaları israfı veya tasarrufu kanıtlamaz.
 
+## Sonraki düzenlemeler
+
+Sayfa ve `pler report`, bir oturum bittikten sonraki yedi gün içinde başka bağımsız bir oturumun aynı düzenleme hedefini kaydettiğini gösterir. Gözlemi açınca en fazla beş çift görünür: ajanlar, kısa oturum kodları, oturum sınırları arasındaki süre ve her oturumun bütün kayıtlı tokenları. Bunlar tekrarlanan düzenlemenin maliyeti değildir. Hesaplama, önceden okunan üst bilgiyi kullanır; dosya ya da Git sorgusu yapmaz.
+
+Dönem/ajan/proje filtreleri önceki oturumları seçer; sonraki oturum kanıtı, diğer ajanlar dahil seçilen kayıt klasörlerinin tamamından gelir. Gözlem sonu, kayıtlar yeniden okunana kadar sabittir. Yakın tarihli eşleşmeyen oturumların takibi beklemededir. Eksik hedefler, bağımsızlığı belirsiz geçmişler, çakışan zamanlar ve eski ya da doğrulanamayan arşiv kanıtı nedenleriyle birlikte dışlanır. Windows sürücü yollarında harf büyüklüğü ayrılmaz; POSIX yollarında ayrılır. Farklı yol adları, taşıma, başarısız düzenleme, silme ve yeniden oluşturma dosya kimliğini sınırlar. Bu gözlem israfı, tasarrufu, nedeni ya da kaliteyi kanıtlamaz. [Sabit tanım](ACCOUNTING.md#preregistered-subsequent-edit-observation-0212).
+
 ## Yerel Git hareketleri
 
 Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görünür: commit, commit düzeltmesi, checkout, reset, merge ve rebase. O sürede kaydedilen commit'lerin hâlâ bir dalda olup olmadığı da işaretlenir. Aynı anda başka kişiler ve ajanlar da çalışmış olabilir; bu kayıtlar yazarı kanıtlamaz. Bir hareket birden fazla oturumla eşleşebilir; oturum sayılarını toplayarak benzersiz commit sayısı çıkarılamaz.

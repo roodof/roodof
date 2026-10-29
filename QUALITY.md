@@ -2,6 +2,18 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 29 Ekim: 0.2.12 — aynı hedefe sonraki oturumda dönüldü mü?
+
+Profesyonel, yalnız token toplamından hangi oturumları inceleyeceğini bulamıyordu. Artık aynı düzenleme hedefini yedi gün içinde kaydeden bağımsız sonraki oturumlar gösteriliyor. Tanım gerçek sonuçlar görülmeden `8917914` commit'inde sabitlendi.
+
+- **Sınırları görünür:** Süre, önceki oturumun sonuyla sonraki oturumun başlangıcı arasındadır. Alt ajanlar ve ortak yanıt geçmişleri bağımsız sayılmaz. Çakışmalar, belirsiz hedefler, eski/doğrulanamayan arşivler dışlanır; yakın tarihli eşleşmeyenlerin takibi beklenir. Ekran ve JSON, nedenleri ve sabit gözlem sonunu gösterir.
+- **Yorum:** En fazla beş oturum çifti ve bütün oturumun kayıtlı tokenları inceleme başlangıcı sağlar. Düzenlemenin maliyeti, israf, kalite veya tasarruf çıkarılmaz; oran üretilmez. Taşıma/silme/yol adları gerçek dosya sürekliliğini kanıtlamaz.
+- **Gerçek sabit üst bilgi:** 0.2.11 ve 0.2.12'de 29 oturum, 9.371 çağrı ve 2.378.361.325 token aynı; oturum başına sayım ve tamlık işaretleri de aynı. 13 oturum değerlendirilebilir, 1 eşleşir (167,42 sn), 4'ü takip bekler, 8'inde eşleşme gözlenmez. 15'inde hedef yok; 1'i tarama başlangıcından sonraki zaman nedeniyle dışlanır. Bu karşılaştırma yalnız o anda yerinde duran onaylı kayıtları kapsar.
+- **Farklı kanıt:** Aynı üst bilgide Git gözlemi 75/75 commit'i dalda buldu. Bu, sonraki hedef düzenlemesinin olmadığını söylemez; sonraki düzenleme de commit'in kalitesini söylemez. İki gözlem farklı soruları yanıtlar.
+- **Doğrulama:** Windows 3.9'da 353 geçti / 9 yerel zstd testi atlandı; 3.12'de normal paket geçti. Windows 3.14.10 ve Linux WSL 3.14.4'te 362/362; Node 24/24. Pilot kiti iki kurulum yolunda baştan sona doğrulandı. Ayrıntı ve paket kanıtı [raporda](../reports/reedit-v1/REPORT.md).
+
+Yeni özellik profesyonel kullanıcı kabulünü kanıtlamaz. Gerçek pilot, temiz makine, imzalı dağıtım ve günlük kullanımda fayda açık kabul kapılarıdır.
+
 ## 29 Ekim: 0.2.11 — kayıtlar silinince geçmiş artık kaybolmuyor
 
 Claude Code varsayılan olarak 30 günden eski konuşmaları siliyor. PLER'in önbelleği de yalnız son okumada görülen dosyaları sakladığından, oturumlar sessizce kayboluyor ve aylık toplamlar küçülüyordu. Kullanıcı bunu fark edemiyordu.

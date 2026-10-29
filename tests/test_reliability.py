@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from pler.usage import claude_code, codex, scan, unzstd, xxh64, zstd
 from pler.usage.cache import FileCache, version
-from pler.usage.records import total
+from pler.usage.records import total,timestamp
 from pler.usage.projects import ProjectRoots
 from test_logs import SECRET, USAGE, ZSTD_FILES, ZSTD_SAMPLES, claude_reply, codex_rows, stored_zstd, write_jsonl
 
@@ -116,6 +116,8 @@ class ClaudeCacheTests(unittest.TestCase):
         with patch.object(claude_code,'_rows',side_effect=AssertionError('no reread')):
             second,again=scan()
         self.assertEqual([s.as_dict() for s in first],[s.as_dict() for s in second])
+        self.assertIsNotNone(timestamp(sources.pop('observed_at')))
+        self.assertIsNotNone(timestamp(again.pop('observed_at')))
         self.assertEqual(sources,again)
         stored=(self.root/'cache/claude.json').read_text('utf-8')
         for private in (SECRET,'command','"text"'):

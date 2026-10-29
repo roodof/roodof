@@ -39,7 +39,10 @@ class DemoTests(unittest.TestCase):
         self.assertEqual(states, {('codex', 300): 'fills_before_reset', ('codex', 10080): 'lasts_until_reset'})
         # where usage builds up, and what came of it in Git
         kinds = [item['kind'] for item in value['insights']]
-        self.assertEqual(kinds, ['quota', 'concentration', 'git_outcome'])
+        self.assertEqual(kinds, ['quota', 'concentration', 'git_outcome', 'subsequent_edit'])
+        self.assertEqual((value['reedit']['origin_sessions'],value['reedit']['eligible_sessions'],
+                          value['reedit']['matched_sessions']),(8,7,3))
+        self.assertTrue(all(m['gap_seconds']>0 for m in value['reedit']['matches']))
         self.assertEqual(value['git_outcome'], dict(value['git_outcome'], sessions=2, commits=4, on_branch=3,
                                                     off_branch=1, unknown=0))
         linked = [s['git_activity'] for s in value['sessions'] if s['git_activity'].get('state') == 'ready']

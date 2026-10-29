@@ -81,6 +81,13 @@ TEXT = {
         'insight.git.off': ' No longer on any branch: {n} (amended, rebased, reset or on a deleted branch).',
         'insight.git.unknown': ' Could not be checked: {n}.',
         'insight.git.share': ' These sessions hold {share}% of the tokens in this selection.',
+        'insight.reedit.title': 'Same edit targets in later sessions',
+        'insight.reedit.detail': ('{matched} of {eligible} eligible sessions had a target logged for editing again by a later independent session within 7 days. '
+                                  '{pending} unmatched sessions still have an incomplete observation window.'),
+        'insight.reedit.coverage': ' Selected sessions that could not be evaluated: {excluded}.',
+        'insight.reedit.limits': (' The gap is between session boundaries, not individual edits. Logged targets do not prove a change occurred. '
+                                  'Moves, deletions and missing records limit this observation; it does not measure waste or quality.'),
+        'insight.reedit.none': 'No selected session has enough verified history, time and edit-target information for this observation.',
         'insight.concentration.title': 'Usage is concentrated in one session',
         'insight.concentration.detail': ('{share}% of the tokens in this selection are in a single {agent} session ({tokens} tokens, '
                                          '{calls}). That session is a good place to start looking at where usage builds up.'),
@@ -211,6 +218,13 @@ TEXT = {
         'insight.git.off': ' {n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı.',
         'insight.git.unknown': ' {n} tanesi kontrol edilemedi.',
         'insight.git.share': ' Bu oturumlar bu seçimdeki tokenların %{share} kadarını kullandı.',
+        'insight.reedit.title': 'Aynı hedefe sonraki oturumda düzenleme kaydı',
+        'insight.reedit.detail': ('Değerlendirilebilen {eligible} oturumun {matched} tanesindeki bir hedef, 7 gün içinde başlayan bağımsız bir oturumda yeniden düzenleme hedefi olarak kaydedilmiş. '
+                                  'Henüz eşleşmeyen {pending} oturumun gözlem süresi dolmadı.'),
+        'insight.reedit.coverage': ' Değerlendirilemeyen seçili oturum: {excluded}.',
+        'insight.reedit.limits': (' Süre, tek tek düzenlemelerin değil oturumların bitiş ve başlangıçları arasındadır. Hedef kaydı, değişikliğin gerçekleştiğini kanıtlamaz. '
+                                  'Taşınan veya silinen dosyalar ve eksik kayıtlar gözlemi sınırlar; bu gözlem israfı veya kaliteyi ölçmez.'),
+        'insight.reedit.none': 'Seçili oturumların hiçbirinde bu gözlem için yeterli doğrulanmış geçmiş, zaman ve düzenleme hedefi bilgisi yok.',
         'insight.concentration.title': 'Kullanım tek bir oturumda yoğunlaşıyor',
         'insight.concentration.detail': ('Bu seçimdeki tokenların %{share} kadarı tek bir {agent} oturumunda ({tokens} token, {calls}). '
                                          'Bu oturum, kullanımın nerede biriktiğini incelemek için bir başlangıç.'),

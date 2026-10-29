@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.8 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.12 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Identity and copies
 
@@ -17,6 +17,8 @@ These rules are fixed before inspecting any real subsequent-edit result. They de
 - **File identity limits:** Windows paths, WSL mount aliases, user links and other spellings remain distinct unless lexically equivalent. A move can hide continuity; deleting and recreating the same path can suggest continuity without preserving file identity. Add/delete/move patch headers and failed edit attempts are still logged target intentions. Overlapping or equal-boundary sessions are excluded rather than assigned an invented order.
 
 The real-data comparison will publish only aggregate counts and token/time summaries. It will compare this observation's information with the existing branch-reachability observation without changing these definitions after seeing the results.
+
+### Retained identities and copies
 
 - Codex files with the same native session ID form one accounting group. A response ID is counted once across retained files. Claude replies use the message/request ID pair. Prompt UUIDs, turn IDs and tool-call IDs deduplicate their respective events.
 - Repeated usage snapshots are compatible only when one actual logged snapshot is at least as large in every token component as every other snapshot. That actual snapshot is retained. Crossing updates are excluded from the known total and flagged; PLER never manufactures a snapshot from component maxima.

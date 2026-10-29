@@ -1,5 +1,14 @@
 # Changes
 
+## 0.2.12 — 2026-10-29
+
+- Observe when an independent, nonoverlapping session starts within seven days after another session ended and names the same edited target. The definition was committed before real measurement (`8917914`). Counts describe recorded edit intentions; they do not measure waste, savings, authorship or code quality.
+- Show coverage, pending follow-up, exclusions and up to five earliest later-session matches, with opaque session codes, agents and whole-session recorded tokens/completeness. Filters select origins; the full selected-root timeline supplies later evidence. Page, terminal and JSON share the observation and fixed scan cutoff.
+- Resolve edit paths at each record's working folder using the logged operating-system spelling. Windows drive paths compare without case on every viewing OS; POSIX paths preserve case. No source file, file-existence or Git query is used by the observation. Ambiguous targets, uncertain family history, overlapping spans and unverified/old-reader archive evidence are excluded.
+- Preserve main-source evidence across all Claude native-session copies; filename order cannot turn a merged main/subagent session into an independent child.
+
+Fixed real metadata produced identical per-session usage accounting in 0.2.11 and 0.2.12 (29 sessions, 9,371 recorded calls). See [aggregate evidence and limits](../reports/reedit-v1/REPORT.md).
+
 ## 0.2.11 — 2026-10-29
 
 - Keep usage metadata after an agent deletes its logs. Claude Code deletes transcripts older than 30 days by default, so period totals used to shrink silently. Default and environment-selected roots now keep each file's allowlisted metadata in a bounded local archive (365 days unseen, 2,048 files, 64 MB). Deleted sources still count and are marked on the page, in the terminal report and in JSON. Existing cache entries are imported once, without reopening any log.

@@ -81,6 +81,17 @@ def model_for(candidates):
     return next(iter(values)) if len(values)==1 else 'unknown'
 
 
+def history_groups(sessions, root, uncertain=()):
+    """Private independence evidence for observations, never additional stored/exported identities."""
+    uncertain=set(uncertain)
+    groups={identity:(session.agent,root(identity)) for identity,session in sessions.items()}
+    unknown={groups[identity] for identity,session in sessions.items()
+             if identity in uncertain or not identity.strip() or getattr(session,'_history_uncertain',False)}
+    for identity,session in sessions.items():
+        session._history_group=groups[identity]
+        session._history_uncertain=groups[identity] in unknown
+
+
 def metadata(session, projects, branches=()):
     values = set(projects)
     session._project_evidence=frozenset(values)
