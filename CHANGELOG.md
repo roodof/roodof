@@ -1,5 +1,12 @@
 # Changes
 
+## 0.2.16 — 2026-10-30 (private candidate)
+
+- Show what the recorded usage would cost at the providers' public API list prices (standard tier, prices of 30 October 2026), on the page, in the terminal report, in JSON and per session. Each response is priced once with its own model and prompt size; Claude cache writes use the logged 1-hour/5-minute split. Responses whose model has no published price, whose prompt exceeds a covered tier, or that ran at another speed or region price stay in the token totals but are left unpriced, and the priced share is shown. It is a comparison point for a subscription, never a bill.
+- The Claude reader now keeps the 1-hour share of cache writes and the logged speed and region words, so the cache rebuilds once after the update.
+
+On this computer's real logs: Claude Code $812 with 100% of its tokens priced, Codex $204 with 87% priced (one Codex model has no published price). Claude Code's own figure for a session's latest process was 3–4% above PLER's, because agents also send requests they do not record.
+
 ## 0.2.15 — 2026-10-30 (private candidate)
 
 - Stream raw JSONL and native zstd input with explicit file, expanded-output, line, projection and scan budgets. Preserve complete good rows and report incomplete coverage at a limit. Reject excessive JSON nesting without stopping other sources.

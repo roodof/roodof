@@ -141,6 +141,10 @@ const I18N=/*I18N*/{
 "stat_fresh_note": "New input, cache writes and output",
 "stat_sessions": "Sessions",
 "stat_calls": "Logged model calls",
+"stat_api": "At API list prices",
+"stat_api_note": "Recorded responses at standard prices of {date}. Not your bill: a subscription is a flat fee.",
+"stat_api_partial": "Covers {share} of tokens; the rest has no published price. Standard prices of {date}; not your bill.",
+"field_api": "At API list prices",
 "tokens": "{n} tokens",
 "agent_note": "{sessions} · {calls} · {share} of input from cache · {errors} · {aborted}",
 "insights_eyebrow": "Your situation",
@@ -445,6 +449,10 @@ const I18N=/*I18N*/{
 "stat_fresh_note": "Yeni girdi, önbelleğe yazılan ve çıktı",
 "stat_sessions": "Oturum",
 "stat_calls": "Kayıtlı model çağrısı",
+"stat_api": "API liste fiyatıyla",
+"stat_api_note": "Kayıtlı yanıtlar, {date} standart fiyatlarıyla. Faturan değildir: abonelik sabit ücretlidir.",
+"stat_api_partial": "Tokenların {share} kadarını kapsar; kalanının yayımlanmış fiyatı yok. {date} standart fiyatları; faturan değildir.",
+"field_api": "API liste fiyatıyla",
 "tokens": "{n} token",
 "agent_note": "{sessions} · {calls} · girdinin {share} kadarı önbellekten · {errors} · {aborted}",
 "insights_eyebrow": "Durumun",
@@ -607,6 +615,8 @@ try{const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null');sessionS
 const usageAgents={'claude-code':'Claude Code',codex:'Codex'};
 const usageTokens=[['input',t('token_input')],['cache_read',t('token_cache')],['cache_write',t('token_write')],['output',t('token_output')]];
 const usagePct=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{style:'percent',maximumFractionDigits:1}).format(value);
+const usageUsd=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{style:'currency',currency:'USD',maximumFractionDigits:value<100?2:0}).format(value);
+const usagePriceDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)?new Intl.DateTimeFormat(LOCALE,{dateStyle:'medium',timeZone:'UTC'}).format(new Date(value+'T00:00:00Z')):t('unknown');
 const usageDate=value=>value?new Intl.DateTimeFormat(LOCALE,{dateStyle:'short',timeStyle:'short'}).format(new Date(value)):t('not_logged');
 const usageWindow=minutes=>minutes===300?t('window_300'):minutes===10080?t('window_10080'):t('window_other',{n:minutes});
 function usageDuration(seconds){
@@ -665,7 +675,7 @@ function renderUsage(data){
   const totals=data.totals;
   // Most of an agent's tokens are the same context read again from the cache; say so next to the total.
   const cached=totals.tokens.cache_read;
-  $('usage-totals').replaceChildren(...[[t(data.quality?.tokens_complete===false?'stat_known_total':'stat_total'),usageShort(totals.total_tokens),totals.total_tokens?t('stat_total_note',{share:usagePct(cached/totals.total_tokens)}):''],[t('stat_fresh'),usageShort(totals.total_tokens-cached),t('stat_fresh_note')],[t('stat_sessions'),number(totals.sessions),count(totals.prompts,'request')],[t('stat_calls'),number(totals.calls),data.quality?.calls_complete===false?t('split_unknown'):'']].map(([label,value,note])=>{const item=node('article','usage-stat');item.append(node('span','',label),node('strong','',value));if(note)item.append(node('small','',note));return item;}));
+  $('usage-totals').replaceChildren(...[[t(data.quality?.tokens_complete===false?'stat_known_total':'stat_total'),usageShort(totals.total_tokens),totals.total_tokens?t('stat_total_note',{share:usagePct(cached/totals.total_tokens)}):''],[t('stat_fresh'),usageShort(totals.total_tokens-cached),t('stat_fresh_note')],[t('stat_sessions'),number(totals.sessions),count(totals.prompts,'request')],[t('stat_calls'),number(totals.calls),data.quality?.calls_complete===false?t('split_unknown'):''],[t('stat_api'),totals.api_priced_tokens?usageUsd(totals.api_usd):t('unknown'),t(totals.api_priced_share>=0.9995?'stat_api_note':'stat_api_partial',{share:usagePct(totals.api_priced_share),date:usagePriceDate(data.api_prices?.as_of)})]].map(([label,value,note])=>{const item=node('article','usage-stat');item.append(node('span','',label),node('strong','',value));if(note)item.append(node('small','',note));return item;}));
   $('usage-agents').replaceChildren(...Object.entries(data.agents).map(([agent,row])=>{const article=node('article','usage-agent');const head=node('div','usage-agent-head');head.append(node('h3','',usageAgents[agent]||agent),node('strong','',t('tokens',{n:usageShort(row.total_tokens)})));const strip=node('div','token-strip');strip.setAttribute('role','img');strip.setAttribute('aria-label',usageTokens.map(([key,label])=>label+': '+number(row.tokens[key])).join('; '));
     for(const [key,label] of usageTokens){const segment=node('span','token-'+key.replace('cache_read','cache').replace('cache_write','write'));segment.style.width=(row.total_tokens?row.tokens[key]/row.total_tokens*100:0)+'%';segment.title=label+': '+number(row.tokens[key]);strip.append(segment);}
     article.append(head,strip,node('p','section-note',t('agent_note',{sessions:count(row.sessions,'session'),calls:count(row.calls,'model_call'),share:usagePct(row.cache_read_share),errors:count(row.errors,'error'),aborted:count(row.aborted,'interrupted_turn')})));return article;
@@ -820,7 +830,7 @@ function renderGitActivity(content,activity){
 function openUsageSession(session){
   usageState.sessionRequest=(usageState.sessionRequest||0)+1;
   $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
-  const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
+  const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],[t('field_api'),session.api_priced_share?usageUsd(session.api_usd)+(session.api_priced_share<0.9995?' ('+usagePct(session.api_priced_share)+')':''):t('unknown')],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
   fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),dl);
   if(session.source_note)content.append(node('p','notice',session.source_note));
   if(session.models.length){content.append(node('h3','detail-model-title',t('models_in_session')));for(const model of session.models){const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',t('tokens',{n:number(model.total_tokens)})),node('small','',session.calls_complete?count(model.calls,'logged_call'):t('split_unknown')));content.append(row);}}

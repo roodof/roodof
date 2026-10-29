@@ -115,6 +115,8 @@ class Session:
     errors: int = 0                 # failed model calls or turns
     aborted: int = 0                # interrupted turns
     reported_cost_usd: float = None # the agent's own figure, when it logs one
+    api_usd: float = 0.0            # list-price equivalent of the responses priced (pricing.py)
+    api_priced_tokens: int = 0      # tokens of those responses; the rest of `tokens` is unpriced
     quota: list = field(default_factory=list)       # (time, window_minutes, used_percent[, resets_at]) samples
     quota_plan: str = None
     quota_events: dict = field(default_factory=dict)  # limit status -> count, when no percent is logged

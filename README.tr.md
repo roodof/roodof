@@ -72,6 +72,8 @@ Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerin
 
 Arama yalnız oturum listesini daraltır. Sayfanın üstündeki özet ve indirilen JSON, dönem / ajan / proje seçimini izler. İndirilen özette liste aramasının dışındaki oturumlar da bulunabilir.
 
+**API liste fiyatıyla**, kayıtlı yanıtların sağlayıcıların yayımlanmış standart fiyatlarıyla ne tutacağını gösterir. Fiyatlar tarihleriyle birlikte pakete gömülüdür; her yanıt kendi modeli ve istem büyüklüğüyle fiyatlanır. Bunu aboneliğine ödediğin tutarla karşılaştır; fatura değildir. Yayımlanmış fiyatı olmayan yanıtlar token toplamlarında kalır ama fiyatlanmaz; fiyatlanan pay gösterilir.
+
 **Dönem içindeki tarihli kullanım**, tam, belirsizliği giderilmiş ve zamanlı yanıt kayıtlarının ayrı, temkinli görünümüdür. Birikimli toplamlar ve çözülemeyen geçmiş tarihlere dağıtılamaz; kapsam sayılarıyla dışlanır. Aralık taramanın sabit gözlem zamanında biter. Seçilen etkin oturumların tam toplamının yerine geçmez ve hesabın eksiksiz kapsandığını kanıtlamaz. Sayfa ve terminal bunu yalnız seçilen her oturumun kullanımı tarihlenebildiğinde gösterir; aksi hâlde JSON dışa aktarımı kapsam sayılarıyla taşır.
 
 Özet hazırlanırken indirme düğmesi durumu gösterir. Hazırlanan dosya için **Yeniden indir** bağlantısı görünür kalır. Kaydedildiğini tarayıcı indirmelerinden kontrol edin. Ana filtreleri değiştirmek veya kayıtları yeniden okumak eski bağlantıyı kaldırır. Dar ekranda diğer sütunlar için tablo alanına odaklanıp sol/sağ oklarını kullanabilirsiniz.

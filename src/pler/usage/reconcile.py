@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from . import accounting as rules
-from . import discovery,input_limits
+from . import discovery,input_limits,pricing
 from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
 from .edit_paths import canonical_target
@@ -232,6 +232,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         model=rules.model_for([c['model'] for c in candidates])
         target.count(target.models,model)
         target.count(target.model_tokens,model,total(value))
+        pricing.charge(target,'codex',model,value)  # Codex logs no service tier; the standard tier is assumed
         if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
     residuals=defaultdict(list)
     for identity,values in checkpoints.items():

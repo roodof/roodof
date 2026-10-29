@@ -67,6 +67,8 @@ Alternatively run PLER inside WSL and explicitly select Windows log folders thro
 
 Search narrows only the session list. The summary at the top and the downloaded JSON follow the period / agent / project selection.
 
+**At API list prices** shows what the recorded responses would cost at the providers' public standard prices (fixed in the package, with their date), each priced by its own model and prompt size. Compare it with what your subscription costs; it is not a bill. Responses without a published price stay in the token totals but are left unpriced, and the priced share is shown.
+
 **Dated usage within the period** is a separate, conservative view of complete, unambiguous, dated response records. Cumulative totals and unresolved histories cannot be allocated to dates and are excluded with coverage counts. Its interval ends at the scan's fixed observation time. It does not replace the full totals of selected active sessions or establish complete account coverage. The page and terminal show it only when every selected session's usage could be dated; otherwise the JSON export carries it with coverage counts.
 
 While preparing a summary, the download button shows its progress. A **Download again** link remains available for that prepared file. Check your browser downloads to confirm it was saved. Changing the main filters or explicitly reading logs again clears the old link. On a narrow screen, focus the session table and use the left/right arrow keys to reach the other columns.

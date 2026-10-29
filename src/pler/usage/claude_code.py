@@ -9,7 +9,7 @@ import math
 from pathlib import Path
 
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
-from . import accounting, discovery, input_limits
+from . import accounting, discovery, input_limits, pricing
 from .edit_paths import canonical_target
 from .period_usage import event_time, record_response
 
@@ -121,6 +121,14 @@ def _slim(row):
                           ('input_tokens', 'cache_read_input_tokens', 'cache_creation_input_tokens', 'output_tokens')}
             details = usage.get('output_tokens_details')
             slim_usage['output_tokens_details'] = dict(thinking_tokens=_int(details.get('thinking_tokens')) if isinstance(details, dict) else 0)
+            # Price inputs only: 1-hour cache writes cost more than 5-minute ones; speed/region change the rate.
+            written = usage.get('cache_creation')
+            if isinstance(written, dict):
+                slim_usage['ephemeral_1h_input_tokens'] = min(_int(written.get('ephemeral_1h_input_tokens')),
+                                                              slim_usage['cache_creation_input_tokens'])
+            for name in ('speed', 'inference_geo'):
+                if isinstance(usage.get(name), str) and 0 < len(usage[name]) <= 32:
+                    slim_usage[name] = usage[name]
         blocks = []
         for item in message.get('content') if isinstance(message.get('content'), list) else []:
             if not isinstance(item, dict) or item.get('type') != 'tool_use' or not isinstance(item.get('name'), str):
@@ -306,6 +314,9 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                     record_response(target,tokens,copies)
                 model=accounting.model_for([c['message'].get('model') for c in copies])
                 target.count(target.models,model);target.count(target.model_tokens,model,total(tokens))
+                witness=next((c['message'].get('usage') for c in copies if c['tokens']==tokens),None) or {}
+                pricing.charge(target,'claude-code',model,tokens,_int(witness.get('ephemeral_1h_input_tokens')),
+                               witness.get('speed') in (None,'standard') and witness.get('inference_geo')!='us')
                 if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
                 efforts={c['row'].get('effort') for c in copies if isinstance(c['row'].get('effort'),str)}
                 if len(efforts)==1: target.count(target.efforts,next(iter(efforts)))

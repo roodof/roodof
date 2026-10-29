@@ -1,6 +1,22 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.15 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.16 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## API list-price equivalent (0.2.16)
+
+Each accepted response is priced once, with the response's own model and the provider's public standard-tier list price of 30 October 2026 (Anthropic and OpenAI pricing pages; the table is fixed in `pricing.py`). The price is per million tokens for input, cache reads, cache writes and output. Reasoning is already part of output.
+
+- **Tiers:** a tier is chosen by the response's own prompt (input + cache reads + cache writes). For example, OpenAI's long-context price applies above 272,000 tokens and Claude Haiku 5.5's above 100,000.
+- **Claude cache writes:** priced by the logged 1-hour/5-minute split. When the split is absent, the API default of 5 minutes applies.
+- **Codex:** logs no service tier, so the standard tier is assumed. Codex cache writes are input tokens at the input price.
+- **Unpriced:** a response is left unpriced, but stays in the token totals, when:
+  - its model has no published price;
+  - its prompt exceeds the largest covered tier;
+  - Claude logged a non-standard speed or US-only inference;
+  - its usage exists only as a cumulative total.
+
+  The page shows the priced share of tokens.
+- **Not a bill:** the figure is not a bill, a saving or a subscription value. Agents also send requests they do not write to their transcripts, such as context compaction or helper calls. On one real computer, Claude Code's own running figure for a session's latest process was 3–4% higher than PLER's for the same session, so the equivalent can be a few percent low.
 
 ## Reader resources and lifecycle (0.2.15)
 

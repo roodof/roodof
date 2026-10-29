@@ -18,6 +18,7 @@ from .quota_scope import source_groups
 from . import input_limits
 from .insights import insights
 from .projects import assign, label, labels
+from .pricing import PRICES_AS_OF
 from .records import total
 from .reedit import analyze as subsequent_edits, insight as edit_insight
 from .summary import summarize
@@ -92,6 +93,11 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         lines.append(say(lang, 'report.agent', agent=AGENTS.get(agent, agent), tokens=n(row['total_tokens']),
                          sessions=count(lang, row['sessions'], 'session'), share=_pct(row['cache_read_share'], lang),
                          errors=count(lang, row['errors'], 'error'), aborted=count(lang, row['aborted'], 'interrupted')))
+    totals = summary['totals']
+    if totals.get('api_priced_tokens'):
+        usd = '{:,.2f}'.format(totals['api_usd'])
+        lines.append(say(lang, 'report.api', date=PRICES_AS_OF, share=_pct(totals['api_priced_share'], lang),
+                         usd=usd.replace(',', ' ').replace('.', ',').replace(' ', '.') if lang == 'tr' else usd))
     dated=sources.get('_dated_usage')
     if dated is not None and dated['retained_usage_fully_dated']:  # same rule as the page
         lines.append(say(lang,'report.dated_usage',tokens=n(dated['total_tokens']),calls=dated['response_calls'],
@@ -217,7 +223,7 @@ def main(argv=None):
             row['project']=project_names.get(raw,label(raw,lang=lang) or say(lang,'unknown_project'))
         for row in summary['largest_sessions']:
             row['project']=project_names.get(row['project'],label(row['project'],lang=lang) or say(lang,'unknown_project'))
-        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
+        value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),api_prices=dict(as_of=PRICES_AS_OF,tier='standard'),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))

@@ -23,6 +23,7 @@ from .usage.projects import ProjectRoots, label, labels
 from .usage.records import total, timestamp
 from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
+from .usage.pricing import PRICES_AS_OF
 from .usage.summary import summarize, quota_burn
 from .reporting import provenance,quality,affected
 
@@ -160,6 +161,8 @@ def session_view(session, lang='en', git=None, project_names=None):
                 quality=quality([session],{},lang),
                 tokens=dict(session.tokens), total_tokens=total(session.tokens),
                 cache_read_share=session.tokens['cache_read'] / inputs if inputs else None,
+                api_usd=round(session.api_usd, 2),
+                api_priced_share=session.api_priced_tokens / total(session.tokens) if total(session.tokens) else None,
                 models=[dict(model=m, calls=session.models.get(m, 0), total_tokens=t)
                         for m, t in sorted(session.model_tokens.items(), key=lambda row: row[1], reverse=True)],
                 tool_calls=sum(session.tools.values()), edited_files=len(session.files_edited),
@@ -228,6 +231,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
+                api_prices=dict(as_of=PRICES_AS_OF, tier='standard'),
                 totals=summary['totals'], agents=summary['agents'], models=summary['models'], projects=projects,
                 project_options=[dict(id=key, name=name) for key, name in options],
                 sessions=public_sessions,

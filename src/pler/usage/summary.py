@@ -6,12 +6,12 @@ from .records import add_tokens, empty_tokens, total
 
 
 def _bucket():
-    return dict(sessions=0, calls=0, prompts=0, errors=0, aborted=0, tokens=empty_tokens())
+    return dict(sessions=0, calls=0, prompts=0, errors=0, aborted=0, tokens=empty_tokens(), api_usd=0.0, api_priced_tokens=0)
 
 
 def _add(bucket, session):
     bucket['sessions'] += 1
-    for name in ('calls', 'prompts', 'errors', 'aborted'):
+    for name in ('calls', 'prompts', 'errors', 'aborted', 'api_usd', 'api_priced_tokens'):
         bucket[name] += getattr(session, name)
     add_tokens(bucket['tokens'], session.tokens)
 
@@ -19,7 +19,10 @@ def _add(bucket, session):
 def _finish(bucket):
     tokens = bucket['tokens']
     inputs = tokens['input'] + tokens['cache_read'] + tokens['cache_write']
-    return dict(bucket, total_tokens=total(tokens), cache_read_share=tokens['cache_read'] / inputs if inputs else None)
+    whole = total(tokens)
+    # List-price equivalent of the priced responses only; the share says how much of the total that covers.
+    return dict(bucket, total_tokens=whole, cache_read_share=tokens['cache_read'] / inputs if inputs else None,
+                api_usd=round(bucket['api_usd'], 2), api_priced_share=bucket['api_priced_tokens'] / whole if whole else None)
 
 
 def quota_burn(session):
@@ -81,7 +84,7 @@ def summarize(sessions, since=None, top=5):
 def _merge(buckets):
     merged = _bucket()
     for bucket in buckets:
-        for name in ('sessions', 'calls', 'prompts', 'errors', 'aborted'):
+        for name in ('sessions', 'calls', 'prompts', 'errors', 'aborted', 'api_usd', 'api_priced_tokens'):
             merged[name] += bucket[name]
         add_tokens(merged['tokens'], bucket['tokens'])
     return merged

@@ -71,6 +71,13 @@ def _numbers(value,agent):
     result={name:value[name] for name in names if name in value}
     if agent=='claude-code' and isinstance(value.get('output_tokens_details'),dict):
         result['output_tokens_details']={'thinking_tokens':accounting.count(value['output_tokens_details'].get('thinking_tokens',0))}
+    if agent=='claude-code':
+        # Price inputs (pricing.py): the 1-hour share of cache writes, and the speed/region words.
+        if 'ephemeral_1h_input_tokens' in value:
+            written=accounting.count(value['ephemeral_1h_input_tokens'])
+            if written>value.get('cache_creation_input_tokens',0): raise ValueError('inconsistent cache write split')
+            result['ephemeral_1h_input_tokens']=written
+        result.update(_fields(value,('speed','inference_geo'),words=True))
     return result
 
 
