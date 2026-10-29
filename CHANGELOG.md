@@ -8,6 +8,7 @@
 - Serialize quota journal writers across append/prune and bound journal/stdin reads. Flush and synchronize archive files before replacement, and POSIX directory changes after replacement/deletion. Post-replacement failures do not imply rollback.
 - Source accounting parser: `accounting-2026-10-30.1`; schema remains 2. Ordinary usage rules, metadata-only persistence and access boundaries remain in effect.
 - Keep the bounded reader nearly as fast as before. The first draft made a first read on this computer's real logs 37% slower (Python 3.14: 12.6 → 17.3 s). The nesting check now skips string bodies with a C-level regex instead of a per-character loop, row sizes use one shared encoder, and the archive's control-character check is a C-level search. Result: first read 12.8 s against 12.2 s for 0.2.14, later reads 3.35 s against 3.25 s, with identical sessions, tokens, calls, quality flags and quota states.
+- Give the optional `zstandard` decoder its window limit in bytes. The first 0.2.15 commit passed kibibytes, which allowed only 128 KiB windows; the optional-decoder CI jobs rejected ordinary test logs on all three systems. A fake-module test now checks the value without installing the package.
 
 ## 0.2.14 — 2026-10-29 (candidate)
 
