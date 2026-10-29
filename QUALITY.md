@@ -12,7 +12,7 @@ Claude'un 0.2.13 geliştirmeleri ve sıcak okuma optimizasyonları korundu. Bu t
 - Aşırı iç içe JSON eski Python'da okumayı kesebiliyordu; bozuk önbellek yeniden oluşturulur, geçersiz saklama tercihi kapalı kalır ve açık seçimle onarılır.
 - Ayrı yerel kaynak grupları uyumlu görünen kota kayıtları sağlayınca tek hesap gibi tahmin üretilebiliyordu. Ortak hesap doğrulanamadığında yüzde ve tahmin gizlenir; sıfırlama tarihi olmayan eski sayaç yolu da buna dahildir. Tek kaynak grubu da tek hesabı kanıtlamaz.
 
-Yerel doğrulama: Windows Python 3.9: 477 geçti / 10 atlandı; 3.12: 478 çalıştı / 2 atlandı; 3.14.10: 487 çalıştı / 1 POSIX testi atlandı. Linux WSL Python 3.14.4: 487/487; Node: 32/32. Atlamalar ve dağıtım sınırları [raporda](../reports/lowlevel-v1/REPORT.md) kaydedilir. Gerçek profesyonel pilot, temiz makine, fiziksel macOS/Linux tarayıcı ve imzalı dağıtım tamamlanmış sayılmaz.
+Yerel doğrulama: Windows Python 3.9: 477 geçti / 10 atlandı; 3.12: 478 çalıştı / 2 atlandı; 3.14.10: 487 çalıştı / 1 POSIX testi atlandı. Linux WSL Python 3.14.4: 487/487; Node: 32/32. `6f10365` uygulama commit'inin Windows/macOS/Linux [12 platform denetimi](https://github.com/OguzayYildiz/pler/actions/runs/40959556534) geçti. Son pilot kiti iki kurulum yolunda; kurulu aday tarayıcıda ve gerçek JSON indirmesinde doğrulandı. Atlamalar ve dağıtım sınırları [raporda](../reports/lowlevel-v1/REPORT.md) kaydedilir. Gerçek profesyonel pilot, temiz makine, fiziksel macOS/Linux tarayıcı ve imzalı dağıtım tamamlanmış sayılmaz.
 
 ## 29 Ekim: 0.2.13 — günlük kullanıma engel olan küçük sorunlar
 
