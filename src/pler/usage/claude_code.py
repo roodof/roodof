@@ -9,7 +9,7 @@ import math
 from pathlib import Path
 
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
-from . import accounting, discovery
+from . import accounting, discovery, input_limits
 from .edit_paths import canonical_target
 from .period_usage import event_time, record_response
 
@@ -69,8 +69,14 @@ def _prompt(message):
 
 def _lines(path, issues):
     try:
-        with open(str(path), encoding='utf-8', errors='replace') as stream:
-            yield from stream
+        with open(str(path),'rb') as stream:
+            parts=input_limits.chunks(input_limits.Source(stream),input_limits.MAX_SOURCE_BYTES)
+            for line in input_limits.lines(input_limits.expanded(parts)):
+                if line is None:
+                    note_file_issue(issues,path,'ReadLimitExceeded')
+                else:yield line.decode('utf-8','replace')
+    except input_limits.ReadLimitExceeded:
+        note_file_issue(issues,path,'ReadLimitExceeded')
     except OSError as error:
         note_file_issue(issues, path, type(error).__name__)
 
@@ -132,14 +138,17 @@ def _slim(row):
 
 
 def _rows(path):
-    rows, issues, malformed = [], [], False
+    projection=input_limits.Projection()
+    rows, issues, malformed = projection.rows, [], False
     for line in _lines(path, issues):
         if not line.strip():
             continue
         try:
             row = _slim(json_row(line))
             if row is not None:
-                rows.append(row)
+                projection.append(row)
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(issues,path,'ReadLimitExceeded');break
         except ValueError:
             malformed = True
     if malformed and not issues:
@@ -157,6 +166,11 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
     live=discovery.unique(paths)
     replay=archive.replay('claude-code') if archive is not None else []
     for original in live+discovery.unique(replay):
+        input_limits.checkpoint()
+        try:input_limits.available()
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(skipped,original,'ReadLimitExceeded');continue
+        admitted=False
         path=original
         archived=str(original) not in {str(value) for value in live}
         rows=archive.rows('claude-code',path) if archived else None
@@ -172,21 +186,32 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 rows=cache.get(path) if cache else None
             if rows is None and not archived:
                 rows=_rows(path)
+                input_limits.admit(rows);admitted=True
                 if cache and not any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows):
                     cache.put(path,rows)
+            if rows is not None and not admitted:
+                input_limits.admit(rows);admitted=True
             if archive is not None and not archived:
                 partial=any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows)
                 if partial:
                     for row in rows:
                         if row.get('type')=='pler_file_issue': note_file_issue(skipped,path,row['reason'])
                     prior=archive.rows('claude-code',path,unreadable=True)
-                    if prior is not None: rows=prior
+                    if prior is not None:
+                        input_limits.admit(prior)
+                        rows=prior
                 else: archive.observe('claude-code',path,rows,cache.checksum(path) if cache else None)
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(skipped,path,'ReadLimitExceeded');continue
         except OSError as error:
             note_file_issue(skipped,path,type(error).__name__)
             rows=archive.rows('claude-code',path,unreadable=True) if archive is not None else None
             if rows is None: continue
         if rows is None: continue
+        try:
+            if not admitted:input_limits.admit(rows)
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(skipped,path,'ReadLimitExceeded');continue
         affected=[]
         for index,row in enumerate(rows):
             if row.get('type')=='pler_file_issue':

@@ -15,6 +15,9 @@ ML_BITS = [0] * 32 + [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 7, 8, 9, 10, 11, 12, 13, 
 
 
 def _fail(what):
+    if what.endswith('limit exceeded'):
+        from .input_limits import ReadLimitExceeded
+        raise ReadLimitExceeded()
     raise ValueError('zstd: ' + what)
 
 
@@ -239,7 +242,7 @@ def _huffman_single(data, count, tree, out):
         _fail('Huffman stream has extra bits')
 
 
-def _literals(data, pos, state):
+def _literals(data, pos, state, maximum=131072):
     first = data[pos]
     kind, form = first & 3, (first >> 2) & 3
     if kind < 2:
@@ -249,12 +252,14 @@ def _literals(data, pos, state):
             size, pos = (first >> 4) + (data[pos + 1] << 4), pos + 2
         else:
             size, pos = (first >> 4) + (data[pos + 1] << 4) + (data[pos + 2] << 12), pos + 3
+        if size>maximum: _fail('output limit exceeded')
         if kind == 0:
             return data[pos:pos + size], pos + size
         return data[pos:pos + 1] * size, pos + 1
     width, bits = ((3, 10), (3, 10), (4, 14), (5, 18))[form]
     head = int.from_bytes(data[pos:pos + width], 'little')
     size, compressed = (head >> 4) & ((1 << bits) - 1), (head >> (4 + bits)) & ((1 << bits) - 1)
+    if size>maximum: _fail('output limit exceeded')
     pos += width
     end = pos + compressed
     if kind == 2:
@@ -280,8 +285,10 @@ def _literals(data, pos, state):
     return bytes(out), end
 
 
-def _block(data, pos, end, state, out):
-    literals, pos = _literals(data, pos, state)
+def _block(data, pos, end, state, out, maximum=None):
+    from ..runtime import checkpoint
+    maximum=min(len(out)+131072,maximum) if maximum is not None else len(out)+131072
+    literals, pos = _literals(data, pos, state,maximum-len(out))
     first = data[pos]
     if first < 128:
         count, pos = first, pos + 1
@@ -316,6 +323,7 @@ def _block(data, pos, end, state, out):
     ls, os_, ms = read(l_log), read(o_log), read(m_log)
     rep, at = state['rep'], 0
     for i in range(count):
+        if not i%256: checkpoint()
         oc, mc, lc = o_sym[os_], m_sym[ms], l_sym[ls]
         value = (1 << oc) + read(oc)
         match = ML_BASE[mc] + read(ML_BITS[mc])
@@ -340,6 +348,7 @@ def _block(data, pos, end, state, out):
             ls = l_base[ls] + read(l_bits[ls])
             ms = m_base[ms] + read(m_bits[ms])
             os_ = o_base[os_] + read(o_bits[os_])
+        if len(out)+length+match>maximum: _fail('output limit exceeded')
         if length:
             out += literals[at:at + length]
             at += length
@@ -354,18 +363,22 @@ def _block(data, pos, end, state, out):
             out += chunk * whole + chunk[:part]
     if stream.over or at > len(literals):
         _fail('corrupt sequences')
+    if len(out)+len(literals)-at>maximum: _fail('output limit exceeded')
     out += literals[at:]
 
 
-def decompress(data):
+def decompress(data, max_output=None):
     """All frames of `data`, decompressed. Corrupt or truncated input raises ValueError."""
     try:
-        return _frames(bytes(data))
+        if max_output is not None and (type(max_output) is not int or max_output<0):
+            raise ValueError('zstd: invalid output limit')
+        return _frames(bytes(data),max_output)
     except (IndexError, KeyError, TypeError) as error:
         raise ValueError('zstd: corrupt or truncated data') from error
 
 
-def _frames(data):
+def _frames(data,max_output=None):
+    from ..runtime import checkpoint
     if not data:
         _fail('empty compressed file')
     out, pos = bytearray(), 0
@@ -373,6 +386,7 @@ def _frames(data):
         if pos + size > len(data):
             _fail('truncated frame')
     while pos < len(data):
+        checkpoint()
         need(4)
         magic = int.from_bytes(data[pos:pos + 4], 'little')
         if 0x184D2A50 <= magic <= 0x184D2A5F:
@@ -401,9 +415,12 @@ def _frames(data):
         content_size = int.from_bytes(data[pos:pos + content_size_bytes], 'little') if content_size_bytes else None
         if content_size_bytes == 2:
             content_size += 256
+        if max_output is not None and content_size is not None and content_size>max_output-len(out):
+            _fail('output limit exceeded')
         pos += content_size_bytes
         frame, state = bytearray(), dict(rep=[1, 4, 8])
         while True:
+            checkpoint()
             need(3)
             head = int.from_bytes(data[pos:pos + 3], 'little')
             kind, size = (head >> 1) & 3, head >> 3
@@ -412,6 +429,8 @@ def _frames(data):
                 _fail('block too large')
             need(1 if kind == 1 else size)
             previous_size = len(frame)
+            if kind in (0,1) and max_output is not None and len(out)+len(frame)+size>max_output:
+                _fail('output limit exceeded')
             if kind == 0:
                 frame += data[pos:pos + size]
                 pos += size
@@ -419,7 +438,8 @@ def _frames(data):
                 frame += data[pos:pos + 1] * size
                 pos += 1
             elif kind == 2:
-                _block(data[pos:pos + size], 0, size, state, frame)
+                _block(data[pos:pos + size], 0, size, state, frame,
+                       None if max_output is None else max_output-len(out))
                 pos += size
             else:
                 _fail('reserved block type')

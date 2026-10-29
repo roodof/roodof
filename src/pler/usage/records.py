@@ -13,6 +13,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import math
 import json
+import re
+from .input_limits import MAX_JSON_DEPTH
 
 TOKEN_FIELDS = ('input', 'cache_read', 'cache_write', 'output', 'reasoning')
 ADDED = ('input', 'cache_read', 'cache_write', 'output')
@@ -24,10 +26,33 @@ def note_file_issue(issues, path, reason):
         issues.append((str(path), reason))
 
 
+_STRINGS = re.compile(r'"[^"\\]*(?:\\.[^"\\]*)*"', re.S)
+_BRACKETS = re.compile(r'[\[\]{}]')
+
+
+def _too_deep(line):
+    """Nesting depth outside JSON strings. The regexes skip string bodies in C; only structural brackets
+    reach Python, so lines full of quoted code braces stay cheap."""
+    depth = 0
+    for char in _BRACKETS.findall(_STRINGS.sub('', line)):
+        if char in '{[':
+            depth += 1
+            if depth > MAX_JSON_DEPTH:
+                return True
+        else:
+            depth -= 1
+    return False
+
+
 def json_row(line):
     def invalid(_):
         raise ValueError('invalid JSON constant')
-    row = json.loads(line, parse_constant=invalid)
+    if line.count('{')+line.count('[')>MAX_JSON_DEPTH and _too_deep(line):
+        raise ValueError('over-nested log row')
+    try:
+        row = json.loads(line, parse_constant=invalid)
+    except RecursionError as error:
+        raise ValueError('over-nested log row') from error
     if not isinstance(row, dict):
         raise ValueError('log row is not an object')
     return row

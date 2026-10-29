@@ -12,7 +12,7 @@ import re
 
 from .records import Session, add_tokens, json_row, note_file_issue, percentage, timestamp, total
 from .zstd import decoder
-from . import accounting, discovery
+from . import accounting, discovery, input_limits
 
 _PATCH = re.compile(r'\*\*\* Begin Patch.*?(?:\*\*\* End Patch|$)', re.S)
 _TARGET = re.compile(r'^\*\*\* (?:(?:Add|Update|Delete) File|Move to): (.+?)[ \t]*$', re.M)
@@ -114,25 +114,54 @@ def _slim(row):
 
 def _rows(path, decode):
     """Slim rows in log order; rows that only move the session's first/last time become two timestamps."""
-    raw = decode(path.read_bytes()) if path.name.endswith('.zst') else path.read_bytes()
-    rows, times, incomplete = [], [], False
-    for line in raw.decode('utf-8', 'replace').splitlines():
+    projection=input_limits.Projection()
+    with path.open('rb') as stream:
+        stream=input_limits.Source(stream)
+        if path.name.endswith('.zst'):
+            iterator=getattr(decode,'iter_chunks',None)
+            if iterator is None:
+                # Compatibility for explicitly injected decoders, still with input/output bounds.
+                raw=decode(b''.join(input_limits.chunks(stream,input_limits.MAX_SOURCE_BYTES)))
+                if len(raw)>input_limits.MAX_EXPANDED_BYTES:raise input_limits.ReadLimitExceeded()
+                parts=(raw[index:index+input_limits.CHUNK_BYTES] for index in range(0,len(raw),input_limits.CHUNK_BYTES))
+            else:
+                parts=iterator(stream,max_output=input_limits.MAX_EXPANDED_BYTES,max_input=input_limits.MAX_SOURCE_BYTES)
+        else:parts=input_limits.chunks(stream,input_limits.MAX_SOURCE_BYTES)
+        return _project_lines(input_limits.lines(input_limits.expanded(parts)),projection)
+
+
+def _project_lines(lines,projection):
+    rows,times,incomplete,limited=projection.rows,[],False,False
+    for line in lines:
+        if line is None:
+            incomplete=True;limited=True;continue
         if not line.strip():
             continue
         try:
-            row = json_row(line)
+            row = json_row(line.decode('utf-8','replace'))
             slim = _slim(row)
         except ValueError:
             incomplete = True
             continue
         if slim:
-            rows.append(slim)
-        elif timestamp(row.get('timestamp')):
-            times.append((timestamp(row['timestamp']), row['timestamp']))
+            try:projection.append(slim)
+            except input_limits.ReadLimitExceeded:
+                incomplete=True;limited=True
+                # Finish the bounded source so a compressed tail/CRC cannot escape verification.
+                for _ in lines:input_limits.checkpoint()
+                break
+        elif (moment:=timestamp(row.get('timestamp'))) is not None:
+            if not times:
+                value=(moment,moment.isoformat());times=[value,value]
+            else:
+                if moment<times[0][0]:times[0]=(moment,moment.isoformat())
+                if moment>times[1][0]:times[1]=(moment,moment.isoformat())
     if times:
-        rows.extend(dict(timestamp=pick(times, key=lambda moment: moment[0])[1]) for pick in (min, max))
+        for moment,text in times:
+            try:projection.append(dict(timestamp=text))
+            except input_limits.ReadLimitExceeded:incomplete=True;limited=True;break
     if incomplete:
-        rows.append(dict(type='pler_incomplete_log'))  # metadata only; persists the warning on cache hits
+        rows.append(dict(type='pler_incomplete_log',**({'reason':'ReadLimitExceeded'} if limited else {})))
     return rows
 
 

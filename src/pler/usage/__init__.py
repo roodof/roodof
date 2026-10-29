@@ -15,6 +15,7 @@ from ..statusline import samples as claude_quota
 from .cache import FileCache, version
 from .forecast import outlook
 from .quota_scope import source_groups
+from . import input_limits
 from .insights import insights
 from .projects import assign, label, labels
 from .records import total
@@ -25,6 +26,7 @@ from ..reporting import provenance,quality
 AGENTS = {'claude-code': 'Claude Code', 'codex': 'Codex'}
 
 
+@input_limits.scoped
 def scan(claude_folders=None, codex_folders=None, retain=False):
     """Sessions from the agents' log folders. Both readers' metadata extracts are cached (cache.py), so
     unchanged logs are not decompressed and parsed again; explicitly given folders are always read. With the
@@ -40,14 +42,14 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
-    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
     codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules)
+    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits)
     claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
     archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)

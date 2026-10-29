@@ -1,5 +1,14 @@
 # Changes
 
+## 0.2.15 — 2026-10-30 (private candidate)
+
+- Stream raw JSONL and native zstd input with explicit file, expanded-output, line, projection and scan budgets. Preserve complete good rows and report incomplete coverage at a limit. Reject excessive JSON nesting without stopping other sources.
+- Bound rebuildable cache reads; keep timestamp-only Codex rows to their two endpoints instead of a growing list. Keep decoding checks for every compressed frame, including checksums and truncated tails; the plain-Python fallback remains bounded whole-buffer decoding.
+- Coalesce scans through one cancellable worker and close it with a bounded wait. Limit local HTTP handlers, idle reads and total connection time without adding one timer thread per connection.
+- Serialize quota journal writers across append/prune and bound journal/stdin reads. Flush and synchronize archive files before replacement, and POSIX directory changes after replacement/deletion. Post-replacement failures do not imply rollback.
+- Source accounting parser: `accounting-2026-10-30.1`; schema remains 2. Ordinary usage rules, metadata-only persistence and access boundaries remain in effect.
+- Keep the bounded reader nearly as fast as before. The first draft made a first read on this computer's real logs 37% slower (Python 3.14: 12.6 → 17.3 s). The nesting check now skips string bodies with a C-level regex instead of a per-character loop, row sizes use one shared encoder, and the archive's control-character check is a C-level search. Result: first read 12.8 s against 12.2 s for 0.2.14, later reads 3.35 s against 3.25 s, with identical sessions, tokens, calls, quality flags and quota states.
+
 ## 0.2.14 — 2026-10-29 (candidate)
 
 - Keep the newest session investigation when asynchronous replies finish out of order; an old request or failure cannot replace a newer selection. Preserve the selected project across a language reload while a scan is still in progress.

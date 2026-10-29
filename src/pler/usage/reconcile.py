@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from . import accounting as rules
-from . import discovery
+from . import discovery,input_limits
 from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
 from .edit_paths import canonical_target
@@ -44,6 +44,11 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
     live=discovery.unique(paths)
     replay=archive.replay('codex') if archive is not None else []
     for original in live+discovery.unique(replay):
+        input_limits.checkpoint()
+        try:input_limits.available()
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(issues,original,'ReadLimitExceeded');continue
+        admitted=False
         path=original
         archived=str(original) not in {str(value) for value in live}
         rows=archive.rows('codex',path) if archived else None
@@ -58,13 +63,22 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
             if not archived: rows=cache.get(path) if cache else None
             if rows is None and not archived:
                 rows=reader(path,decode)
+                input_limits.admit(rows);admitted=True
                 if cache: cache.put(path,rows)
+            if rows is not None and not admitted:
+                input_limits.admit(rows);admitted=True
             if archive is not None and not archived: archive.observe('codex',path,rows,cache.checksum(path) if cache else None)
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(issues,path,'ReadLimitExceeded');continue
         except (OSError,ValueError,RuntimeError) as error:
             note_file_issue(issues,path,type(error).__name__)
             rows=archive.rows('codex',path,unreadable=True) if archive is not None else None
             if rows is None: continue
         if rows is None: continue
+        try:
+            if not admitted:input_limits.admit(rows)
+        except input_limits.ReadLimitExceeded:
+            note_file_issue(issues,path,'ReadLimitExceeded');continue
         metas=[r.get('payload',{}) for r in rows if r.get('type')=='session_meta']
         ids=[m.get('session_id') or m.get('id') for m in metas]
         identity=next((v for v in reversed(ids) if isinstance(v,str) and v),str(path))
@@ -120,7 +134,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                 session.tokens_complete=False;session.calls_complete=False;session.counts_complete=False
                 session.issues.update(('archive_unverified','unidentified_records'))
             elif kind=='pler_incomplete_log':
-                note_file_issue(issues,path,'MalformedRows')
+                note_file_issue(issues,path,'ReadLimitExceeded' if row.get('reason')=='ReadLimitExceeded' else 'MalformedRows')
                 session.tokens_complete=False
                 session.issues.add('invalid_records')
             elif kind=='compacted':

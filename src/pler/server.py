@@ -11,6 +11,7 @@ from pathlib import Path
 import secrets
 import re
 import threading
+import time
 from urllib.parse import parse_qs, urlsplit
 
 from . import __version__
@@ -28,11 +29,17 @@ SECURITY = {
 
 class Server(ThreadingHTTPServer):
     daemon_threads = True
+    max_workers = 8
+    idle_timeout = 5.0
+    request_timeout = 15.0
     # On Windows SO_REUSEADDR would let a second server share a port that is in use; elsewhere it only
     # allows a quick restart after closing.
     allow_reuse_address = os.name != 'nt'
 
     def __init__(self, port=0, dashboard=None):
+        self._slots = threading.BoundedSemaphore(self.max_workers)
+        self._requests = {}
+        self._requests_lock = threading.Lock()
         # A running server must not mix old Python code with files edited after startup.
         self.assets = {route: (WEB / filename).read_bytes() for route, filename in
                        (('/', 'index.html'), ('/app.js', 'app.js'), ('/app.css', 'app.css'))}
@@ -42,9 +49,68 @@ class Server(ThreadingHTTPServer):
         self.access_url = self.origin + '/#access=' + self.token
         self.dashboard = dashboard or UsageDashboard()
 
+    def get_request(self):
+        request, address = super().get_request()
+        request.settimeout(self.idle_timeout)
+        return request, address
+
+    @staticmethod
+    def _interrupt(request):
+        try:
+            # Socket shutdown mode 2 closes both directions, waking an incomplete read.
+            request.shutdown(2)
+        except OSError:
+            pass
+
+    def process_request(self, request, address):
+        if not self._slots.acquire(blocking=False):
+            self.shutdown_request(request)
+            return
+        with self._requests_lock:
+            self._requests[request] = time.monotonic() + self.request_timeout
+        try:
+            super().process_request(request, address)
+        except Exception:
+            with self._requests_lock:
+                self._requests.pop(request, None)
+            self._slots.release()
+            raise
+
+    def process_request_thread(self, request, address):
+        try:
+            super().process_request_thread(request, address)
+        finally:
+            with self._requests_lock:
+                self._requests.pop(request, None)
+            self._slots.release()
+
+    def service_actions(self):
+        # The accept loop enforces total deadlines without one extra timer thread per peer.
+        now = time.monotonic()
+        with self._requests_lock:
+            expired = [request for request, deadline in self._requests.items() if now >= deadline]
+        for request in expired:
+            self._interrupt(request)
+
+    def server_close(self):
+        if hasattr(self, 'dashboard'):
+            self.dashboard.close()
+        with self._requests_lock:
+            requests = tuple(self._requests)
+        for request in requests:
+            self._interrupt(request)
+        super().server_close()
+
 
 class Handler(BaseHTTPRequestHandler):
     server_version = 'PLER'
+
+    def handle(self):
+        try:
+            super().handle()
+        except (OSError, TimeoutError):
+            # A peer leaving or exhausting its budget must not print request data/tracebacks.
+            self.close_connection = True
 
     def log_message(self, *_):
         pass
@@ -178,5 +244,6 @@ class Handler(BaseHTTPRequestHandler):
                     else self.server.dashboard.reset_cache())
             self._send(200,result) if result.get('ok') else self._send(500,dict(error=say(self._lang(),'error.metadata_settings')))
         else:
+            self.server.dashboard.close(timeout=0)
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()

@@ -11,8 +11,10 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import os
 import threading
+import time
 
 from .i18n import LANGUAGES, count, say
+from .runtime import ScanCancelled, cancellation, checkpoint
 from .git_activity import CREATED, check_branches, read_repository, session_activity
 from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
@@ -70,6 +72,7 @@ def git_links(sessions):
                 found[folder] = None
         return found[folder]
     for session in sessions:
+        checkpoint()
         linked = {}
         if session.project:
             linked[os.path.normcase(os.path.normpath(session.project))] = [session.project, {'working_folder'}]
@@ -204,7 +207,8 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                          item['window_minutes']==row['window_minutes']),'multiple_source_groups' if mixed else 'conflicting_meter_history')
             row.update(used_percent=None,state='ambiguous',reason=reason)
     skipped = sources.get('skipped', [])
-    reason_keys={'MalformedRows':'malformed_file','InconsistentReasoning':'inconsistent_reasoning_file'}
+    reason_keys={'MalformedRows':'malformed_file','InconsistentReasoning':'inconsistent_reasoning_file',
+                 'ReadLimitExceeded':'read_limit_file'}
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)
     trust=quality(rows,sources,lang)
     outcome=git_outcome(rows,sources)
@@ -252,16 +256,70 @@ class UsageDashboard:
         self.error = None
         self.thread = None
         self.generation = 0
+        self._pending = None
+        self._cancel = None
+        self._worker_running = False
+        self._closed = False
 
     def refresh(self, force=False):
         with self.lock:
+            if self._closed:
+                return dict(state='closed', started=False, new_model_calls=0)
             if self.state == 'scanning' and not force:
                 return dict(state='scanning', started=False, new_model_calls=0)
             self.state, self.error = 'scanning', None
             self.generation += 1
-            self.thread = threading.Thread(target=self._scan, args=(self.generation,), daemon=True)
-            self.thread.start()
+            self._pending = self.generation
+            if self._cancel is not None:
+                self._cancel.set()
+            if not self._worker_running:
+                self._worker_running = True
+                self.thread = threading.Thread(target=self._work, daemon=True)
+                self.thread.start()
             return dict(state='scanning', started=True, new_model_calls=0)
+
+    def _work(self):
+        # At most one reader runs. Repeated forced refreshes replace one pending generation.
+        while True:
+            with self.lock:
+                if self._closed or self._pending is None:
+                    self._worker_running = False
+                    return
+                generation, self._pending = self._pending, None
+                event = self._cancel = threading.Event()
+            if self._closed:
+                event.set()
+            try:
+                with cancellation(event):
+                    self._scan(generation)
+            except ScanCancelled:
+                pass
+            finally:
+                with self.lock:
+                    if self._cancel is event:
+                        self._cancel = None
+
+    def close(self, timeout=1.0):
+        """Cancel future work; wait briefly, never promise to interrupt a blocked OS read."""
+        # Set the stop flag before acquiring the snapshot lock: a slow report may hold it.
+        self._closed = True
+        event = self._cancel
+        if event is not None:
+            event.set()
+        deadline = time.monotonic() + max(0.0, timeout)
+        if not self.lock.acquire(timeout=max(0.0, timeout)):
+            return False
+        try:
+            self._pending = None
+            self.generation += 1
+            if self._cancel is not None:
+                self._cancel.set()
+            thread = self.thread
+        finally:
+            self.lock.release()
+        if thread is not None and thread is not threading.current_thread():
+            thread.join(max(0.0, deadline-time.monotonic()))
+        return thread is None or not thread.is_alive()
 
     def clear_archive(self):
         from .usage.archive import clear_archive
@@ -320,35 +378,46 @@ class UsageDashboard:
             with self.lock:
                 generation = self.generation
         try:
+            checkpoint()
             sessions, sources = self.reader()
+            checkpoint()
             sources = dict(sources)
             if (sources.get('archive') or {}).get('stale_snapshot'):
                 with self.lock:
                     if generation==self.generation: self._replace_after_settings()
                 return
             sources['git_links'] = git_links(sessions)
+            checkpoint()
             folders = {path for linked in sources['git_links'].values() for path in linked}
-            sources['git_activity'] = {path: self.git_reader(path) for path in folders}
+            sources['git_activity'] = {}
+            for path in folders:
+                checkpoint()
+                sources['git_activity'][path] = self.git_reader(path)
             windows = {}
             for session in sessions:
+                checkpoint()
                 if session.started and session.ended:
                     for path in sources['git_links'][_link_key(session)]:
                         windows.setdefault(path, []).append((session.started, session.ended))
             for path, snapshot in sources['git_activity'].items():
+                checkpoint()
                 check_branches(snapshot, windows.get(path, ()))
             # Validate the projection before publishing a replacement snapshot.
+            checkpoint()
             project_view(sessions, sources, days=0)
             with self.lock:
-                if generation != self.generation:
+                if generation != self.generation or self._closed:
                     return
                 self.sessions, self.sources = sessions, sources
                 self.scanned_at = datetime.now(timezone.utc).isoformat()
                 self.state, self.error = 'ready', None
+        except ScanCancelled:
+            raise
         except Exception:
             # Reader errors may contain transcript excerpts or private paths.
             # Keep an earlier usable snapshot; never send a raw exception to UI.
             with self.lock:
-                if generation != self.generation:
+                if generation != self.generation or self._closed:
                     return
                 self.state, self.error = 'error', 'error.scan'
 

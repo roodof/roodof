@@ -8,6 +8,7 @@ from ..git_activity import _local_path
 from ..paths import network, user_folder
 from ..wsl import WslRoots
 from .records import note_file_issue
+from . import input_limits
 
 
 def _checked(path, issues, check):
@@ -128,23 +129,35 @@ def files(roots, matches, issues=None, access=None, explicit=True, manifest=None
             if manifest is not None: manifest.select(safe)
             pending.append((safe,key(safe)))
     complete={scope:True for _,scope in pending}
+    def limit_reached(path):
+        note_file_issue(issues,path,'ReadLimitExceeded')
+        for scope in complete:complete[scope]=False
+        pending.clear()
     while pending:
+        input_limits.checkpoint()
         directory,scope=pending.pop()
         try:
+            input_limits.count('directories',1,input_limits.MAX_DIRECTORIES)
             with os.scandir(directory) as entries:
                 for entry in entries:
+                    input_limits.checkpoint()
                     try:
                         info=entry.stat(follow_symlinks=False)
                         if stat.S_ISLNK(info.st_mode) or getattr(info,'st_file_attributes',0)&0x400:
                             note_file_issue(issues,entry.path,'UnsafePath')
                             complete[scope]=False
-                        elif stat.S_ISDIR(info.st_mode): pending.append((Path(entry.path),scope))
+                        elif stat.S_ISDIR(info.st_mode):
+                            if len(pending)>=input_limits.MAX_DIRECTORIES:raise input_limits.ReadLimitExceeded()
+                            pending.append((Path(entry.path),scope))
                         elif stat.S_ISREG(info.st_mode) and matches(entry.name):
+                            input_limits.count('files',1,input_limits.MAX_FILES)
                             found.append(Path(entry.path))
                             if manifest is not None: manifest.found.add(key(entry.path))
                     except OSError as error:
                         complete[scope]=False
                         note_file_issue(issues,entry.path,type(error).__name__)
+        except input_limits.ReadLimitExceeded:
+            limit_reached(directory)
         except OSError as error:
             complete[scope]=False
             note_file_issue(issues,directory,type(error).__name__)

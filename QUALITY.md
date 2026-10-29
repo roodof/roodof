@@ -2,6 +2,15 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 30 Ekim: 0.2.15 — büyük ve bozuk kayıtlar okumayı durduramıyor
+
+Kayıtlar artık parça parça okunuyor; dosya, satır, açılmış veri, iç içe JSON ve tarama başına üst sınırlar var. Sınıra takılan dosya bozuk değil "eksik kapsam" olarak bildiriliyor. Tarama tek bir iptal edilebilir işçide çalışıyor, yerel sunucu bağlantıları süreyle sınırlı, arşiv diske güvenli yazılıyor.
+
+- **Kanıt (uydurma dosyalar):** 26 MB'lık bir Codex dosyasında okuma sırasındaki bellek tepesi 80 MB'tan 0,3 MB'a indi. 0.2.14'te aşırı iç içe bir Claude satırı okumayı `RecursionError` ile durduruyordu; artık yalnız o satır atlanıyor.
+- **Gerçek veri:** 0.2.14 ile aynı oturum, token, çağrı, kalite işareti ve kota durumu; sınıra takılan dosya yok. Kota tek kaynak grubundan geliyor ve 0.2.14'teki "birden fazla kaynak grubu" kuralı onu gizlemiyor.
+- **Hız:** İlk taslak gerçek veride ilk okumayı %37 yavaşlatmıştı (Python 3.14: 12,6 → 17,3 sn). İç içe derinlik kontrolü, satır boyutu ölçümü ve arşivin kontrol karakteri denetimi C hızına çekildi. Sonuç: ilk okuma 12,8 sn (0.2.14'te 12,2), sonraki okuma 3,35 sn (3,25).
+- **Doğrulama:** Windows'ta Python 3.9'da 528 test geçti, 11'i atlandı; 3.12'de 530; 3.14.10'da 539. Linux'ta düz `/tmp` ve `/var` varyantında 539'ar test geçti. Node 32/32. Yeni testler gerçek önbelleğe yazmıyor. Demo sayfasında yenileme ve kapatma çalıştı.
+
 ## 29 Ekim: 0.2.14 — düşük seviyeli dayanıklılık düzeltmeleri
 
 Claude'un 0.2.13 geliştirmeleri ve sıcak okuma optimizasyonları korundu. Bu turda gerçek kayıtlar okunmadan, uydurma dosya ve yerel bağlantılarla şu kusurlar giderildi:

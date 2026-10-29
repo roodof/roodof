@@ -126,8 +126,10 @@ class PartialRecordsTests(unittest.TestCase):
         class FailingStream:
             def __enter__(self): return self
             def __exit__(self, *_): return False
-            def __iter__(stream):
-                yield json.dumps(self.good)
+            def read(stream,size):
+                if not getattr(stream,'sent',False):
+                    stream.sent=True
+                    return (json.dumps(self.good)+'\n').encode('utf-8')
                 raise PermissionError('PRIVATE-READ-ERROR')
         with patch('builtins.open', return_value=FailingStream()):
             issues = []

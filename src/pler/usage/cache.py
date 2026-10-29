@@ -8,6 +8,7 @@ from pathlib import Path
 import tempfile
 
 from ..paths import cache_folder as folder, cache_file
+from . import input_limits
 
 
 def _checksum(rows):
@@ -50,7 +51,11 @@ class FileCache:
         if self.path is None:
             return
         try:
-            text = self.path.read_text('utf-8')
+            size=self.path.stat().st_size
+            if size>input_limits.MAX_CACHE_BYTES:return
+            with self.path.open('rb') as stream:data=stream.read(size+1)
+            if len(data)!=size:return
+            text=data.decode('utf-8')
             data = json.loads(text)
             if isinstance(data.get('files'),dict):
                 self.historical,self.historical_key=data['files'],data.get('key')
@@ -61,6 +66,7 @@ class FileCache:
             pass
 
     def get(self, path):
+        input_limits.checkpoint()
         if self.path is None:
             return None
         stat = os.stat(path)

@@ -34,6 +34,7 @@ def serve(port=PORT, browser=True, lang='en', dashboard=None):
     except KeyboardInterrupt:
         pass
     finally:
+        server.dashboard.close(timeout=0)
         server.server_close()
     print(say(lang, 'cli.closed'))
 

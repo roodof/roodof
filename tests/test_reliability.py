@@ -151,9 +151,10 @@ class ClaudeCacheTests(unittest.TestCase):
         class FailingStream:
             def __enter__(self): return self
             def __exit__(self,*_): return False
-            def __iter__(self):
-                yield json.dumps(row)
-                yield '{"unfinished":'
+            def read(self,size):
+                if not getattr(self,'sent',False):
+                    self.sent=True
+                    return (json.dumps(row)+'\n'+ '{"unfinished":\n').encode('utf-8')
                 raise PermissionError('PRIVATE')
         for attempt in range(2):
             cache=FileCache('claude',version(claude_code))

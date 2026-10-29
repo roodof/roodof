@@ -15,6 +15,8 @@ import os
 from pathlib import Path
 import sys
 import time
+from contextlib import contextmanager
+import threading
 
 if __package__:
     from .i18n import YES, language, say
@@ -27,6 +29,84 @@ else:  # run by path, as Claude Code's settings call it
 FILE = 'claude-quota.jsonl'
 WINDOWS = (('five_hour', 300), ('seven_day', 10080))
 KEEP_DAYS, PRUNE_BYTES = 35, 1 << 20
+LOCKFILE = 'claude-quota.lock'
+LOCK_WAIT = .25
+MAX_JOURNAL_BYTES = 4 << 20
+MAX_LINE_BYTES = 2048
+MAX_KEPT_ROWS = 8192
+MAX_INPUT_BYTES = 1 << 20
+_QUOTA_LOCK = threading.Lock()
+
+
+@contextmanager
+def _quota_locked(base):
+    """One short process-shared writer critical section; failure never delays a status refresh indefinitely."""
+    deadline = time.monotonic() + LOCK_WAIT
+    if not _QUOTA_LOCK.acquire(timeout=LOCK_WAIT):
+        raise OSError('quota writer busy')
+    try:
+        path = cache_file(LOCKFILE, base)
+        if path is None:
+            raise OSError('unsafe quota lock')
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if cache_file(path.name, path.parent) != path:
+            raise OSError('unsafe quota lock')
+        with path.open('a+b') as stream:
+            if os.name == 'nt':
+                import msvcrt
+                if stream.seek(0, 2) == 0:
+                    stream.write(b'0'); stream.flush()
+                def acquire():
+                    stream.seek(0); msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                def release():
+                    stream.seek(0); msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                def acquire():
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                def release():
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+            while True:
+                try:
+                    acquire(); break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise
+                    time.sleep(.005)
+            try:
+                yield
+            finally:
+                release()
+    finally:
+        _QUOTA_LOCK.release()
+
+
+def _journal_rows(path):
+    """Read only a bounded tail, skip long/partial rows, and project numbers before retaining them."""
+    if cache_file(path.name, path.parent) != path:
+        raise OSError('unsafe quota journal')
+    with path.open('rb') as stream:
+        size = stream.seek(0, 2)
+        offset = max(0, size - MAX_JOURNAL_BYTES)
+        stream.seek(offset)
+        remaining, skipping = size - offset, bool(offset)
+        while remaining:
+            raw = stream.readline(min(MAX_LINE_BYTES + 1, remaining))
+            if not raw:
+                break
+            remaining -= len(raw)
+            complete = raw.endswith(b'\n') or remaining == 0
+            if skipping or len(raw) > MAX_LINE_BYTES or not complete:
+                skipping = not complete
+                continue
+            try:
+                row = json.loads(raw)
+                at = row.get('at') if isinstance(row, dict) else None
+                windows = _windows(row.get('windows')) if isinstance(row, dict) else {}
+                if _number(at) and 0 <= at <= 253402300799 and windows:
+                    yield dict(at=at, windows=windows)
+            except (ValueError, RecursionError, UnicodeError):
+                continue
 
 
 def _number(value):
@@ -70,30 +150,28 @@ def _last(path):
         with path.open('rb') as stream:
             stream.seek(0, 2)
             stream.seek(max(0, stream.tell() - 512))
-            lines = stream.read().splitlines()
+            lines = stream.read(512).splitlines()
         return json.loads(lines[-1]) if lines else None
-    except (OSError, ValueError):
+    except (OSError, ValueError, RecursionError):
         return None
 
 
 def _prune(path, now):
-    """Keeps the file small: past PRUNE_BYTES, only the last KEEP_DAYS days stay."""
+    """Called under the writer lock; retain a bounded recent tail of numeric samples."""
     temporary = None
     try:
         if cache_file(path.name, path.parent) != path:
             return
         if path.stat().st_size <= PRUNE_BYTES:
-            return
-        rows = []
-        for line in path.read_text('utf-8', errors='replace').splitlines():
-            try:
-                row = json.loads(line)
-                at = row.get('at') if isinstance(row, dict) else None
-                windows = _windows(row.get('windows')) if isinstance(row, dict) else {}
-                if _number(at) and now - KEEP_DAYS * 86400 <= at <= 253402300799 and windows:
-                    rows.append(json.dumps(dict(at=at, windows=windows), separators=(',', ':')))
-            except ValueError:
-                continue
+            return True
+        from collections import deque
+        rows, byte_count = deque(), 0
+        for row in _journal_rows(path):
+            if now - KEEP_DAYS * 86400 <= row['at'] <= 253402300799:
+                encoded = json.dumps(row, separators=(',', ':')) + '\n'
+                rows.append(encoded); byte_count += len(encoded)
+                while len(rows) > MAX_KEPT_ROWS or byte_count > PRUNE_BYTES:
+                    byte_count -= len(rows.popleft())
         if cache_file(path.name, path.parent) != path:
             return
         # Imported only when pruning a large file; the frequent status refresh stays lightweight.
@@ -101,12 +179,13 @@ def _prune(path, now):
         with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=str(path.parent),
                                          prefix=path.name + '.', suffix='.tmp', delete=False) as stream:
             temporary = Path(stream.name)
-            stream.write(''.join(line + '\n' for line in rows))
+            stream.writelines(rows)
         if cache_file(path.name, path.parent) != path:
             return
         os.replace(str(temporary), str(path))
+        return True
     except (OSError, ValueError, AttributeError):
-        pass
+        return False
     finally:
         if temporary is not None:
             try:
@@ -124,45 +203,57 @@ def record(found, folder=None, now=None):
     path = cache_file(FILE, folder)
     if path is None:
         return False
-    now = int(now if now is not None else time.time())
-    last = _last(path)
-    if isinstance(last, dict) and last.get('windows') == found:
+    now = now if now is not None else time.time()
+    if not _number(now) or not 0 <= now <= 253402300799:
         return False
+    now = int(now)
     try:
+        # Revalidate the journal after its first read before creating even our lock file.
+        # This preflight value is never used for deduplication; that read belongs under the OS lock.
+        _last(path)
         if cache_file(FILE, path.parent) != path:
             return False
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if cache_file(FILE, path.parent) != path:
-            return False
-        with path.open('a', encoding='utf-8') as stream:
-            stream.write(json.dumps(dict(at=now, windows=found), separators=(',', ':')) + '\n')
+        with _quota_locked(path.parent):
+            if cache_file(FILE, path.parent) != path:
+                return False
+            last = _last(path)
+            if isinstance(last, dict) and last.get('windows') == found:
+                return False
+            if path.exists() and not _prune(path, now):
+                return False
+            if cache_file(FILE, path.parent) != path:
+                return False
+            with path.open('a+b') as stream:
+                if stream.seek(0, 2):
+                    stream.seek(-1, 2)
+                    if stream.read(1) != b'\n':
+                        stream.write(b'\n')
+                stream.write((json.dumps(dict(at=now, windows=found), separators=(',', ':')) + '\n').encode('ascii'))
+            _prune(path, now)
     except OSError:
         return False
-    _prune(path, now)
     return True
 
 
 def samples(folder=None):
     """(time, window minutes, used percent, resets_at) tuples, oldest first, in the shape forecast.py reads."""
     from datetime import datetime, timezone
+    from collections import deque
     found = []
     path = cache_file(FILE, folder)
     if path is None:
-        return found
+        return []
     try:
-        lines = path.read_text('utf-8', errors='replace').splitlines()
-    except OSError:
-        return found
-    for line in lines:
-        try:
-            row = json.loads(line)
-            if not isinstance(row, dict) or not _number(row.get('at')) or not 0 <= row['at'] <= 253402300799:
+        rows = deque(_journal_rows(path), maxlen=MAX_KEPT_ROWS)
+        for row in rows:
+            try:
+                at = datetime.fromtimestamp(row['at'], timezone.utc)
+                for minutes, (used, resets) in row['windows'].items():
+                    found.append((at, int(minutes), float(used), datetime.fromtimestamp(resets, timezone.utc)))
+            except (ValueError, KeyError, TypeError, AttributeError, OverflowError, OSError):
                 continue
-            at = datetime.fromtimestamp(row['at'], timezone.utc)
-            for minutes, (used, resets) in _windows(row.get('windows')).items():
-                found.append((at, int(minutes), float(used), datetime.fromtimestamp(resets, timezone.utc)))
-        except (ValueError, KeyError, TypeError, AttributeError, OverflowError, OSError):
-            continue
+    except OSError:
+        return []
     return sorted(found, key=lambda sample: sample[0])
 
 
@@ -296,8 +387,9 @@ def main(argv=None):
         print(__doc__.strip())
         return 2
     try:
-        data = json.loads(sys.stdin.buffer.read().decode('utf-8', 'replace') or '{}')
-    except (ValueError, AttributeError, OSError):
+        raw = sys.stdin.buffer.read(MAX_INPUT_BYTES + 1)
+        data = json.loads(raw.decode('utf-8', 'replace') or '{}') if len(raw) <= MAX_INPUT_BYTES else {}
+    except (ValueError, AttributeError, OSError, RecursionError):
         data = {}
     found = limits(data)
     record(found)

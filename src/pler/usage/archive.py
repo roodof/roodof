@@ -34,12 +34,16 @@ GENERATION='metadata-archive-generation.json'
 LOCKFILE='metadata-archive.lock'
 _LOCK=threading.RLock()
 _WORD=re.compile(r'^[\w./:+<>@-]{1,256}$',re.ASCII)
-_REASONS={'MalformedRows','PermissionError','FileNotFoundError','OSError','UnicodeError','ValueError',
+_REASONS={'MalformedRows','ReadLimitExceeded','PermissionError','FileNotFoundError','OSError','UnicodeError','ValueError',
           'RuntimeError','InconsistentReasoning'}
 
 
+_CONTROL=re.compile(r'[\x00-\x1f]')
+
+
 def _text(value,maximum=8192):
-    return isinstance(value,str) and len(value)<=maximum and not any(ord(c)<32 for c in value)
+    # A C-level search; a per-character generator here dominated the first read on real logs.
+    return isinstance(value,str) and len(value)<=maximum and not _CONTROL.search(value)
 
 
 def _word(value):
@@ -127,7 +131,8 @@ def sanitize(agent,rows):
                 clean.append(kept)
             else:
                 if kind in ('pler_incomplete_log','pler_archive_ambiguous'):
-                    clean.append(dict(type=kind))
+                    clean.append(dict(type=kind,**({'reason':'ReadLimitExceeded'} if kind=='pler_incomplete_log' and
+                                                  row.get('reason')=='ReadLimitExceeded' else {})))
                     continue
                 payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
                 sub=payload.get('type')
@@ -210,6 +215,18 @@ def _generation(base):
     return value['generation']
 
 
+def _sync_directory(path):
+    """Persist an own-file rename/removal on POSIX; Windows has no portable directory fsync."""
+    if os.name=='nt':return
+    if path is None or cache_file(path.name,path.parent)!=path:raise OSError('unsafe archive')
+    flags=os.O_RDONLY|getattr(os,'O_DIRECTORY',0)|getattr(os,'O_NOFOLLOW',0)
+    descriptor=os.open(str(path.parent),flags)
+    try:
+        if cache_file(path.name,path.parent)!=path:raise OSError('unsafe archive')
+        os.fsync(descriptor)
+    finally:os.close(descriptor)
+
+
 def _write(path,value):
     if path is None or cache_file(path.name,path.parent)!=path: raise OSError('unsafe archive')
     temporary=None
@@ -218,8 +235,12 @@ def _write(path,value):
         with tempfile.NamedTemporaryFile(mode='wb',dir=str(path.parent),prefix=path.name+'.',suffix='.tmp',delete=False) as stream:
             temporary=Path(stream.name)
             stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
         if cache_file(path.name,path.parent)!=path: raise OSError('unsafe archive')
         os.replace(str(temporary),str(path))
+        # A failure here is reported, but the replacement may already be visible.
+        _sync_directory(path)
     finally:
         if temporary is not None and cache_file(temporary.name,temporary.parent)==temporary:
             try: temporary.unlink(missing_ok=True)
@@ -577,6 +598,7 @@ def clear_archive():
             path=cache_file(FILENAME,base)
             if path is None: raise OSError('unsafe archive')
             path.unlink(missing_ok=True)
+            _sync_directory(path)
             result['ok']=True
     except (OSError,ValueError,TypeError,OverflowError): result['errors']=1
     return result

@@ -1,6 +1,16 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.14 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.15 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Reader resources and lifecycle (0.2.15)
+
+Raw JSONL is read in chunks; a line is limited to 8 MiB and JSON containers to 256 levels (brackets inside strings are not nesting). Each source is limited to 512 MiB input and expanded output; the zstd window is limited to 128 MiB. Native decoders stream bounded chunks and check every frame, including concatenated/skippable frames and truncation. The plain-Python fallback uses bounded whole buffers and checks growth before allocation; it is not a constant-memory streaming decoder.
+
+Per-file projected metadata is limited to 200,000 rows and 64 MiB serialized metadata. One scan admits at most 500,000 projected rows / 256 MiB serialized metadata, 2 GiB source bytes, 4 GiB expanded bytes, 20,000 matching files and 100,000 directories. The rebuildable cache read is capped at 256 MiB per agent. These are explicit input/admission limits, not a hard process RSS or elapsed-time guarantee. A limit excludes records with incomplete coverage and a fixed warning, never an assertion of complete zero usage. Partial root enumeration cannot establish that an archived source was deleted.
+
+One background scan worker coalesces forced refreshes into one latest pending request. Cancellation is checked between filesystem/decoder/metadata/Git phases; a blocked OS call cannot be forcibly interrupted. Closing stops new scans and waits at most one second for the worker and snapshot lock. Local HTTP permits at most eight handlers, with five-second idle and fifteen-second total connection deadlines (plus accept-loop polling granularity); existing origin/access checks still apply.
+
+Quota journal writers share a bounded local OS lock across deduplication, append and pruning. Reads use a bounded 4 MiB tail, rows at most 2 KiB, and at most 8,192 retained sample rows; pruning keeps at most 1 MiB. Status-line stdin is capped at 1 MiB. The journal is sampled local history, not a complete account ledger. Archive writes flush and fsync before atomic replacement; POSIX also syncs directory changes. A post-replacement sync failure is reported as a failure without claiming rollback. No recovery backup or hardware power-loss guarantee is established.
 
 ## Identity and copies
 
