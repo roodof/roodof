@@ -138,8 +138,9 @@ class FiniteLocalHttpTests(unittest.TestCase):
         second=self.peer(b'GET /')
         self.assertTrue(self.server.two_accepted.wait(3))
         third=self.peer(b'GET /api/health HTTP/1.0\r\n\r\n')
+        # Refused without a response: an orderly close, or an abortive one (reset on POSIX, WinError 10053 on Windows).
         try:self.assertEqual(third.recv(100),b'')
-        except ConnectionResetError:pass
+        except (ConnectionResetError,ConnectionAbortedError):pass
         with self.server._requests_lock:self.assertEqual(len(self.server._requests),2)
         # Wake the existing handlers, then use their worker-slot completion as the barrier.
         first.shutdown(socket.SHUT_RDWR);second.shutdown(socket.SHUT_RDWR)
