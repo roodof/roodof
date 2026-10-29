@@ -1,5 +1,6 @@
 """Bounded source/output chunks and strict frames, with invented inputs only."""
 import io
+import sys
 import threading
 import unittest
 from unittest.mock import patch
@@ -69,6 +70,18 @@ class ZstdBoundsTests(unittest.TestCase):
         frame=unzstd.MAGIC.to_bytes(4,'little')+b'\x00\xff'+b'\x01\x00\x00'
         with self.assertRaises(ReadLimitExceeded):
             unpack(frame)
+
+    def test_optional_zstandard_window_limit_is_given_in_bytes(self):
+        # ZSTD_DCtx_setMaxWindowSize takes bytes; a KiB value rejected ordinary logs only on the optional CI job.
+        seen={}
+        class Stop(Exception):pass
+        class Decompressor:
+            def __init__(self,**options):seen.update(options)
+            def stream_reader(self,*args,**kwargs):raise Stop()
+        fake=type(sys)('zstandard');fake.ZstdDecompressor=Decompressor
+        with patch.dict('sys.modules',{'compression':None,'zstandard':fake}):
+            with self.assertRaises(ValueError):unpack(stored_zstd(b'abc'))
+        self.assertEqual(seen,dict(max_window_size=zstd.MAX_WINDOW))
 
     def test_fallback_checks_unknown_size_and_total_budget_before_growth(self):
         frame=unzstd.MAGIC.to_bytes(4,'little')+b'\x00\x38'+((100000<<3)|3).to_bytes(3,'little')+b'x'

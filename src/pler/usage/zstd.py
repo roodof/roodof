@@ -169,7 +169,9 @@ def _standard_chunks(module,source,maximum,chunk_size):
 
 def _optional_chunks(module,source,maximum,chunk_size):
     total=0
-    context=module.ZstdDecompressor(max_window_size=MAX_WINDOW//1024)
+    # python-zstandard passes this straight to ZSTD_DCtx_setMaxWindowSize, which takes bytes (its docstring
+    # says kibibytes). MAX_WINDOW//1024 allowed only 128 KiB windows and rejected ordinary logs on CI.
+    context=module.ZstdDecompressor(max_window_size=MAX_WINDOW)
     with context.stream_reader(source,read_size=chunk_size,read_across_frames=True,closefd=False) as reader:
         while True:
             checkpoint()
