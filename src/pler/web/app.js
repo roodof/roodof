@@ -27,6 +27,7 @@ const I18N=/*I18N*/{
 "reedit_method": "Scope, method and limits",
 "open_outside": "Find this session outside the filters",
 "quota_ambiguous": "Conflicting meter history. The current percentage and forecast are unknown. Separate personal/work profiles before comparing their meters.",
+"quota_multiple_sources": "Several local source groups contribute history. A common account cannot be verified, so the current percentage and forecast are unknown. Select one source group.",
 "metadata_settings": "Local history and reader cache",
 "retention_label": "Keep metadata after source logs disappear",
 "retention_on": "History retention is on. Stored archive: {bytes}; at most {days} unseen days, {files} files and {limit}.",
@@ -330,6 +331,7 @@ const I18N=/*I18N*/{
 "reedit_method": "Kapsam, yöntem ve sınırlar",
 "open_outside": "Bu oturumu filtrelerin dışında bul",
 "quota_ambiguous": "Kota geçmişi çelişkili. Güncel yüzde ve tahmin bilinmiyor. Kişisel/iş profillerinin sayaçlarını ayırarak inceleyin.",
+"quota_multiple_sources": "Birden fazla yerel kaynak grubu geçmiş sağlıyor. Ortak hesap doğrulanamadığı için güncel yüzde ve tahmin bilinmiyor. Tek kaynak grubu seçin.",
 "metadata_settings": "Yerel geçmiş ve okuma önbelleği",
 "retention_label": "Kaynak kayıtlar kaybolunca üst bilgiyi sakla",
 "retention_on": "Geçmiş saklama açık. Arşiv: {bytes}; en fazla {days} görülmeyen gün, {files} dosya ve {limit}.",
@@ -643,7 +645,7 @@ function renderUsage(data){
   $('usage-status').textContent=data.state==='scanning'?t('scanning')+(data.has_snapshot?t('showing_previous'):''):data.error||t('last_read',{at:usageDate(data.scanned_at),claude:count(data.sources.claude_files,'claude_file'),codex:count(data.sources.codex_files,'codex_file')});
   const selected=$('usage-project').value;$('usage-project').replaceChildren(node('option','',t('project_all')));$('usage-project').firstChild.value='all';
   for(const project of data.project_options){const option=node('option','',project.name);option.value=project.id;$('usage-project').append(option);}$('usage-project').value=data.project_options.some(p=>p.id===selected)?selected:'all';
-  if(usageState.restore){const desired=usageState.restore.project;usageState.restore=null;if(desired!=='all'&&data.project_options.some(p=>p.id===desired)&&data.filters.project!==desired){$('usage-project').value=desired;loadUsage();return;}}
+  if(restoreUsageSelection(data))return;
   $('usage-content').hidden=!data.has_snapshot;$('usage-empty').hidden=!data.has_snapshot||Boolean(data.totals.sessions);
   for(const id of ['usage-totals','usage-mix','usage-columns','usage-session-section'])$(id).hidden=!data.totals.sessions;
   const noFiles=!data.sources.claude_files&&!data.sources.codex_files;
@@ -672,6 +674,12 @@ function renderUsage(data){
   $('usage-projects').replaceChildren(...data.projects.slice(0,8).map(project=>{const row=node('div','usage-rank');const button=node('button','text-button',project.name);button.addEventListener('click',()=>{$('usage-project').value=project.id;$('usage-project').focus();usageState.pageSize=20;loadUsage();});row.append(button,node('strong','',usageShort(project.total_tokens)),node('small','',count(project.sessions,'session')));return row;}));
   $('usage-models').replaceChildren(...data.models.slice(0,8).map(model=>{const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',usageShort(model.total_tokens)),node('small','',(usageAgents[model.agent]||model.agent)+' · '+count(model.calls,'call')));return row;}));
   renderUsageSessions();
+}
+function restoreUsageSelection(data){
+  if(!usageState.restore||!data.has_snapshot)return false;
+  const desired=usageState.restore.project;usageState.restore=null;
+  if(desired!=='all'&&data.project_options.some(p=>p.id===desired)&&data.filters.project!==desired){$('usage-project').value=desired;loadUsage();return true;}
+  return false;
 }
 function renderDatedUsage(value){
   // A partial dated sum beside whole-session totals reads as a contradiction; the JSON keeps its coverage counts.
@@ -737,7 +745,7 @@ function quotaWindowNow(window,now=Date.now()){
   return window;
 }
 function usageOutlookText(window){
-  if(window.state==='ambiguous')return t('quota_ambiguous');
+  if(window.state==='ambiguous')return t(window.reason==='multiple_source_groups'?'quota_multiple_sources':'quota_ambiguous');
   const reset=usageDate(window.resets_at);
   if(window.state==='reset')return t('out_reset',{used:usagePct(window.used_percent/100),reset});
   if(window.state==='stale')return t('out_stale',{used:usagePct(window.used_percent/100)});
@@ -810,6 +818,7 @@ function renderGitActivity(content,activity){
   box.append(node('p','git-history-note',t('git_history_from',{at:usageDate(activity.history_from)})));content.append(box);
 }
 function openUsageSession(session){
+  usageState.sessionRequest=(usageState.sessionRequest||0)+1;
   $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
   const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
   fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),dl);
@@ -822,8 +831,10 @@ function openUsageSession(session){
   content.append(node('p','section-note',t('metadata_note')));$('usage-session-dialog').showModal();
 }
 async function inspectUsageSession(id){
-  try{const value=await api('/api/usage/session?'+new URLSearchParams({id,lang:LANG}));if(!usageState.stopped)openUsageSession(value.session);}
-  catch(error){if(!usageState.stopped)notice(error.message);}
+  const request=(usageState.sessionRequest||0)+1,revision=usageState.revision;usageState.sessionRequest=request;
+  const current=()=>!usageState.stopped&&request===usageState.sessionRequest&&revision===usageState.revision;
+  try{const value=await api('/api/usage/session?'+new URLSearchParams({id,lang:LANG}));if(current())openUsageSession(value.session);}
+  catch(error){if(current())notice(error.message);}
 }
 function clearUsageDownload(){
   if(usageState.downloadUrl)URL.revokeObjectURL(usageState.downloadUrl);
@@ -926,7 +937,7 @@ $('usage-quality-show').addEventListener('click',()=>{$('usage-quality-only').ch
 for(const id of ['usage-period','usage-agent','usage-project'])$(id).addEventListener('change',()=>{usageState.pageSize=20;loadUsage();});
 for(const id of ['usage-session-search','usage-session-sort'])$(id).addEventListener(id==='usage-session-search'?'input':'change',()=>{usageState.pageSize=20;renderUsageSessions();});
 $('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';$('usage-quality-only').checked=false;usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
-$('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-period').focus();usageState.pageSize=20;loadUsage();});
+$('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-quality-only').checked=false;$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
 function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}
 function updateSnapshotClock(){if(!usageState.stopped&&!document.hidden&&usageState.data?.has_snapshot){renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}

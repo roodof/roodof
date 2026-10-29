@@ -170,6 +170,8 @@ Bu deponun kökünden güncellerken PLER'i kapat, `pip install --upgrade .` çal
 
 ## Sınırlar
 
+- Birden fazla seçili kaynak grubu kota geçmişi sağlıyorsa birleşik yüzde ve tahmin gösterilmez. Aynı Codex ev klasöründeki `sessions` ve `archived_sessions` tek gruptur. Sayacı incelemek için tek yerel ajan evi/kaynak grubu seçin. Sağlayıcı hesap kimliği toplanmaz; aynı klasördeki uyumlu örnekler de tek hesabı kanıtlamaz. Aynı kayıt evinde hesap değiştirme doğrulanmış kapsamda değildir.
+
 - Claude Code kota yüzdesini kayıtlarına yazmaz. Durum satırı açık değilse yalnız sınıra takılma sayısı gösterilir. Durum satırı açıksa da kota, Claude Code'un çalıştığı anlardaki değerlerdir; Claude'u başka yerlerde (web, masaüstü) kullanman aynı kotayı tüketir ve bir sonraki Claude Code yanıtında görünür.
 - Durum satırı, terminaldeki Claude Code'un özelliğidir. Claude masaüstü uygulamasının bu komutu çalıştırdığı doğrulanmadı; denemede 15 dakika boyunca hiç örnek gelmedi.
 - Hesap kotası proje ve ajan filtrelerinden bağımsızdır. Kayıtlı sınır olayı olmaması, kalan kotanın bilindiği anlamına gelmez.

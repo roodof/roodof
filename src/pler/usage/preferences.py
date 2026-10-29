@@ -19,9 +19,16 @@ def read(base):
     if path is None:
         raise OSError('unsafe retention preference')
     try:
-        if path.stat().st_size>MAX_BYTES:
+        size=path.stat().st_size
+        if size>MAX_BYTES:
             raise ValueError('oversized retention preference')
-        value=json.loads(path.read_text('utf-8'))
+        with path.open('rb') as stream:
+            data=stream.read(size+1)
+        if len(data)!=size:
+            raise ValueError('retention preference changed while reading')
+        value=json.loads(data.decode('utf-8'))
+    except RecursionError as error:
+        raise ValueError('over-nested retention preference') from error
     except FileNotFoundError:
         return True
     if (not isinstance(value,dict) or set(value)!={'format','retention_enabled'}

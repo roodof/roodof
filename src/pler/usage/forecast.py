@@ -59,7 +59,7 @@ def _consistent_history(samples):
     return samples[first:], uncertain_until is not None
 
 
-def outlook(sessions, now, claude=()):
+def outlook(sessions, now, claude=(), scopes=None):
     """One row per agent and window length: last used percent, reset time, pace and state. `claude` holds the
     status line samples (time, window minutes, used percent, resets_at).
 
@@ -88,6 +88,10 @@ def outlook(sessions, now, claude=()):
         max_age = SHORT_MAX_AGE if minutes < 24 * 60 else LONG_MAX_AGE
         row = dict(agent=agent, window_minutes=minutes, used_percent=used, at=at.isoformat(), resets_at=resets.isoformat(),
                    max_age_seconds=max_age.total_seconds())
+        if (scopes or {}).get(agent,0)>1:
+            row.update(state='ambiguous',used_percent=None,resets_at=None,reason='multiple_source_groups')
+            rows.append(row)
+            continue
         if ambiguous:
             row.update(state='ambiguous', used_percent=None, resets_at=None,
                        reason='conflicting_meter_history')

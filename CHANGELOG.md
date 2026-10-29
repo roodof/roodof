@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.14 — 2026-10-29 (candidate)
+
+- Keep the newest session investigation when asynchronous replies finish out of order; an old request or failure cannot replace a newer selection. Preserve the selected project across a language reload while a scan is still in progress.
+- Deny malformed/non-ASCII access tokens with an ordinary authentication response. Use the same strict language-query validation for individual session reads as for report reads.
+- Bound metadata reads to the file size observed before opening and reject a changing file; keep the generation marker to 4 KiB. The archive's size limit remains enforced during a concurrent file growth.
+- Treat excessively nested cache/archive/preference JSON as invalid metadata instead of aborting the scan. Disposable caches can rebuild; an invalid retention preference stays off until an explicit choice repairs it.
+- Withhold combined quota values from more than one contributing selected local source group, including legacy samples without reset dates. Conventional active/archived Codex roots under one home stay one group. No account identity is collected or inferred.
+
 ## 0.2.13 — 2026-10-29 (candidate)
 
 - Open versioned English/Turkish Help and the exact accounting contract from the page, offline, from the installed package.

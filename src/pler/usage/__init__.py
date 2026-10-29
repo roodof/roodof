@@ -14,6 +14,7 @@ from ..i18n import LANGUAGES, big, count, decimal, language, moment, say, window
 from ..statusline import samples as claude_quota
 from .cache import FileCache, version
 from .forecast import outlook
+from .quota_scope import source_groups
 from .insights import insights
 from .projects import assign, label, labels
 from .records import total
@@ -52,8 +53,11 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
     if claude_cache:
         claude_cache.save()
+    quota_groups=source_groups(claude_manifest,codex_manifest,
+        [*claude_files,*(path for agent,path in archive.used if agent=='claude-code')],
+        [*codex_files,*(path for agent,path in archive.used if agent=='codex')])
     return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),observed_at=observed_at,
-                          claude_quota=claude_quota() if claude_folders is None else [])
+                          claude_quota=claude_quota() if claude_folders is None else [],quota_source_groups=quota_groups)
 
 
 def _local(iso, lang):
@@ -127,9 +131,10 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         for row in quota['latest']:
             current = next((item for item in windows if item.get('agent') == 'codex'
                             and item['window_minutes'] == row['window_minutes']), None)
-            state = current['state'] if current else None
+            state = current['state'] if current else row.get('state')
             if state=='ambiguous':
-                lines.append(say(lang,'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
+                reason=(current or row).get('reason')
+                lines.append(say(lang,'report.quota_scope' if reason=='multiple_source_groups' else 'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
                 continue
             key = 'report.reset' if state == 'reset' else 'report.stale' if state == 'stale' else 'report.quota_line'
             lines.append(say(lang, key, window=window(row['window_minutes'], lang), used=decimal(row['used_percent'], lang)))
@@ -139,7 +144,7 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         lines.append(say(lang, 'report.claude_quota', at=_local(max(row['at'] for row in claude), lang)))
         for row in claude:
             if row['state']=='ambiguous':
-                lines.append(say(lang,'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
+                lines.append(say(lang,'report.quota_scope' if row.get('reason')=='multiple_source_groups' else 'report.quota_ambiguous',window=window(row['window_minutes'],lang)))
                 continue
             key = 'report.reset' if row['state'] == 'reset' else 'report.stale' if row['state'] == 'stale' else 'report.quota_line'
             lines.append(say(lang, key, window=window(row['window_minutes'], lang), used=decimal(row['used_percent'], lang)))
@@ -181,12 +186,13 @@ def main(argv=None):
     since = now - timedelta(days=args.days) if args.days else None
     summary = summarize(sessions, since)
     rows = [s for s in sessions if since is None or (s.ended and s.ended >= since)]
-    windows = outlook(sessions, now, sources['claude_quota'])
+    windows = outlook(sessions, now, sources['claude_quota'],sources.get('quota_source_groups'))
     for row in summary['quota']['latest']:
         current=next((value for value in windows if value['agent']=='codex' and value['window_minutes']==row['window_minutes']),None)
         row['state']=current['state'] if current else 'historical'
-        if current and current['state']=='ambiguous':
-            row.update(used_percent=None,reason='conflicting_meter_history')
+        mixed=(sources.get('quota_source_groups') or {}).get('codex',0)>1
+        if current and current['state']=='ambiguous' or mixed:
+            row.update(used_percent=None,state='ambiguous',reason=current.get('reason') if current else 'multiple_source_groups')
     lang = args.lang or language()
     trust=quality(rows,sources,lang)
     notes = insights(rows, windows, since, lang=lang,usage_complete=trust['tokens_complete'] and trust['attribution_complete'])

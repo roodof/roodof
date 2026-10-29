@@ -2,6 +2,18 @@
 
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
+## 29 Ekim: 0.2.14 — düşük seviyeli dayanıklılık düzeltmeleri
+
+Claude'un 0.2.13 geliştirmeleri ve sıcak okuma optimizasyonları korundu. Bu turda gerçek kayıtlar okunmadan, uydurma dosya ve yerel bağlantılarla şu kusurlar giderildi:
+
+- Geç gelen oturum yanıtı daha yeni seçimi değiştirebiliyordu; yalnız güncel istek açılır. Dil değişimi sırasında tarama sürüyorsa proje seçimi korunur.
+- ASCII dışı erişim anahtarı bağlantıyı düşürüyordu; normal 401/403 yanıtı döner. Tek oturum sorgusu da dil değerini doğrular.
+- Dosya boyutu kontrolünden sonra büyüyen arşiv sınırsız okunabiliyordu; gözlenen boyut + 1 bayt okunur, değişim reddedilir. Küçük nesil ve tercih dosyalarının ayrı 4 KiB sınırı vardır.
+- Aşırı iç içe JSON eski Python'da okumayı kesebiliyordu; bozuk önbellek yeniden oluşturulur, geçersiz saklama tercihi kapalı kalır ve açık seçimle onarılır.
+- Ayrı yerel kaynak grupları uyumlu görünen kota kayıtları sağlayınca tek hesap gibi tahmin üretilebiliyordu. Ortak hesap doğrulanamadığında yüzde ve tahmin gizlenir; sıfırlama tarihi olmayan eski sayaç yolu da buna dahildir. Tek kaynak grubu da tek hesabı kanıtlamaz.
+
+Yerel doğrulama: Windows Python 3.9: 477 geçti / 10 atlandı; 3.12: 478 çalıştı / 2 atlandı; 3.14.10: 487 çalıştı / 1 POSIX testi atlandı. Linux WSL Python 3.14.4: 487/487; Node: 32/32. Atlamalar ve dağıtım sınırları [raporda](../reports/lowlevel-v1/REPORT.md) kaydedilir. Gerçek profesyonel pilot, temiz makine, fiziksel macOS/Linux tarayıcı ve imzalı dağıtım tamamlanmış sayılmaz.
+
 ## 29 Ekim: 0.2.13 — günlük kullanıma engel olan küçük sorunlar
 
 Çevrimdışı yardım, arşivi silmeden durdurma, yalnız okuma önbelleğini sıfırlama, JSON'da proje adlarını gizleme, aynı adlı projeleri ayırma ve kalite uyarısından etkilenen oturumlara geçiş eklendi. Kurallar ölçümden önce `2f0689c`'de sabitlendi.

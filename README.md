@@ -141,6 +141,8 @@ Removing PLER does not automatically delete this private data folder. Close PLER
 
 ## Trust and data quality
 
+Quota histories from several contributing selected source groups are kept separate by withholding the combined meter and forecast. Codex `sessions` and `archived_sessions` under one home remain one group. Choose a single local agent home/source group when you need its meter; no provider account IDs are collected. Compatible samples within one group still do not prove one account. Switching accounts inside the same log home remains outside verified account coverage.
+
 The page shows a dated snapshot. PLER withholds forecasts from samples older than 30 minutes for short windows and 24 hours for day-long or weekly windows. These are PLER's conservative freshness limits, not provider rules. An elapsed reset or a forecast deadline that has already passed makes the current level unknown. An open page updates those labels from its clock without fetching an account or reading logs again.
 
 Claude Code and Codex files that cannot be fully read are counted. Valid rows are retained when a file contains broken JSON, invalid record identities or an unfinished last line; the totals are marked as potentially incomplete. The warning persists when either agent's file is served from cache. A directory with no records is distinguished from an incomplete read. Malformed quota numbers are discarded. A file count is discovery coverage; it is not proof that every transcript line was valid or that every agent version is supported.

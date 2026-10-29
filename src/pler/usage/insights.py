@@ -30,8 +30,9 @@ def _quota(outlook, lang):
         name = say(lang, 'insight.quota_name', agent=AGENTS.get(row.get('agent'), 'Codex'), window=window(row['window_minutes'], lang))
         name = name[0].upper() + name[1:]
         if row['state']=='ambiguous':
-            found.append(dict(kind='quota',level='warn',title=say(lang,'insight.quota_ambiguous.title',name=name),
-                              detail=say(lang,'insight.quota_ambiguous.detail'),evidence=row))
+            prefix='insight.quota_scope' if row.get('reason')=='multiple_source_groups' else 'insight.quota_ambiguous'
+            found.append(dict(kind='quota',level='warn',title=say(lang,prefix+'.title',name=name),
+                              detail=say(lang,prefix+'.detail'),evidence=row))
         elif row['state'] == 'full':
             found.append(dict(kind='quota', level='warn', title=say(lang, 'insight.full.title', name=name),
                               detail=say(lang, 'insight.full.detail', at=_time(row['at'], lang), resets=_time(row['resets_at'], lang)),

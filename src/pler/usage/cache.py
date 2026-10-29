@@ -57,7 +57,7 @@ class FileCache:
             if data.get('key') == key and isinstance(data.get('files'), dict):
                 self.old = data['files']
                 self.intact = _intact(text, data)
-        except (OSError, ValueError, AttributeError):
+        except (OSError, ValueError, AttributeError, RecursionError):
             pass
 
     def get(self, path):
@@ -74,7 +74,7 @@ class FileCache:
                 valid = (isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
                          and isinstance(entry.get('checksum'), str)
                          and (self.intact or entry.get('checksum') == _checksum(rows)))
-            except (TypeError, ValueError, OverflowError):
+            except (TypeError, ValueError, OverflowError, RecursionError):
                 valid = False
             if valid:
                 self.new[name] = entry

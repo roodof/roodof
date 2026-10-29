@@ -183,17 +183,27 @@ def _encoded(value):
     return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')
 
 
-def _read(path):
+READ_LIMIT=65*1024*1024
+
+
+def _read(path,maximum=READ_LIMIT):
     if path is None: return None
     try:
         # A fixed absolute bound also applies when tests reduce the retention budget.
-        if path.stat().st_size>64*1024*1024+1024*1024: raise ValueError('oversized archive')
-        return json.loads(path.read_text('utf-8'),parse_constant=lambda _: (_ for _ in ()).throw(ValueError('invalid number')))
+        size=path.stat().st_size
+        if size>maximum: raise ValueError('oversized archive')
+        with path.open('rb') as stream:
+            data=stream.read(size+1)
+        if len(data)!=size: raise ValueError('archive changed while reading')
+        try:
+            return json.loads(data.decode('utf-8'),parse_constant=lambda _: (_ for _ in ()).throw(ValueError('invalid number')))
+        except RecursionError as error:
+            raise ValueError('over-nested metadata') from error
     except FileNotFoundError: return None
 
 
 def _generation(base):
-    value=_read(cache_file(GENERATION,base))
+    value=_read(cache_file(GENERATION,base),4096)
     if value is None: return 0
     if not isinstance(value,dict) or type(value.get('generation')) is not int or value['generation']<0:
         raise ValueError('invalid generation')
@@ -281,7 +291,7 @@ def _load(base):
         try:
             clean=_entry(entry)
             entries[_identity(clean['agent'],clean['source'])]=clean
-        except (ValueError,TypeError,OverflowError): errors+=1
+        except (ValueError,TypeError,OverflowError,RecursionError): errors+=1
     return entries,errors
 
 

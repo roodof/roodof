@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.12 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.14 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Identity and copies
 
@@ -18,6 +18,10 @@ These rules are fixed before measuring new real-data results. The existing activ
 - *Quota:* the real Codex meter is not monotonic. Within one window the 5-hour level fell by 1 point 622 times and by at most 11; the provider also restarted windows early (a later reset with a lower level). The original rule hid both real Codex windows. A contradiction is now a reset moving back to an earlier time while its window is active, a fall of more than 25 points within a window, or different readings at the same instant.
 - *Dated usage:* Claude Code writes each content block of a response as its own row with the same usage and its own time; 75% of real responses had such copies, seconds apart (90th percentile 14 s). A response is now dated by its earliest and latest copy: it counts when both fall in the interval, and stays undated when they straddle the start. A copy without an aware time still leaves it undated.
 - *Display:* even after this, 23 of 29 real sessions were excluded for incomplete usage or ownership, and the last seven days had no dated tokens beside 1.5 billion whole-session tokens. The page and terminal therefore show dated usage only when every selected session's usage could be dated; the JSON export always carries it with its coverage counts.
+
+### Contributing quota source groups (0.2.14)
+
+Quota history from more than one contributing selected local source group is withheld even when its samples appear compatible. Conventional Codex `sessions` and `archived_sessions` folders under one home count as one source group; Claude `projects` is grouped by its configuration home. Only live or replayed source paths already selected by the reader contribute. Empty selected roots do not count. WSL host aliases are normalized lexically while Linux path case is retained. The exported count/reason contains no local root or provider account identity. A single source group does not prove a single account; account switches inside one group remain outside verified account coverage.
 
 ### Preregistered subsequent-edit observation (0.2.12)
 

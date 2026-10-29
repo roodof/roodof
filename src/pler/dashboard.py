@@ -191,15 +191,18 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
         projects.append(dict(value, id=_id('project',original), name=project_names.get(original,_project(original,lang))))
     options = sorted({(_id('project', s.project),project_names[s.project]) for s in sessions}, key=lambda row: row[1].casefold())
     # The meter is account-wide, so every session counts here, plus the Claude Code status line samples.
-    windows = quota_outlook(sessions, now, sources.get('claude_quota', ()))
+    windows = quota_outlook(sessions, now, sources.get('claude_quota', ()),sources.get('quota_source_groups'))
     # Older logs lack reset timestamps, but their last meter sample is still account-wide.
     # Do not switch to a project's older percentage when a UI filter changes.
     account_rows = [replace(s, started=s.started or s.ended or epoch, ended=s.ended or s.started or epoch) for s in sessions]
     account_quota = summarize(account_rows, top=0)['quota']
     ambiguous={row['window_minutes'] for row in windows if row['agent']=='codex' and row['state']=='ambiguous'}
     for row in account_quota['latest']:
-        if row['window_minutes'] in ambiguous:
-            row.update(used_percent=None,state='ambiguous',reason='conflicting_meter_history')
+        mixed=(sources.get('quota_source_groups') or {}).get('codex',0)>1
+        if row['window_minutes'] in ambiguous or mixed:
+            reason=next((item.get('reason') for item in windows if item['agent']=='codex' and
+                         item['window_minutes']==row['window_minutes']),'multiple_source_groups' if mixed else 'conflicting_meter_history')
+            row.update(used_percent=None,state='ambiguous',reason=reason)
     skipped = sources.get('skipped', [])
     reason_keys={'MalformedRows':'malformed_file','InconsistentReasoning':'inconsistent_reasoning_file'}
     reasons = Counter(say(lang,reason_keys.get(reason,'unreadable_file')) for _, reason in skipped)

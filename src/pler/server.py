@@ -49,6 +49,10 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
+    def _token(self):
+        supplied=self.headers.get('X-PLER-Token','')
+        return bool(re.fullmatch('[a-f0-9]{64}',supplied)) and secrets.compare_digest(supplied,self.server.token)
+
     def _send(self, code, payload, content_type='application/json; charset=utf-8', filename=None):
         if isinstance(payload, dict):
             payload = json.dumps(payload, ensure_ascii=False, allow_nan=False).encode('utf-8')
@@ -96,12 +100,13 @@ class Handler(BaseHTTPRequestHandler):
             elif request.path in FILES:
                 self._send(200, self.server.assets[request.path], FILES[request.path])
             elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session'):
-                if not secrets.compare_digest(self.headers.get('X-PLER-Token', ''), self.server.token):
+                if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
                     return
                 query = parse_qs(request.query, keep_blank_values=True)
                 if request.path=='/api/usage/session':
                     if (set(query)-{'id','lang'} or any(len(v)!=1 for v in query.values())
+                            or query.get('lang',['en'])[0] not in LANGUAGES
                             or not re.fullmatch('[a-f0-9]{24}',query.get('id',[''])[0])):
                         raise ValueError(say(lang,'error.query'))
                     session=self.server.dashboard.session(query['id'][0],lang)
@@ -145,7 +150,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
-                or not secrets.compare_digest(self.headers.get('X-PLER-Token', ''), self.server.token)):
+                or not self._token()):
             self._send(403, dict(error=say(self._lang(), 'error.token')))
             return
         try:
