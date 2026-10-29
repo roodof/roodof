@@ -10,6 +10,7 @@
 - Report dated usage within the period from complete, unambiguous per-response records. JSON always carries it with coverage counts; the page and terminal show it only when every selected session could be dated.
 - Compare session lengths only within one agent, known project and single model, with at least three sessions on each side.
 - Withhold the current percentage and forecast when meter histories contradict each other (a reset moving back, a fall of more than 25 points within a window, different readings at one instant).
+- Faster later reads: an intact reader cache is verified with one file digest instead of re-encoding every entry, and response ownership no longer re-merges a session's own source evidence. On this computer's real logs with Python 3.14 a later read fell from 4.1 to 3.3 s, with identical results.
 
 The rules were fixed before measurement (`2f0689c`). The first real-data check hid both real Codex meters and left 75% of Claude responses undated, so the meter and dating rules and the display rule were corrected; see the correction note in [ACCOUNTING.md](ACCOUNTING.md). After the correction, the real meters match 0.2.12.
 

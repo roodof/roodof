@@ -64,6 +64,7 @@ def owner(candidates):
     # A larger usage snapshot may come from a copied archive stream owned by another
     # native session. Its evidence must follow the counts to the aggregation anchor.
     for session in candidates:
+        if session is chosen: continue  # its own evidence is already there; skipping keeps this linear
         for source,state in getattr(session,'_sources',{}).items():
             chosen.source_evidence(source,**state)
     if len(unique) > 1:

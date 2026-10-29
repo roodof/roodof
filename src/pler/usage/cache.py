@@ -15,6 +15,23 @@ def _checksum(rows):
     return hashlib.sha256(raw).hexdigest()
 
 
+def _encode(key, files):
+    """One JSON object whose `files` bytes carry a digest, so an intact file needs one hash, not one per entry."""
+    body = json.dumps(files, separators=(',', ':'))
+    return '{"key":%s,"digest":"%s","files":%s}' % (json.dumps(key), hashlib.sha256(body.encode('utf-8')).hexdigest(), body)
+
+
+def _intact(text, data):
+    """True only for a file exactly as _encode wrote it; anything else falls back to per-entry checksums."""
+    digest = data.get('digest')
+    if not isinstance(digest, str) or len(digest) != 64:
+        return False
+    prefix = '{"key":%s,"digest":"%s","files":' % (json.dumps(data.get('key')), digest)
+    if not (text.startswith(prefix) and text.endswith('}')):
+        return False
+    return hashlib.sha256(text[len(prefix):-1].encode('utf-8')).hexdigest() == digest
+
+
 def version(*modules):
     """Changes whenever a reader's source changes, so an edited reader never sees its old extracts."""
     digest = hashlib.sha256()
@@ -29,14 +46,17 @@ class FileCache:
         self.path = cache_file(name + '.json', base) if base is not None else None
         self.key, self.old, self.new, self.signatures = key, {}, {}, {}
         self.historical,self.historical_key={},None
+        self.intact = False
         if self.path is None:
             return
         try:
-            data = json.loads(self.path.read_text('utf-8'))
+            text = self.path.read_text('utf-8')
+            data = json.loads(text)
             if isinstance(data.get('files'),dict):
                 self.historical,self.historical_key=data['files'],data.get('key')
             if data.get('key') == key and isinstance(data.get('files'), dict):
                 self.old = data['files']
+                self.intact = _intact(text, data)
         except (OSError, ValueError, AttributeError):
             pass
 
@@ -50,8 +70,10 @@ class FileCache:
         if isinstance(entry, dict) and entry.get('signature') == signature:
             rows = entry.get('rows')
             try:
+                # put() stored each checksum from its rows; an intact file proves they still match.
                 valid = (isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
-                         and entry.get('checksum') == _checksum(rows))
+                         and isinstance(entry.get('checksum'), str)
+                         and (self.intact or entry.get('checksum') == _checksum(rows)))
             except (TypeError, ValueError, OverflowError):
                 valid = False
             if valid:
@@ -90,8 +112,8 @@ class FileCache:
             if cache_file(self.path.name, self.path.parent) != self.path:
                 return
             # dumps uses the standard library's fast encoder; dump would emit many tiny writes
-            # through the Python iterator. Keep the same JSON representation and atomic replace.
-            encoded = json.dumps(dict(key=self.key, files=self.new), separators=(',', ':'))
+            # through the Python iterator. Keep one JSON object and an atomic replace.
+            encoded = _encode(self.key, self.new)
             with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=str(self.path.parent),
                                              prefix=self.path.name+'.',suffix='.tmp',delete=False) as stream:
                 temporary = Path(stream.name)
