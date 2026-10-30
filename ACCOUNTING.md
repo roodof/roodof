@@ -144,7 +144,7 @@ For a commit found on a branch that is also in the current HEAD's history, PLER 
 - **Still in place:** an added line is looked for, by content, in the same file at HEAD. A line that existed before the commit is assumed to be the copy that remained, so a repeated line counts as kept only when HEAD has more copies than the parent had.
 - **Not measured:** merges, a repository's first commit, commits outside HEAD's history and unreadable objects. Binary files, files of 1 MiB or more, more than 400 changed files in one commit and more than 256 MiB of file content per repository and read are counted as skipped.
 - **Approximation:** a line moved within its file counts as kept. A line rewritten in place, or in a file that was renamed or moved, does not.
-- **Privacy:** file names and contents are read only in memory, from loose objects and version-2 packs, never written, cached or shown. Only counts per commit reach the page and JSON. Counts for the same HEAD are reused while PLER runs; a new HEAD is measured again.
+- **Privacy:** file names and contents are read only in memory, from loose objects and version-2 packs, never written, cached or shown. Only counts per commit reach the page and JSON. Counts for the same HEAD are reused, also after a restart: the page keeps the four counts in `git-survival.json` under a one-way digest of repository folder, HEAD and commit, with no path, commit id, name or text (0.2.22). A new HEAD or other counting code is measured again; a count cut short by the byte budget is never kept; cache reset removes the file.
 - **Meaning:** kept lines show that the change was not undone or rewritten so far. They do not prove that it is correct or that the session's tokens were well spent.
 
 ## Numbers, models and events

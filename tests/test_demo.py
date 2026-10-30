@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from pler import cli
 from pler.dashboard import UsageDashboard
+from pler.git_survival import Saved
 from pler.demo import MARKER, create
 from pler.usage import claude_code, codex, scan
 
@@ -22,7 +23,7 @@ class DemoTests(unittest.TestCase):
         def reader():
             sessions, sources = scan(made['claude'], made['codex'])
             return sessions, dict(sources, demo=True)
-        board = UsageDashboard(reader)
+        board = UsageDashboard(reader, survival=Saved(self.root / 'counts'))
         board.refresh()
         board.thread.join(60)
         return board.view(days=0)

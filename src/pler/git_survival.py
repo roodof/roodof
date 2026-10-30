@@ -5,23 +5,114 @@ lines whose count in a file grew compared with its first parent. Each is looked 
 same file at HEAD. Blank lines and lines without a letter or digit (a lone `}`) are not counted.
 
 File names and contents are read only in memory, through git_objects.py; only counts leave this module.
-No Git program runs and nothing is written. Merge commits, renamed or moved files, binary or very large
-files and anything unreadable are left out and counted as such, never guessed. Matching by content is an
-approximation: a line moved within its file still counts as kept, a line rewritten in place does not.
+No Git program runs and nothing is written to the repository; with a Saved store, the counts alone are kept
+in PLER's cache folder. Merge commits, renamed or moved files, binary or very large files and anything
+unreadable are left out and counted as such, never guessed. Matching by content is an approximation: a line
+moved within its file still counts as kept, a line rewritten in place does not.
 """
 from collections import Counter
+import hashlib
+import json
+import os
 from pathlib import Path
+import re
+import tempfile
 
+from . import git_objects
 from .git_objects import MAX_OBJECT, Objects, _common, _hex, _read, on_branch
+from .paths import cache_file
 
 MAX_COMMITS = 200        # commits measured per repository and scan
 MAX_FILES = 400          # changed files measured per commit
 MAX_BYTES = 256 << 20    # file contents inflated per repository and scan
 MAX_MEMO = 20000
 _TEXT_PROBE = 8000
-# Counts only, for (repository, HEAD, commit): objects named by their ids never change, so a later read of
-# the same HEAD in this process reuses the counts instead of reading the files again.
+_FIELDS = ('added', 'kept', 'files', 'skipped')
+_DIGEST = re.compile('[0-9a-f]{64}')
+# Counts only, under a digest of (repository, HEAD, commit): objects named by their ids never change, so a
+# later read of the same HEAD reuses the counts instead of reading the files again.
 _MEMO = {}
+_VERSION = None
+
+
+def _key(directory, tip, commit):
+    return hashlib.sha256('\0'.join((str(directory), tip, commit)).encode('utf-8', 'surrogatepass')).hexdigest()
+
+
+def _version():
+    """Changes with the counting code, so counts from another version are never reused."""
+    global _VERSION
+    if _VERSION is None:
+        digest = hashlib.sha256()
+        for module in (__file__, git_objects.__file__):
+            digest.update(Path(module).read_bytes())
+        _VERSION = digest.hexdigest()[:16]
+    return _VERSION
+
+
+class Saved:
+    """Counts kept in PLER's cache folder (git-survival.json), so that a restart does not read the same files
+    again. Each key is a one-way digest of repository folder, HEAD and commit; each value is the four counts.
+    No path, commit id, name or text is written. The file is rebuildable: cache reset removes it, and a
+    damaged file or one written by other counting code is ignored."""
+    FILENAME = 'git-survival.json'
+    MAX_SIZE = 4 << 20
+
+    def __init__(self, base=None):
+        self.base, self.loaded, self.saved = base, False, None
+
+    def _path(self):
+        return cache_file(self.FILENAME) if self.base is None else cache_file(self.FILENAME, self.base)
+
+    def load(self):
+        """The saved counts, the first time only; {} when there are none or they cannot be used."""
+        if self.loaded:
+            return {}
+        self.loaded = True
+        path = self._path()
+        try:
+            if path is None or path.stat().st_size > self.MAX_SIZE:
+                return {}
+            value = json.loads(path.read_bytes().decode('utf-8'))
+            if value.get('format') != 1 or value.get('version') != _version() or not isinstance(value.get('counts'), dict):
+                return {}
+            counts = {key: dict(zip(_FIELDS, numbers)) for key, numbers in value['counts'].items()
+                      if _DIGEST.fullmatch(key) and isinstance(numbers, list) and len(numbers) == len(_FIELDS)
+                      and all(type(number) is int and 0 <= number < 1 << 53 for number in numbers)}
+        except (OSError, ValueError, AttributeError, RecursionError):
+            return {}
+        self.saved = frozenset(counts)
+        return dict(list(counts.items())[:MAX_MEMO])
+
+    def save(self, memo):
+        """Replace the file with `memo` when its keys differ from what was last read or written; a file that
+        cannot be written is skipped, never an error."""
+        keys = frozenset(memo)
+        path = self._path()
+        if keys == self.saved or path is None:
+            return
+        temporary = None
+        try:
+            body = json.dumps(dict(format=1, version=_version(),
+                                   counts={key: [value[name] for name in _FIELDS] for key, value in memo.items()}),
+                              separators=(',', ':'))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if cache_file(path.name, path.parent) != path:
+                return
+            with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=str(path.parent), prefix=path.name + '.',
+                                             suffix='.tmp', delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(body)
+            os.replace(str(temporary), str(path))
+            temporary, self.saved = None, keys
+        except (OSError, MemoryError):
+            pass
+        finally:
+            if temporary is not None:
+                try:
+                    temporary.unlink()
+                except OSError:
+                    pass
 
 
 def head(directory, size):
@@ -131,10 +222,11 @@ class _Reader:
         return tree
 
 
-def survival(directory, commits, since=None):
+def survival(directory, commits, since=None, store=None):
     """{commit id: dict(added, kept, files, skipped) or None (not measurable)} against the current HEAD.
 
-    A commit outside HEAD's history, a merge, a root commit or an unreadable one gives None."""
+    A commit outside HEAD's history, a merge, a root commit or an unreadable one gives None. `store` (a Saved)
+    keeps the counts across restarts."""
     commits = [value for value in dict.fromkeys(commits) if value][:MAX_COMMITS]
     result = dict.fromkeys(commits)
     if not commits:
@@ -143,7 +235,13 @@ def survival(directory, commits, since=None):
     tip = head(directory, size)
     if tip is None:
         return result
-    known = {commit: _MEMO[(str(directory), tip, commit)] for commit in commits if (str(directory), tip, commit) in _MEMO}
+    if store is not None:
+        saved = store.load()
+        if len(_MEMO) + len(saved) > MAX_MEMO:
+            _MEMO.clear()
+        _MEMO.update(saved)
+    keys = {commit: _key(directory, tip, commit) for commit in commits}
+    known = {commit: dict(_MEMO[keys[commit]]) for commit in commits if keys[commit] in _MEMO}
     result.update(known)
     commits = [commit for commit in commits if commit not in known]
     if not commits:
@@ -192,7 +290,9 @@ def survival(directory, commits, since=None):
             if reader.spent < MAX_BYTES:  # a count cut short by the byte budget is not remembered
                 if len(_MEMO) >= MAX_MEMO:
                     _MEMO.clear()
-                _MEMO[(str(directory), tip, commit)] = result[commit]
+                _MEMO[keys[commit]] = dict(result[commit])
+        if store is not None:
+            store.save(_MEMO)
         return result
     except (OSError, ValueError, MemoryError):
         return result

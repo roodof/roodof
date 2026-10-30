@@ -155,5 +155,63 @@ class SurvivalTests(unittest.TestCase):
         self.assertEqual(survival(self.repo.git, [session])[session]['kept'], 0)
 
 
+class SavedCountTests(unittest.TestCase):
+    def setUp(self):
+        SurvivalTests.setUp(self)
+        self.cache = self.root.parent / 'cache'
+        self.saved = self.cache / git_survival.Saved.FILENAME
+        self.session = self.repo.commit(dict(self.base, **{'a.py': text('A = 1', 'B = 2')}), [self.first], minutes=5)
+
+    def restart(self):
+        """A new process: the in-memory counts are gone."""
+        git_survival._MEMO.clear()
+        return git_survival.Saved(self.cache)
+
+    def test_counts_survive_a_restart_and_the_file_names_nothing(self):
+        first = survival(self.repo.git, [self.session], store=git_survival.Saved(self.cache))
+        self.assertEqual(first[self.session]['added'], 2)
+        stored = self.saved.read_text('utf-8')
+        for private in (self.session, self.first, str(self.repo.git), str(self.root), SECRET, 'a.py', 'A = 1'):
+            self.assertNotIn(private, stored)
+        value = json.loads(stored)
+        self.assertEqual(sorted(value), ['counts', 'format', 'version'])
+        self.assertEqual(list(value['counts'].values()), [[2, 2, 1, 0]])
+        with unittest.mock.patch.object(git_survival._Reader, 'lines', side_effect=AssertionError('read again')):
+            self.assertEqual(survival(self.repo.git, [self.session], store=self.restart()), first)
+
+    def test_damaged_foreign_or_cut_short_counts_are_never_reused(self):
+        survival(self.repo.git, [self.session], store=git_survival.Saved(self.cache))
+        value = json.loads(self.saved.read_text('utf-8'))
+        damaged = (json.dumps(dict(value, version='0' * 16)), 'not json',
+                   json.dumps(dict(value, counts={key: [2, -1, 1, 0] for key in value['counts']})),
+                   json.dumps(dict(value, counts={key: [2, '2', 1, 0] for key in value['counts']})))
+        original, reads = git_survival._Reader.lines, []
+        def counted(reader, key):
+            reads.append(key)
+            return original(reader, key)
+        for text_value in damaged:
+            with self.subTest(saved=text_value[:40]):
+                self.saved.write_text(text_value, 'utf-8')
+                reads.clear()
+                with unittest.mock.patch.object(git_survival._Reader, 'lines', counted):
+                    self.assertEqual(survival(self.repo.git, [self.session], store=self.restart())[self.session]['kept'], 2)
+                self.assertTrue(reads)
+        self.saved.unlink()
+        with unittest.mock.patch.object(git_survival, 'MAX_BYTES', 1):
+            survival(self.repo.git, [self.session], store=self.restart())
+        self.assertEqual(json.loads(self.saved.read_text('utf-8'))['counts'], {})
+
+    def test_cache_reset_removes_the_counts_and_the_page_keeps_them_by_default(self):
+        from pler.dashboard import UsageDashboard
+        from pler.usage import archive
+        survival(self.repo.git, [self.session], store=git_survival.Saved(self.cache))
+        with unittest.mock.patch.dict('os.environ', PLER_CACHE_DIR=str(self.cache)):
+            self.assertEqual(archive.reset_cache()['cleared_files'], 1)
+            self.assertFalse(self.saved.exists())
+            store = UsageDashboard(lambda: ([], {})).survival_store
+        self.assertIsInstance(store, git_survival.Saved)
+        self.assertIsNone(store.base)
+
+
 if __name__ == '__main__':
     unittest.main()

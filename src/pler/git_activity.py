@@ -126,15 +126,17 @@ def check_branches(snapshot, windows):
         snapshot.pop('branch', None)  # unknown, never a guess
 
 
-def check_survival(snapshot):
-    """Count, for commits found on a branch, how many of their added lines HEAD still has."""
+def check_survival(snapshot, store=None):
+    """Count, for commits found on a branch, how many of their added lines HEAD still has. `store` (a
+    git_survival.Saved) keeps the counts across restarts."""
     try:
         if not snapshot or snapshot.get('state') != 'ready' or not snapshot.get('branch'):
             return
         kept = [commit for commit, value in snapshot['branch'].items() if value]
         times = [event['at'] for event in snapshot['events'] if event.get('full') in kept]
         if kept:
-            snapshot['survival'] = survival(snapshot['directory'], kept, since=min(times).timestamp() if times else None)
+            snapshot['survival'] = survival(snapshot['directory'], kept, since=min(times).timestamp() if times else None,
+                                            store=store)
     except (OSError, ValueError, RuntimeError, MemoryError):
         snapshot.pop('survival', None)  # unknown, never a guess
 

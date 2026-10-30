@@ -1,5 +1,10 @@
 # Changes
 
+## 0.2.22 — 2026-10-30 (private candidate)
+
+- Keep the code-in-place counts across restarts. The page saves the four counts of each measured commit (added, kept, files, skipped) in `git-survival.json` in PLER's cache folder, each under a one-way digest of repository folder, HEAD and commit. No path, commit id, name or text is written. Counts from other counting code, damaged entries and counts cut short by the byte budget are never reused; `pler cache reset` removes the file. The demo keeps its counts in its own folder.
+- On this computer's real repositories, the code count of the first refresh after a restart fell from 2.9 s to 0.14 s.
+
 ## 0.2.21 — 2026-10-30 (private candidate)
 
 - While the page stays open, a refresh whose inputs are all unchanged returns the previous result without merging the logs again. The inputs are the found log files (path, size, modification time, file identity), the discovery issues, the reader versions and PLER's own cache, archive and retention files as the previous read left them. Any change, a cache reset, an archive clear or a retention switch means a full read, and a result is reused for at most an hour. `pler report` always reads.

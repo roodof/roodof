@@ -17,6 +17,7 @@ import zlib
 from pler import git_objects
 from pler.dashboard import UsageDashboard
 from pler.git_activity import check_branches, read_repository, session_activity
+from pler.git_survival import Saved
 from pler.git_objects import Objects, on_branch
 from pler.usage.records import Session
 
@@ -280,7 +281,8 @@ class SessionOutcomeTests(unittest.TestCase):
 
     def test_dashboard_summary_counts_each_commit_once_and_says_so_in_both_languages(self):
         early, late = self.session('a', -120, 0), self.session('b', -45, 120)  # overlap at `lost`
-        dashboard = UsageDashboard(reader=lambda: ([early, late], dict(claude_files=1, codex_files=0, skipped=[])))
+        dashboard = UsageDashboard(reader=lambda: ([early, late], dict(claude_files=1, codex_files=0, skipped=[])),
+                                   survival=Saved(self.root.parent / 'counts'))
         dashboard.refresh()
         dashboard.thread.join(10)
         value = dashboard.view(days=0)

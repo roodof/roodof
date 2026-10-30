@@ -16,6 +16,7 @@ import time
 from .i18n import LANGUAGES, count, say
 from .runtime import ScanCancelled, cancellation, checkpoint
 from .git_activity import CREATED, check_branches, check_survival, read_repository, session_activity, _lines
+from .git_survival import Saved
 from .usage import Rescan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
@@ -266,9 +267,10 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
 
 
 class UsageDashboard:
-    def __init__(self, reader=None, git_reader=None, verdicts=None):
+    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None):
         self.reader = reader or Rescan()
         self.verdict_store = verdicts or Folder()
+        self.survival_store = survival or Saved()
         self.git_reader = git_reader or read_repository
         self.lock = threading.RLock()
         self.sessions = []
@@ -445,7 +447,7 @@ class UsageDashboard:
                 checkpoint()
                 check_branches(snapshot, windows.get(path, ()))
                 checkpoint()
-                check_survival(snapshot)
+                check_survival(snapshot, self.survival_store)
             # Validate the projection before publishing a replacement snapshot.
             checkpoint()
             project_view(sessions, sources, days=0)

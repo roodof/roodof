@@ -669,7 +669,7 @@ def set_retention(enabled):
 
 
 def reset_cache():
-    """Remove only rebuildable reader caches; preserve archive, quota and preferences.
+    """Remove only rebuildable caches (readers' and code counts'); preserve archive, quota and preferences.
 
     No folder is recursively removed, no archived source is opened, and an
     unsafe file is never followed. A concurrent scan may rebuild these caches;
@@ -682,7 +682,7 @@ def reset_cache():
         return result
     try:
         with _locked(base):
-            for name in ('claude.json','codex.json'):
+            for name in ('claude.json','codex.json','git-survival.json'):
                 path=cache_file(name,base)
                 if path is None:
                     result['errors']+=1
