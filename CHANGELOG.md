@@ -1,5 +1,11 @@
 # Changes
 
+## 0.2.17 — 2026-10-30 (private candidate)
+
+- Judge a session with one click: **Useful** or **Wasted**, in a new "Did it pay off?" column and in the session details. The verdict is saved only on this computer, under the page's session code (no path, name or text), and survives cache reset and archive clear. Click the pressed button again to remove it.
+- Above the list, the selection's verdicts are summed: sessions, tokens and API list-price equivalent for useful, wasted and not-judged sessions. The terminal report and JSON carry the same sums; a damaged or newer verdict file is reported and never overwritten. Demo verdicts stay in memory.
+- `pler report --json` now always writes UTF-8, also when Windows redirects it to a file.
+
 ## 0.2.16 — 2026-10-30 (private candidate)
 
 - Show what the recorded usage would cost at the providers' public API list prices (standard tier, prices of 30 October 2026), on the page, in the terminal report, in JSON and per session. Each response is priced once with its own model and prompt size; Claude cache writes use the logged 1-hour/5-minute split. Responses whose model has no published price, whose prompt exceeds a covered tier, or that ran at another speed or region price stay in the token totals but are left unpriced, and the priced share is shown. It is a comparison point for a subscription, never a bill.

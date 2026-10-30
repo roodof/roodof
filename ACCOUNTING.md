@@ -1,6 +1,15 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.16 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.17 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Your verdicts (0.2.17)
+
+A verdict is your own one-click judgement of a session: **useful** or **wasted**. PLER never guesses one.
+
+- **Stored:** only on this computer, in `session-verdicts.json` in PLER's cache folder. Each entry holds the page's 24-character session code (a hash of agent, log source and provider session ID), the word and the second it was set. No path, project name, prompt or command is written. Cache reset and archive clear keep it. A damaged file, or one written by a newer PLER, is reported and never overwritten.
+- **Scope:** only a session in the current snapshot can be judged. The demo keeps verdicts in memory only.
+- **Totals:** sessions, tokens and API list-price equivalent are summed per verdict over the selected sessions. The figures show what you judged; they are not a quality measure, and a session's whole total is not the cost of one change in it.
+- **Identity:** the code changes if a log is moved to another folder, so its verdict no longer matches. Codes are never matched by similarity.
 
 ## API list-price equivalent (0.2.16)
 

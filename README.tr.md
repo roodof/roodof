@@ -74,6 +74,8 @@ Arama yalnız oturum listesini daraltır. Sayfanın üstündeki özet ve indiril
 
 **API liste fiyatıyla**, kayıtlı yanıtların sağlayıcıların yayımlanmış standart fiyatlarıyla ne tutacağını gösterir. Fiyatlar tarihleriyle birlikte pakete gömülüdür; her yanıt kendi modeli ve istem büyüklüğüyle fiyatlanır. Bunu aboneliğine ödediğin tutarla karşılaştır; fatura değildir. Yayımlanmış fiyatı olmayan yanıtlar token toplamlarında kalır ama fiyatlanmaz; fiyatlanan pay gösterilir.
 
+**İşe yaradı mı?** Bir oturumu tek tıkla **İşe yaradı** ya da **Boşa gitti** diye işaretle (listede veya ayrıntısında). PLER seçimdeki tokenları ve liste fiyatı karşılığını değerlendirmeye göre toplar; böylece boşa giden oturumların neye mal olduğunu görürsün. Değerlendirmeler yalnız bu bilgisayarda saklanır; PLER hiçbirini tahmin etmez.
+
 **Dönem içindeki tarihli kullanım**, tam, belirsizliği giderilmiş ve zamanlı yanıt kayıtlarının ayrı, temkinli görünümüdür. Birikimli toplamlar ve çözülemeyen geçmiş tarihlere dağıtılamaz; kapsam sayılarıyla dışlanır. Aralık taramanın sabit gözlem zamanında biter. Seçilen etkin oturumların tam toplamının yerine geçmez ve hesabın eksiksiz kapsandığını kanıtlamaz. Sayfa ve terminal bunu yalnız seçilen her oturumun kullanımı tarihlenebildiğinde gösterir; aksi hâlde JSON dışa aktarımı kapsam sayılarıyla taşır.
 
 Özet hazırlanırken indirme düğmesi durumu gösterir. Hazırlanan dosya için **Yeniden indir** bağlantısı görünür kalır. Kaydedildiğini tarayıcı indirmelerinden kontrol edin. Ana filtreleri değiştirmek veya kayıtları yeniden okumak eski bağlantıyı kaldırır. Dar ekranda diğer sütunlar için tablo alanına odaklanıp sol/sağ oklarını kullanabilirsiniz.

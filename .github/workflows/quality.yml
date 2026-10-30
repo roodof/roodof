@@ -42,7 +42,7 @@ jobs:
           result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
           sys.exit(not result.wasSuccessful())
       - name: Browser logic
-        run: node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs tests/test_lowlevel_view.cjs
+        run: node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs tests/test_lowlevel_view.cjs tests/test_verdict_view.cjs
       - name: Require the Python 3.14 decoder path
         if: matrix.python == '3.14'
         shell: python

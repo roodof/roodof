@@ -1,7 +1,8 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the only actions are "read the logs again" and "close". It opens no connection to an external service. Selected WSL log roots allow only the fixed
+command; the actions are "read the logs again", the metadata settings, your own verdict on a session
+and "close". It opens no connection to an external service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -212,7 +213,8 @@ class Handler(BaseHTTPRequestHandler):
         if not self._local():
             return
         route = urlsplit(self.path).path
-        if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset','/api/quit'):
+        if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
+                         '/api/usage/verdict','/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -221,11 +223,14 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             size = int(self.headers.get('Content-Length', '0'))
-            if not 0 < size <= 64 or self.headers.get_content_type() != 'application/json':
+            if not 0 < size <= (128 if route=='/api/usage/verdict' else 64) or self.headers.get_content_type() != 'application/json':
                 raise ValueError(say(self._lang(), 'error.bad_request'))
             body=json.loads(self.rfile.read(size))
             valid=(isinstance(body,dict) and set(body)=={'enabled'} and type(body['enabled']) is bool
-                   if route=='/api/usage/retention' else body=={})
+                   if route=='/api/usage/retention' else
+                   isinstance(body,dict) and set(body)=={'id','verdict'} and isinstance(body['id'],str)
+                   and re.fullmatch('[a-f0-9]{24}',body['id']) is not None and body['verdict'] in ('useful','wasted',None)
+                   if route=='/api/usage/verdict' else body=={})
             if not valid:
                 raise ValueError(say(self._lang(), 'error.fields'))
         except ValueError as error:
@@ -239,6 +244,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, result)
             else:
                 self._send(500, dict(error=say(self._lang(), 'error.archive_clear')))
+        elif route == '/api/usage/verdict':
+            result=self.server.dashboard.set_verdict(body['id'],body['verdict'])
+            if result.get('ok'):
+                self._send(200,result)
+            elif result.get('reason')=='missing':
+                self._send(404,dict(error=say(self._lang(),'error.session_missing')))
+            else:
+                self._send(500,dict(error=say(self._lang(),'error.verdict_'+('unreadable' if result.get('reason')=='unreadable' else 'save'))))
         elif route in ('/api/usage/retention','/api/usage/cache/reset'):
             result=(self.server.dashboard.set_retention(body['enabled']) if route.endswith('/retention')
                     else self.server.dashboard.reset_cache())

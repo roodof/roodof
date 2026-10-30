@@ -97,6 +97,15 @@ const I18N=/*I18N*/{
 "th_tokens": "Total tokens",
 "th_calls": "Model calls",
 "th_cache": "Input from cache",
+"th_verdict": "Did it pay off?",
+"verdict_useful": "Useful",
+"verdict_wasted": "Wasted",
+"verdict_group": "Your verdict on session #{code}",
+"field_verdict": "Your verdict",
+"verdict_summary": "Your verdicts in this selection: {useful} useful ({useful_tokens} tokens, {useful_usd} at list prices) · {wasted} wasted ({wasted_tokens} tokens, {wasted_usd}) · {none} not judged. Saved only on this computer; click a pressed button again to remove it.",
+"verdict_hint": "Mark sessions Useful or Wasted with one click; PLER then shows what the wasted ones cost. Saved only on this computer, never sent anywhere.",
+"verdict_demo": " Demo verdicts last only while this page is open.",
+"verdict_unreadable": "The saved verdicts file could not be read (damaged, or from a newer PLER), so verdicts are shown as not judged and the file is not overwritten.",
 "search_empty": "No session matches your search.",
 "search_clear": "Clear search",
 "more": "Show more sessions",
@@ -405,6 +414,15 @@ const I18N=/*I18N*/{
 "th_tokens": "Toplam token",
 "th_calls": "Model çağrısı",
 "th_cache": "Girdide önbellek",
+"th_verdict": "İşe yaradı mı?",
+"verdict_useful": "İşe yaradı",
+"verdict_wasted": "Boşa gitti",
+"verdict_group": "#{code} oturumu için değerlendirmen",
+"field_verdict": "Değerlendirmen",
+"verdict_summary": "Bu seçimde değerlendirmelerin: {useful} işe yaradı ({useful_tokens} token, liste fiyatıyla {useful_usd}) · {wasted} boşa gitti ({wasted_tokens} token, {wasted_usd}) · {none} değerlendirilmedi. Yalnız bu bilgisayarda saklanır; kaldırmak için basılı düğmeye yeniden tıkla.",
+"verdict_hint": "Oturumları tek tıkla “İşe yaradı” ya da “Boşa gitti” diye işaretle; PLER boşa gidenlerin neye mal olduğunu gösterir. Yalnız bu bilgisayarda saklanır, hiçbir yere gönderilmez.",
+"verdict_demo": " Demo değerlendirmeleri yalnız bu sayfa açıkken tutulur.",
+"verdict_unreadable": "Kayıtlı değerlendirmeler dosyası okunamadı (bozuk ya da daha yeni bir PLER sürümünden); oturumlar değerlendirilmemiş görünür ve dosyanın üzerine yazılmaz.",
 "search_empty": "Aramana uyan oturum yok.",
 "search_clear": "Aramayı temizle",
 "more": "Daha fazla oturum göster",
@@ -778,6 +796,38 @@ function renderUsageQuota(data){
   box.append(node('p','section-note',t('quota_note')));
 }
 function sessionHasQualityLimits(session){return ['tokens_complete','calls_complete','counts_complete','attribution_complete','models_complete'].some(key=>session.quality?.[key]===false);}
+function usageVerdictSummary(){
+  const data=usageState.data,box=$('usage-verdict-summary');
+  if(!box)return;
+  box.hidden=!data?.verdicts;if(box.hidden)return;
+  if(data.verdicts.readable===false){box.textContent=t('verdict_unreadable');return;}
+  // Summed here from the rows so a click updates it without asking the server for the whole view again.
+  const sum={useful:{sessions:0,total_tokens:0,api_usd:0},wasted:{sessions:0,total_tokens:0,api_usd:0},none:{sessions:0,total_tokens:0,api_usd:0}};
+  for(const session of data.sessions){const row=sum[session.verdict]||sum.none;row.sessions++;row.total_tokens+=session.total_tokens;row.api_usd+=session.api_usd||0;}
+  box.textContent=(sum.useful.sessions||sum.wasted.sessions?t('verdict_summary',{useful:count(sum.useful.sessions,'session'),useful_tokens:usageShort(sum.useful.total_tokens),useful_usd:usageUsd(sum.useful.api_usd),wasted:count(sum.wasted.sessions,'session'),wasted_tokens:usageShort(sum.wasted.total_tokens),wasted_usd:usageUsd(sum.wasted.api_usd),none:count(sum.none.sessions,'session')}):t('verdict_hint'))+(data.demo?t('verdict_demo'):'');
+}
+function verdictToggle(session){
+  const group=node('div','verdict-toggle');group.setAttribute('role','group');group.setAttribute('aria-label',t('verdict_group',{code:usageSessionCode(session)}));
+  for(const verdict of ['useful','wasted']){
+    const button=node('button','verdict-button verdict-'+verdict,t(verdict==='useful'?'verdict_useful':'verdict_wasted'));button.type='button';
+    button.dataset.verdictId=session.id;button.dataset.verdict=verdict;button.setAttribute('aria-pressed',String(session.verdict===verdict));
+    button.disabled=usageState.stopped||usageState.data?.verdicts?.readable===false;
+    button.addEventListener('click',()=>setVerdict(session.id,button.getAttribute('aria-pressed')==='true'?null:verdict));group.append(button);
+  }
+  return group;
+}
+async function setVerdict(id,verdict){
+  if(usageState.stopped||usageState.verdictSaving)return;
+  usageState.verdictSaving=true;
+  try{
+    const result=await post('/api/usage/verdict',{id,verdict});if(usageState.stopped)return;
+    for(const session of usageState.data?.sessions||[])if(session.id===id)session.verdict=result.verdict;
+    // The table row and an open session dialog show the same verdict; update both in place, keeping focus.
+    for(const button of document.querySelectorAll('.verdict-button'))if(button.dataset.verdictId===id)button.setAttribute('aria-pressed',String(button.dataset.verdict===result.verdict));
+    usageVerdictSummary();
+  }catch(error){if(!usageState.stopped)notice(error.message);}
+  finally{usageState.verdictSaving=false;}
+}
 function renderUsageSessions(){
   if(!usageState.data)return;
   const all=usageState.data.sessions,query=$('usage-session-search').value.trim().toLocaleLowerCase(LOCALE);
@@ -800,8 +850,10 @@ function renderUsageSessions(){
     const dates=node('td','session-dates');
     for(const [name,value] of [[t('start'),session.started],[t('last_activity'),session.ended]]){const line=node('div'),time=node('time','',usageDate(value));if(value)time.dateTime=value;line.append(node('span','date-label',name+': '),time);dates.append(line);}
     dates.append(node('small','task-subject',t('span',{d:usageDuration(session.span_seconds)})));
-    row.append(first,dates,node('td','task-number',number(session.total_tokens)),node('td','task-number',session.calls_complete?number(session.calls):t('unknown')),node('td','task-number',usagePct(session.cache_read_share)));return row;
+    const verdict=node('td','verdict-cell');verdict.append(verdictToggle(session));
+    row.append(first,dates,node('td','task-number',number(session.total_tokens)),node('td','task-number',session.calls_complete?number(session.calls):t('unknown')),node('td','task-number',usagePct(session.cache_read_share)),verdict);return row;
   }));
+  usageVerdictSummary();
   $('usage-search-empty').hidden=Boolean(sessions.length);$('usage-more').hidden=usageState.pageSize>=sessions.length;
   $('usage-more').textContent=t('more_count',{count:number(Math.min(20,sessions.length-visible.length))});
 }
@@ -831,7 +883,9 @@ function openUsageSession(session){
   usageState.sessionRequest=(usageState.sessionRequest||0)+1;
   $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
   const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],[t('field_api'),session.api_priced_share?usageUsd(session.api_usd)+(session.api_priced_share<0.9995?' ('+usagePct(session.api_priced_share)+')':''):t('unknown')],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
-  fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),dl);
+  fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));
+  const verdict=node('div','verdict-dialog');verdict.append(node('span','',t('field_verdict')),verdictToggle(session));
+  content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),verdict,dl);
   if(session.source_note)content.append(node('p','notice',session.source_note));
   if(session.models.length){content.append(node('h3','detail-model-title',t('models_in_session')));for(const model of session.models){const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',t('tokens',{n:number(model.total_tokens)})),node('small','',session.calls_complete?count(model.calls,'logged_call'):t('split_unknown')));content.append(row);}}
   content.append(node('p','section-note',t('files_note')));

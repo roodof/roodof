@@ -89,6 +89,7 @@ def main(argv=None):
     from .dashboard import UsageDashboard
     from .demo import create
     from .usage import scan
+    from .usage.verdicts import Memory
     try:
         made = create()
     except ValueError as error:
@@ -106,4 +107,5 @@ def main(argv=None):
         fresh = create(made['folder'])
         sessions, sources = scan(fresh['claude'], fresh['codex'])
         return sessions, dict(sources, demo=True)
-    return serve(args.port, not args.no_browser, lang, UsageDashboard(reader))
+    # Verdicts on invented sessions stay in memory; the real cache keeps only verdicts on your own sessions.
+    return serve(args.port, not args.no_browser, lang, UsageDashboard(reader, verdicts=Memory()))

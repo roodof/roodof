@@ -24,6 +24,7 @@ from .usage.records import total, timestamp
 from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
 from .usage.pricing import PRICES_AS_OF
+from .usage.verdicts import Folder, session_code, summary as verdict_summary
 from .usage.summary import summarize, quota_burn
 from .reporting import provenance,quality,affected
 
@@ -136,13 +137,14 @@ def _git_insight(outcome, lang, usage_complete):
                  evidence=outcome)]
 
 
-def session_view(session, lang='en', git=None, project_names=None):
+def session_view(session, lang='en', git=None, project_names=None, verdicts=None):
     inputs = sum(session.tokens[k] for k in ('input', 'cache_read', 'cache_write'))
     span = (session.ended - session.started).total_seconds() if session.started and session.ended else None
     active = session.active_ms
     # Forked/copied logs can carry the same provider session ID. The visible
     # code identifies the row's source too, without disclosing either value.
-    return dict(id=_id(session.agent, session.source + '\0' + session.session_id), agent=session.agent,
+    code = session_code(session)
+    return dict(id=code, agent=session.agent, verdict=(verdicts or {}).get(code),
                 project_id=_id('project', session.project), project=(project_names or {}).get(session.project,_project(session.project, lang)),
                 started=_iso(session.started), ended=_iso(session.ended),
                 span_seconds=span if span is not None and span >= 0 else None,
@@ -226,7 +228,8 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                     (*boolean_fields,'stored_files','stored_bytes','max_bytes','max_files','max_days',
                      'archive_files','old_parser_files','unverified_files','evicted_files','errors')}
     archive_public['sessions']=sum(getattr(s,'source_state','live')!='live' for s in rows)
-    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names) for s in rows),
+    verdicts=sources.get('verdicts') or {}
+    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts) for s in rows),
                            key=lambda row:(row['total_tokens'],row['ended'] or ''),reverse=True)
     return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
@@ -239,6 +242,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
                     + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']) + edit_insight(reedit,lang),
+                verdicts=dict(verdict_summary(public_sessions,verdicts),readable=not sources.get('verdicts_error')),
                 git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
@@ -249,8 +253,9 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
 
 
 class UsageDashboard:
-    def __init__(self, reader=None, git_reader=None):
+    def __init__(self, reader=None, git_reader=None, verdicts=None):
         self.reader = reader or scan
+        self.verdict_store = verdicts or Folder()
         self.git_reader = git_reader or read_repository
         self.lock = threading.RLock()
         self.sessions = []
@@ -373,9 +378,29 @@ class UsageDashboard:
             self._check_archive_generation()
             project_names=labels([s.project for s in self.sessions],lang=lang)
             for session in self.sessions:
-                if _id(session.agent,session.source+'\0'+session.session_id)==identity:
-                    return session_view(session,lang,_git_for(session,self.sources),project_names)
+                if session_code(session)==identity:
+                    return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'))
         return None
+
+    def _read_verdicts(self):
+        try:
+            return dict(verdicts=self.verdict_store.read(), verdicts_error=False)
+        except (OSError, ValueError, TypeError, UnicodeError):
+            return dict(verdicts={}, verdicts_error=True)
+
+    def set_verdict(self, identity, verdict):
+        """Save the user's verdict for a session of the current snapshot; never one PLER has not shown."""
+        with self.lock:
+            if not any(session_code(session) == identity for session in self.sessions):
+                return dict(ok=False, reason='missing')
+            if self.sources.get('verdicts_error'):
+                return dict(ok=False, reason='unreadable')
+            try:
+                values = self.verdict_store.save(identity, verdict)
+            except (OSError, ValueError, TypeError, UnicodeError, KeyError):
+                return dict(ok=False, reason='unsaved')
+            self.sources = dict(self.sources, verdicts=values, verdicts_error=False)
+            return dict(ok=True, id=identity, verdict=verdict)
 
     def _scan(self, generation=None):
         if generation is None:
@@ -412,6 +437,8 @@ class UsageDashboard:
             with self.lock:
                 if generation != self.generation or self._closed:
                     return
+                # Read under the lock so a verdict saved during the scan is not replaced by an older copy.
+                sources.update(self._read_verdicts())
                 self.sessions, self.sources = sessions, sources
                 self.scanned_at = datetime.now(timezone.utc).isoformat()
                 self.state, self.error = 'ready', None

@@ -98,6 +98,11 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         usd = '{:,.2f}'.format(totals['api_usd'])
         lines.append(say(lang, 'report.api', date=PRICES_AS_OF, share=_pct(totals['api_priced_share'], lang),
                          usd=usd.replace(',', ' ').replace('.', ',').replace(' ', '.') if lang == 'tr' else usd))
+    judged=sources.get('_verdicts')
+    if judged and (judged['useful']['sessions'] or judged['wasted']['sessions']):
+        lines.append(say(lang,'report.verdicts',useful=count(lang,judged['useful']['sessions'],'session'),
+                         useful_tokens=n(judged['useful']['total_tokens']),wasted=count(lang,judged['wasted']['sessions'],'session'),
+                         wasted_tokens=n(judged['wasted']['total_tokens']),none=count(lang,judged['none']['sessions'],'session')))
     dated=sources.get('_dated_usage')
     if dated is not None and dated['retained_usage_fully_dated']:  # same rule as the page
         lines.append(say(lang,'report.dated_usage',tokens=n(dated['total_tokens']),calls=dated['response_calls'],
@@ -212,6 +217,14 @@ def main(argv=None):
     sources['days'] = args.days
     project_names=labels([s.project for s in sessions],lang=lang)
     sources['_project_names']=project_names
+    from .verdicts import Folder, session_code, summary as verdict_summary
+    try: saved=Folder().read()
+    except (OSError,ValueError,TypeError,UnicodeError): saved=None
+    sources['_verdicts']=verdict_summary([dict(id=session_code(s),total_tokens=records.total(s.tokens),api_usd=s.api_usd)
+                                          for s in rows],saved or {})
+    if hasattr(sys.stdout, 'reconfigure'):
+        # JSON is UTF-8 by definition; a redirected Windows console would otherwise use the ANSI code page.
+        sys.stdout.reconfigure(encoding='utf-8')
     if args.json:
         # The terminal and page share one allowlist for session metadata.
         from ..dashboard import session_view
@@ -224,15 +237,14 @@ def main(argv=None):
         for row in summary['largest_sessions']:
             row['project']=project_names.get(row['project'],label(row['project'],lang=lang) or say(lang,'unknown_project'))
         value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),api_prices=dict(as_of=PRICES_AS_OF,tier='standard'),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
+                     verdicts=dict(sources['_verdicts'],readable=saved is not None),
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))
         if args.sessions:
-            value['sessions'] = [session_view(s,lang,project_names=project_names) for s in rows]
+            value['sessions'] = [session_view(s,lang,project_names=project_names,verdicts=saved) for s in rows]
         print(json.dumps(value, ensure_ascii=False, indent=2))
     else:
-        if hasattr(sys.stdout, 'reconfigure'):
-            sys.stdout.reconfigure(encoding='utf-8')
         sys.stdout.write(render(summary, sources, notes, windows, lang))
         if trust['issues']:
             sys.stdout.write(say(lang,'quality.header')+'\n'+'\n'.join('  '+item['detail'] for item in trust['issues'])+'\n')
