@@ -25,6 +25,18 @@ def affected(value):
                ('tokens_complete','calls_complete','counts_complete','attribution_complete','models_complete'))
 
 
+def without_work_items(value):
+    """Ordinary usage exports never carry private user-entered work labels or memberships."""
+    result=dict(value)
+    result.pop('work_items',None)
+    # Keep this boundary explicit if session-level membership is added later.
+    if 'sessions' in result:
+        result['sessions']=[{key:item for key,item in row.items()
+                             if key not in ('work_items','work_item_ids','work_item_titles')}
+                            for row in result['sessions']]
+    return result
+
+
 def mask_projects(value,lang='en'):
     """Mask project labels consistently in the fixed public dashboard export.
 
@@ -32,7 +44,7 @@ def mask_projects(value,lang='en'):
     disclosure, not anonymization. The input projection is not modified.
     """
     from copy import deepcopy
-    result=deepcopy(value)
+    result=deepcopy(without_work_items(value))
     keys=sorted({p['id'] for p in result.get('projects',())}|
                 {s['project_id'] for s in result.get('sessions',())})
     names={key:say(lang,'export.project_alias',n=index+1) for index,key in enumerate(keys)}

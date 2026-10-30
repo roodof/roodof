@@ -50,9 +50,19 @@ pler demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
 
 Her **Kayıtları yeniden oku**, verileri şimdiki zamana göre yeniden kurar. Windows'un Python'suz paketinde aynı iş için `PLER-Demo.cmd` var.
 
+## Oturumları yaptığın işe göre düzenle
+
+**İşlerim** bölümünde gerçek bir işe ad verip o işte kullandığın Claude Code ve Codex oturumlarını bağlayabilirsin. İş oluşturduktan sonra oturum ayrıntısından bağlantı ekle; bir oturum birden fazla işe bağlanabilir. İşin adını değiştirmek veya bağlantıyı kaldırmak ajan kayıtlarını ve oturum değerlendirmelerini değiştirmez. İşi silmek yalnız o işi ve bağlantılarını kaldırır; eski özel yedeğinde kopyası kalabilir.
+
+İş ara toplamları mevcut dönem/ajan/proje seçimini izler ve seçilen oturumların tamamını kapsar. İki işe bağlı oturum iki ara toplamda da görünür; işlere bağlanan ortak toplamda bir kez sayılır. İş ara toplamlarını birbirine ekleme. Bu gruplama bir oturumun tokenlarını farklı işlere dağıtmaz; tek işin maliyetini, tamamlanmasını veya kalitesini kanıtlamaz.
+
+Seçimdeki oturumlar, filtre dışındaki bilinen oturumlar ve artık bulunamayan bağlantılar ayrı gösterilir. Kaynak taşınır veya oturum kimliği değişirse bağlantı kendiliğinden başka oturuma taşınmaz. Eksik bağlantılar incelemek veya kaldırmak için görünür kalır; bunlara kullanım uydurulmaz.
+
+İş adları ve opak oturum bağlantıları yalnız bu bilgisayardaki `work-items.json` dosyasında saklanır, özel yedeğe girer. **Normal JSON raporuna, proje gizleme kapalı olsa da eklenmez.** İş adları senin girdiğin özel üst bilgidir; gruplama için istek veya yanıt toplanmaz. Deneme modundaki işler bellekte kalır ve deneme kapanınca kaybolur.
+
 ## Doğrulanmış özel yedek ve kurtarma
 
-**Yerel geçmiş ve okuma önbelleği** bölümünden özel yedek indirilebilir ve seçilen yedek bu bilgisayarda kontrol edilebilir. Yedek, rapor filtrelerinden bağımsız olarak saklanan geçmişi, oturum değerlendirmelerini, saklama tercihini ve Claude kota örneklerini kapsar. Özgün ajan kayıtlarını okumaz; okuyucu/kod önbellekleri, deneme verisi, ajan ayarları ve erişim anahtarı alınmaz.
+**Yerel geçmiş ve okuma önbelleği** bölümünden özel yedek indirilebilir ve seçilen yedek bu bilgisayarda kontrol edilebilir. Yedek, rapor filtrelerinden bağımsız olarak saklanan geçmişi, oturum değerlendirmelerini, saklama tercihini, Claude kota örneklerini ve iş adlarınla bağlantılarını kapsar. Özgün ajan kayıtlarını okumaz; okuyucu/kod önbellekleri, deneme verisi, ajan ayarları ve erişim anahtarı alınmaz.
 
 ```text
 pler backup create "gecmisim.pler-backup.zip"

@@ -140,6 +140,7 @@ def _main(argv):
     from .demo import create
     from .usage import scan
     from .usage.verdicts import Memory
+    from .usage.work_items import Memory as WorkMemory
     from .git_survival import Saved
     try:
         made = create()
@@ -158,7 +159,7 @@ def _main(argv):
         fresh = create(made['folder'])
         sessions, sources = scan(fresh['claude'], fresh['codex'])
         return sessions, dict(sources, demo=True)
-    # Verdicts on invented sessions stay in memory and code counts in the demo folder; the real cache keeps only
+    # Verdicts and work labels on invented sessions stay in memory, code counts in the demo folder; the real cache keeps only
     # those of your own sessions.
     return serve(args.port, not args.no_browser, lang,
-                 UsageDashboard(reader, verdicts=Memory(), survival=Saved(made['folder'])))
+                 UsageDashboard(reader, verdicts=Memory(), survival=Saved(made['folder']), work_items=WorkMemory()))

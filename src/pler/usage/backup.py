@@ -20,7 +20,7 @@ from .. import __version__
 from ..paths import cache_file, cache_folder, local_path, network
 from ..reporting import PARSER_VERSION, SCHEMA_VERSION
 from .. import statusline
-from . import archive, preferences, verdicts
+from . import archive, preferences, verdicts, work_items
 from .records import _too_deep
 
 FORMAT = 1
@@ -29,7 +29,8 @@ MAX_MANIFEST_BYTES = 16384
 LIMITS = {archive.FILENAME: archive.MAX_BYTES,
           preferences.FILENAME: preferences.MAX_BYTES,
           verdicts.FILENAME: verdicts.MAX_BYTES,
-          statusline.FILE: statusline.MAX_JOURNAL_BYTES}
+          statusline.FILE: statusline.MAX_JOURNAL_BYTES,
+          work_items.FILENAME: work_items.MAX_BYTES}
 MAX_BUNDLE_BYTES = sum(LIMITS.values()) + MAX_MANIFEST_BYTES + 4096
 MAX_ROWS = 500000
 _HEX = re.compile('[a-f0-9]{64}')
@@ -195,7 +196,8 @@ def _quota(data):
 
 
 def _validate_files(files):
-    result = dict(archive_files=0, verdicts=0, quota_samples=0, retention_enabled=True)
+    result = dict(archive_files=0, verdicts=0, quota_samples=0, retention_enabled=True,
+                  work_items=0,work_links=0)
     for name, data in files.items():
         if name not in LIMITS or len(data) > LIMITS[name]:
             raise BackupError('limit')
@@ -205,6 +207,12 @@ def _validate_files(files):
             result['retention_enabled'] = _preferences(data)
         elif name == verdicts.FILENAME:
             result['verdicts'] = _verdicts(data)
+        elif name == work_items.FILENAME:
+            try: items=work_items.validate(data)
+            except (ValueError,TypeError,UnicodeError,OverflowError) as error:
+                raise BackupError('invalid') from error
+            result['work_items']=len(items)
+            result['work_links']=sum(len(item['sessions']) for item in items.values())
         else:
             result['quota_samples'] = _quota(data)
     return result

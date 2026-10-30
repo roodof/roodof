@@ -1,7 +1,7 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the actions are "read the logs again", metadata settings, your own verdict on a session,
+command; the actions are "read the logs again", metadata settings, your own verdict or work links,
 prepare/check a private metadata backup and "close". An uploaded backup is checked in memory only;
 recovery into a new folder is a CLI action. It opens no connection to an external service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
@@ -196,6 +196,8 @@ class Handler(BaseHTTPRequestHandler):
                     if not value['has_snapshot']:
                         raise ValueError(say(lang, 'error.no_snapshot'))
                     value.pop('project_options', None)  # no project names outside the selected scope
+                    from .reporting import without_work_items
+                    value=without_work_items(value)
                     mask=query.get('mask_projects',['0'])[0]
                     if mask not in ('0','1'): raise ValueError(say(lang,'error.query'))
                     if mask=='1':
@@ -219,7 +221,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
-                         '/api/usage/verdict','/api/usage/backup','/api/usage/backup/check','/api/quit'):
+                         '/api/usage/verdict','/api/usage/work','/api/usage/backup','/api/usage/backup/check','/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -228,6 +230,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route in ('/api/usage/backup','/api/usage/backup/check'):
             self._backup(route)
+            return
+        if route=='/api/usage/work':
+            self._work_item()
             return
         try:
             size = int(self.headers.get('Content-Length', '0'))
@@ -268,6 +273,55 @@ class Handler(BaseHTTPRequestHandler):
             self.server.dashboard.close(timeout=0)
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()
+
+    def _work_item(self):
+        """Small, authenticated manual annotations; no request can select a disk path."""
+        lang=self._lang()
+        try:
+            query=parse_qs(urlsplit(self.path).query,keep_blank_values=True)
+            lengths=self.headers.get_all('Content-Length') or []
+            if (set(query)-{'lang'} or any(len(v)!=1 for v in query.values())
+                    or query.get('lang',['en'])[0] not in LANGUAGES or len(lengths)!=1
+                    or self.headers.get('Transfer-Encoding') is not None
+                    or not re.fullmatch('[0-9]{1,4}',lengths[0])
+                    or not 0<int(lengths[0])<=1024
+                    or self.headers.get_content_type()!='application/json'):
+                raise ValueError()
+            size=int(lengths[0]);raw=self.rfile.read(size)
+            if len(raw)!=size:raise ValueError()
+            def pairs(items):
+                result={}
+                for key,value in items:
+                    if key in result:raise ValueError()
+                    result[key]=value
+                return result
+            body=json.loads(raw.decode('utf-8'),object_pairs_hook=pairs,
+                            parse_constant=lambda _:(_ for _ in ()).throw(ValueError()))
+            if not isinstance(body,dict):raise ValueError()
+            action=body.get('action')
+            fields=({'action','title'} if action=='create' else
+                    {'action','id','title'} if action=='rename' else
+                    {'action','id','session'} if action in ('link','unlink') else
+                    {'action','id'} if action=='delete' else None)
+            if fields is None or set(body) not in (fields,fields|{'session'} if action=='create' else fields):
+                raise ValueError()
+            if any(not isinstance(body[key],str) or re.fullmatch('[a-f0-9]{24}',body[key]) is None
+                   for key in ('id','session') if key in body):raise ValueError()
+            if 'title' in body and not isinstance(body['title'],str):raise ValueError()
+        except (ValueError,UnicodeError,RecursionError,TypeError,OverflowError):
+            self._send(400,dict(error=say(lang,'error.work_invalid'),code='invalid'))
+            return
+        result=self.server.dashboard.mutate_work_item(action,identity=body.get('id'),
+            title=body.get('title'),session=body.get('session'))
+        if result.get('ok'):
+            self._send(200,result)
+            return
+        reason=result.get('reason','unsaved')
+        known={'unavailable','unreadable','missing_session','missing','limit','invalid','unsaved'}
+        reason=reason if reason in known else 'unsaved'
+        code=404 if reason in ('missing','missing_session') else 409 if reason in ('unavailable','unreadable') else 400 if reason in ('invalid','limit') else 500
+        key='error.work_'+reason
+        self._send(code,dict(error=say(lang,key),code=reason))
 
     def _backup(self,route):
         """A private local backup, not a masked report; uploads are checked in memory only."""

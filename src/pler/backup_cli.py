@@ -63,8 +63,10 @@ def main(argv=None):
     # A future core may carry diagnostics privately; only these documented
     # version/count fields belong in a command's public output.
     names = ('format', 'version', 'parser_version', 'schema_version', 'created_at',
-             'archive_files', 'verdicts', 'quota_samples', 'retention_enabled', 'files', 'bytes')
+             'archive_files', 'verdicts', 'quota_samples', 'work_items', 'work_links', 'retention_enabled', 'files', 'bytes')
     public = {name: value[name] for name in names if name in value}
+    public.setdefault('work_items',0)
+    public.setdefault('work_links',0)
     if args.json:
         print(json.dumps(dict(ok=True, action=args.action, **public)))
     else:

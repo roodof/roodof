@@ -30,8 +30,8 @@ const I18N=/*I18N*/{
 "quota_multiple_sources": "Several local source groups contribute history. A common account cannot be verified, so the current percentage and forecast are unknown. Select one source group.",
 "metadata_settings": "Local history and reader cache",
 "backup_title": "Back up and recover history",
-"backup_scope": "Backs up all retained history, verdicts, retention preference and Claude quota samples. Main filters and project-name masking do not apply. Source logs and rebuildable caches are not included.",
-"backup_privacy": "The file includes private paths and identifiers. It is unencrypted and is not an anonymous report. Keep it safe.",
+"backup_scope": "Backs up all retained history, verdicts, work titles and links, retention preference and Claude quota samples. Main filters and project-name masking do not apply. Source logs and rebuildable caches are not included.",
+"backup_privacy": "The file includes private paths, identifiers and the work titles you entered. It is unencrypted and is not an anonymous report. Keep it safe.",
 "backup_download": "Download private backup",
 "backup_preparing": "Preparing backup…",
 "backup_prepared": "Backup prepared. Check your browser downloads; if it did not start,",
@@ -41,7 +41,51 @@ const I18N=/*I18N*/{
 "backup_check_help": "Checking sends this file only to PLER on this computer, keeps it in memory, and does not restore or change history.",
 "backup_guide": "How to restore into a new folder",
 "backup_invalid_file": "Choose a nonempty PLER backup within the supported size limit.",
-"backup_checked": "Backup checked: PLER {version}, {date}; {files} archived sources, {verdicts} verdicts and {quota} quota samples. Saved retention: {retention}. History has not been restored or changed.",
+"backup_checked": "Backup checked: PLER {version}, {date}; {files} archived sources, {verdicts} verdicts, {works} work titles, {links} work links and {quota} quota samples. Saved retention: {retention}. History has not been restored or changed.",
+"work_eyebrow": "Across sessions and agents",
+"work_title": "My work",
+"work_intro": "Give one job a name, then link its Claude and Codex sessions from session details.",
+"work_unreadable": "Saved work could not be read. Editing is disabled to protect it. Use a checked private backup to recover it in a new folder; see Help.",
+"work_empty": "No work groups yet. Create one to collect the sessions for a job.",
+"work_new_title": "New work title",
+"work_placeholder": "For example: prepare the first release",
+"work_create": "Create work",
+"work_choose": "Choose work",
+"work_edit_title": "Work title",
+"work_rename": "Save title",
+"work_delete": "Delete work…",
+"work_summary": "Work groups: {works} · Linked sessions in this selection: {selected}, counted once · Unassigned: {unassigned}. Linked outside the main filters: {outside} · Unavailable: {missing} · Shared by several works in this selection: {overlap}.",
+"work_union": "Linked-session summary: {tokens} known tokens · {calls} recorded calls · {api} API equivalent.",
+"work_counts": "Linked: {linked} · Available: {available} · In the main filters: {selected} · Outside the main filters: {outside} · Unavailable: {missing} · Also linked to other work in this selection: {overlap}.",
+"work_usage": "Selected linked sessions: {tokens} known tokens · {calls} recorded calls · {api} API equivalent.",
+"work_no_selection": "No linked sessions in the main filters. No usage total is shown for this work.",
+"work_quality": "Some selected sessions have incomplete usage or attribution. These are known recorded values, not a complete measurement.",
+"work_more": "Show more linked sessions ({n})",
+"work_no_members": "Open a session below and link it to this work.",
+"work_scope": "Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.",
+"work_api_note": "API equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.",
+"work_privacy": "Titles and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.",
+"work_outside": "Outside the main filters",
+"work_missing": "Session unavailable",
+"work_unlink": "Unlink",
+"work_unlink_label": "Unlink session #{code} from {title}",
+"work_delete_heading": "Delete this work?",
+"work_delete_help": "Deletes only this work title and its session links. Session logs, recorded usage and verdicts stay unchanged.",
+"work_cancel": "Keep work",
+"work_delete_confirm": "Delete work and links",
+"work_link": "Link to work",
+"work_link_choose": "Choose a work to link",
+"work_linked_none": "This session is not linked to any work.",
+"work_create_link": "Create and link",
+"work_session_note": "Link this whole session to one or more works. Its usage is counted once in the general totals.",
+"work_title_invalid": "Enter a title of 1–120 characters without control characters.",
+"work_failed": "Work could not be saved. Your previous links and title remain visible.",
+"work_saved": "Work saved.",
+"work_saved_refresh": "Work saved, but the view could not be refreshed. Read the view again before making another change.",
+"work_saving": "Saving…",
+"work_reload": "Reload saved work",
+"work_unpriced": "Unpriced",
+"work_api_covered": "{amount} ({share} of tokens priced)",
 "retention_label": "Keep metadata after source logs disappear",
 "retention_on": "History retention is on. Stored archive: {bytes}; at most {days} unseen days, {files} files and {limit}.",
 "retention_off": "History retention is off. Existing archive bytes ({bytes}) are preserved, but are not loaded or updated.",
@@ -385,8 +429,8 @@ const I18N=/*I18N*/{
 "quota_multiple_sources": "Birden fazla yerel kaynak grubu geçmiş sağlıyor. Ortak hesap doğrulanamadığı için güncel yüzde ve tahmin bilinmiyor. Tek kaynak grubu seçin.",
 "metadata_settings": "Yerel geçmiş ve okuma önbelleği",
 "backup_title": "Geçmişi yedekle ve kurtar",
-"backup_scope": "Saklanan tüm geçmişi, değerlendirmeleri, saklama tercihini ve Claude kota örneklerini yedekler. Ana filtreler ve proje adlarını gizleme seçeneği uygulanmaz. Kaynak kayıtlar ve yeniden kurulabilir önbellekler dahil değildir.",
-"backup_privacy": "Dosya özel yollar ve kimlikler içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
+"backup_scope": "Saklanan tüm geçmişi, değerlendirmeleri, iş başlıklarını ve bağlantılarını, saklama tercihini ve Claude kota örneklerini yedekler. Ana filtreler ve proje adlarını gizleme seçeneği uygulanmaz. Kaynak kayıtlar ve yeniden kurulabilir önbellekler dahil değildir.",
+"backup_privacy": "Dosya özel yollar, kimlikler ve girdiğiniz iş başlıklarını içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
 "backup_download": "Özel yedek indir",
 "backup_preparing": "Yedek hazırlanıyor…",
 "backup_prepared": "Yedek hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
@@ -396,7 +440,51 @@ const I18N=/*I18N*/{
 "backup_check_help": "Kontrol, bu dosyayı yalnız bu bilgisayardaki PLER'e gönderir, bellekte tutar; geçmişi geri yüklemez veya değiştirmez.",
 "backup_guide": "Yeni klasöre geri yükleme adımları",
 "backup_invalid_file": "Desteklenen boyut sınırı içinde, boş olmayan bir PLER yedeği seçin.",
-"backup_checked": "Yedek doğrulandı: PLER {version}, {date}; {files} arşiv kaynağı, {verdicts} değerlendirme ve {quota} kota örneği. Kayıtlı tercih: {retention}. Geçmiş geri yüklenmedi veya değiştirilmedi.",
+"backup_checked": "Yedek doğrulandı: PLER {version}, {date}; {files} arşiv kaynağı, {verdicts} değerlendirme, {works} iş başlığı, {links} iş bağlantısı ve {quota} kota örneği. Kayıtlı tercih: {retention}. Geçmiş geri yüklenmedi veya değiştirilmedi.",
+"work_eyebrow": "Oturumlar ve ajanlar arasında",
+"work_title": "İşlerim",
+"work_intro": "Bir işe ad verin; ardından oturum ayrıntılarından o işe ait Claude ve Codex oturumlarını bağlayın.",
+"work_unreadable": "Kayıtlı işler okunamadı. Onları korumak için düzenleme kapatıldı. Doğrulanmış özel bir yedeği yeni klasöre geri yükleyin; Yardım bölümüne bakın.",
+"work_empty": "Henüz iş grubu yok. Bir işe ait oturumları toplamak için iş oluşturun.",
+"work_new_title": "Yeni iş başlığı",
+"work_placeholder": "Örneğin: ilk sürümü hazırlama",
+"work_create": "İş oluştur",
+"work_choose": "İş seçin",
+"work_edit_title": "İş başlığı",
+"work_rename": "Başlığı kaydet",
+"work_delete": "İşi sil…",
+"work_summary": "{works} iş · Bu seçimde birer kez sayılan {selected} bağlı oturum · {unassigned} bağlanmamış oturum. Ana filtrelerin dışında {outside} bağlı oturum · {missing} erişilemeyen oturum · Birden fazla işe bağlı {overlap} seçili oturum.",
+"work_union": "Bağlı oturum özeti: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API karşılığı.",
+"work_counts": "{linked} bağlı oturum: {available} erişilebilir, {selected} ana filtrelerde, {outside} ana filtrelerin dışında ve {missing} erişilemeyen. {overlap} seçili oturum başka işlere de bağlı.",
+"work_usage": "Seçili bağlı oturumlar: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API karşılığı.",
+"work_no_selection": "Ana filtrelerde bu işe bağlı oturum yok. Bu iş için kullanım toplamı gösterilmiyor.",
+"work_quality": "Bazı seçili oturumların kullanım veya kaynak eşleştirmesi eksik. Bunlar bilinen kayıtlı değerlerdir; tam bir ölçüm değildir.",
+"work_more": "Daha fazla bağlı oturum göster ({n})",
+"work_no_members": "Aşağıdan bir oturum açıp bu işe bağlayın.",
+"work_scope": "Kullanım ana filtreleri izler ve tek bir değişikliğin maliyetini değil, oturumların tamamını kapsar. Arama ve veri kalitesi liste filtreleri bu kapsamı değiştirmez. Bir oturum birden fazla işe bağlanabilir; iş toplamları birbiriyle toplanamaz. Özet, her bağlı oturumu bir kez sayar.",
+"work_api_note": "API karşılıkları mevcut fiyatları kullanır; fiyatı bilinmeyen kullanım dahil edilmeyebilir. Bunlar abonelik faturanız değildir.",
+"work_privacy": "Başlıklar ve bağlantılar bu bilgisayarda kalır, normal JSON özetlerine eklenmez. Özel yedeklere dahildir. Erişilemeyen oturumlar kayıtlı kodlarıyla bağlı kalır; PLER otomatik olarak başka bir oturuma bağlamaz.",
+"work_outside": "Ana filtrelerin dışında",
+"work_missing": "Oturuma erişilemiyor",
+"work_unlink": "Bağlantıyı kaldır",
+"work_unlink_label": "{title} işinden #{code} oturumunun bağlantısını kaldır",
+"work_delete_heading": "Bu iş silinsin mi?",
+"work_delete_help": "Yalnızca bu işin başlığı ve oturum bağlantıları silinir. Oturum kayıtları, kullanım değerleri ve değerlendirmeler korunur.",
+"work_cancel": "İşi koru",
+"work_delete_confirm": "İşi ve bağlantılarını sil",
+"work_link": "İşe bağla",
+"work_link_choose": "Bağlanacak işi seçin",
+"work_linked_none": "Bu oturum henüz hiçbir işe bağlı değil.",
+"work_create_link": "Oluştur ve bağla",
+"work_session_note": "Bu oturumun tamamını bir veya daha fazla işe bağlayın. Genel toplamlarda kullanımı bir kez sayılır.",
+"work_title_invalid": "Kontrol karakteri içermeyen, 1–120 karakterlik bir başlık girin.",
+"work_failed": "İş kaydedilemedi. Önceki başlık ve bağlantılar görünmeye devam ediyor.",
+"work_saved": "İş kaydedildi.",
+"work_saved_refresh": "İş kaydedildi ancak görünüm yenilenemedi. Yeni bir değişiklikten önce görünümü yeniden okuyun.",
+"work_saving": "Kaydediliyor…",
+"work_reload": "Kayıtlı işleri yeniden yükle",
+"work_unpriced": "Fiyatlanamadı",
+"work_api_covered": "{amount} (tokenların {share} kadarı fiyatlandı)",
 "retention_label": "Kaynak kayıtlar kaybolunca üst bilgiyi sakla",
 "retention_on": "Geçmiş saklama açık. Arşiv: {bytes}; en fazla {days} görülmeyen gün, {files} dosya ve {limit}.",
 "retention_off": "Geçmiş saklama kapalı. Mevcut arşiv ({bytes}) korunuyor; yüklenmiyor veya güncellenmiyor.",
@@ -685,7 +773,7 @@ function applyLanguage(){
   $('usage-help').href='/help?lang='+LANG;
   $('usage-backup-guide').href='/help?lang='+LANG+'#backup';
 }
-function switchLanguage(){const other=LANG==='tr'?'en':'tr';try{localStorage.setItem('pler-lang',other);sessionStorage.setItem('pler-view',JSON.stringify({days:$('usage-period').value,agent:$('usage-agent').value,project:$('usage-project').value,search:$('usage-session-search').value,sort:$('usage-session-sort').value,quality:Boolean($('usage-quality-only').checked),mask:Boolean($('usage-export-mask').checked)}));}catch(_){}location.search='?lang='+other;}
+function switchLanguage(){const other=LANG==='tr'?'en':'tr';try{localStorage.setItem('pler-lang',other);sessionStorage.setItem('pler-view',JSON.stringify({days:$('usage-period').value,agent:$('usage-agent').value,project:$('usage-project').value,search:$('usage-session-search').value,sort:$('usage-session-sort').value,quality:Boolean($('usage-quality-only').checked),mask:Boolean($('usage-export-mask').checked),work:workViewMemory()}));}catch(_){}workState.navigation=true;location.search='?lang='+other;}
 async function api(path,options={}){
   let response;
   try{response=await fetch(path,{cache:'no-store',...options,headers:{...options.headers,'X-PLER-Token':token}});}catch(_){throw new Error(t('err_unreachable'));}
@@ -700,7 +788,7 @@ async function closeApp(){
   catch(error){notice(error.message);}
 }
 const usageState={data:null,revision:0,pageSize:20,timer:null,clock:null,stopped:false,loading:false,exporting:false,downloadUrl:null};
-try{const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null');sessionStorage.removeItem('pler-view');if(saved&&['0','7','30','90'].includes(saved.days)&&['all','codex','claude-code'].includes(saved.agent)&&typeof saved.project==='string'&&/^(all|[a-f0-9]{24})$/.test(saved.project)){usageState.restore=saved;$('usage-period').value=saved.days;$('usage-agent').value=saved.agent;if(typeof saved.search==='string')$('usage-session-search').value=saved.search.slice(0,160);if(['tokens','recent','started','issues'].includes(saved.sort))$('usage-session-sort').value=saved.sort;$('usage-quality-only').checked=saved.quality===true;$('usage-export-mask').checked=saved.mask!==false;}}catch(_){}
+try{const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null');sessionStorage.removeItem('pler-view');if(saved&&['0','7','30','90'].includes(saved.days)&&['all','codex','claude-code'].includes(saved.agent)&&typeof saved.project==='string'&&/^(all|[a-f0-9]{24})$/.test(saved.project)){usageState.restore=saved;usageState.workRestore=saved.work;$('usage-period').value=saved.days;$('usage-agent').value=saved.agent;if(typeof saved.search==='string')$('usage-session-search').value=saved.search.slice(0,160);if(['tokens','recent','started','issues'].includes(saved.sort))$('usage-session-sort').value=saved.sort;$('usage-quality-only').checked=saved.quality===true;$('usage-export-mask').checked=saved.mask!==false;}}catch(_){}
 const usageAgents={'claude-code':'Claude Code',codex:'Codex'};
 const usageTokens=[['input',t('token_input')],['cache_read',t('token_cache')],['cache_write',t('token_write')],['output',t('token_output')]];
 const usagePct=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{style:'percent',maximumFractionDigits:1}).format(value);
@@ -731,6 +819,7 @@ async function loadUsage(){
   finally{if(revision===usageState.revision){usageState.loading=false;syncExportButton();syncArchiveButton();$('usage-content').setAttribute('aria-busy','false');restoreActionFocus();}}
 }
 async function refreshUsage(){
+  if(usageState.workBusy||usageState.stopped)return;
   rememberActionFocus($('usage-refresh'));
   clearUsageDownload();
   $('usage-refresh').disabled=true;$('usage-status').textContent=t('reading');$('usage-progress').hidden=false;
@@ -745,6 +834,7 @@ function renderUsage(data){
   const selected=$('usage-project').value;$('usage-project').replaceChildren(node('option','',t('project_all')));$('usage-project').firstChild.value='all';
   for(const project of data.project_options){const option=node('option','',project.name);option.value=project.id;$('usage-project').append(option);}$('usage-project').value=data.project_options.some(p=>p.id===selected)?selected:'all';
   if(restoreUsageSelection(data))return;
+  renderWorkItems(data);
   $('usage-content').hidden=!data.has_snapshot;$('usage-empty').hidden=!data.has_snapshot||Boolean(data.totals.sessions);
   for(const id of ['usage-totals','usage-mix','usage-columns','usage-session-section'])$(id).hidden=!data.totals.sessions;
   const noFiles=!data.sources.claude_files&&!data.sources.codex_files;
@@ -975,7 +1065,7 @@ function openUsageSession(session){
   for(const note of session.notes)content.append(node('p','section-note',note));
   if(session.quota_burn.length)content.append(node('p','section-note',t('burn',{items:session.quota_burn.map(w=>t('burn_item',{window:usageWindow(w.window_minutes),points:w.percentage_points})).join(' · ')})));
   renderGitActivity(content,session.git_activity);
-  content.append(node('p','section-note',t('metadata_note')));$('usage-session-dialog').showModal();
+  content.append(node('p','section-note',t('metadata_note')));workState.openSession=session.id;renderSessionWorkItems();$('usage-session-dialog').showModal();
 }
 async function inspectUsageSession(id){
   const request=(usageState.sessionRequest||0)+1,revision=usageState.revision;usageState.sessionRequest=request;
@@ -999,7 +1089,7 @@ function clearUsageBackupDownload(){
 function syncBackupControls(){
   const download=$('usage-backup-download'),check=$('usage-backup-check'),file=$('usage-backup-file');
   if(!download||!check||!file)return;
-  const data=usageState.data,busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy;
+  const data=usageState.data,busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||usageState.workBusy;
   const unavailable=!data?.has_snapshot||data.demo||!data.archive?.available;
   download.disabled=Boolean(busy||unavailable);check.disabled=Boolean(busy||unavailable||!file.files?.length);file.disabled=Boolean(busy||unavailable);
   download.textContent=t(usageState.backupBusy==='download'?'backup_preparing':'backup_download');
@@ -1036,7 +1126,7 @@ async function checkUsageBackup(){
   try{
     const response=await backupResponse('/api/usage/backup/check',file,'application/octet-stream'),value=(await response.json()).backup;
     if(usageState.stopped)return;
-    $('usage-backup-result').textContent=t('backup_checked',{version:value.version,date:usageDate(value.created_at),files:number(value.archive_files),verdicts:number(value.verdicts),quota:number(value.quota_samples),retention:t(value.retention_enabled?'retention_short_on':'retention_short_off')});
+    $('usage-backup-result').textContent=t('backup_checked',{version:value.version,date:usageDate(value.created_at),files:number(value.archive_files),verdicts:number(value.verdicts),works:number(value.work_items??0),links:number(value.work_links??0),quota:number(value.quota_samples),retention:t(value.retention_enabled?'retention_short_on':'retention_short_off')});
     $('usage-backup-result').hidden=false;
   }catch(error){if(!usageState.stopped)notice(error.message);}
   finally{usageState.backupBusy=null;syncArchiveButton();syncExportButton();restoreActionFocus();}
@@ -1044,12 +1134,13 @@ async function checkUsageBackup(){
 function syncArchiveButton(){
   const button=$('usage-archive-clear'),archive=usageState.data?.archive;
   if(!button)return;
-  const busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy;
+  const busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||usageState.workBusy;
   button.disabled=Boolean(busy||!archive?.available||(!archive?.stored_bytes&&!archive?.stored_files&&!archive?.errors));
   button.textContent=t(usageState.archiveClearing?'archive_clearing':'archive_clear');
   button.setAttribute('aria-busy',String(Boolean(usageState.archiveClearing)));
   for(const id of ['usage-retention','usage-cache-reset'])if($(id))$(id).disabled=Boolean(busy||!archive?.available);
   syncBackupControls();
+  if($('usage-work-items'))syncWorkControls();
 }
 function renderUsageArchive(data){
   const archive=data.archive,box=$('usage-archive-controls');
@@ -1064,7 +1155,7 @@ function renderUsageArchive(data){
   syncArchiveButton();
 }
 async function changeMetadata(action){
-  if(usageState.stopped||usageState.metadataChanging||usageState.exporting||usageState.archiveClearing||usageState.backupBusy)return;
+  if(usageState.stopped||usageState.metadataChanging||usageState.exporting||usageState.archiveClearing||usageState.backupBusy||usageState.workBusy)return;
   const retention=action==='retention',control=$(retention?'usage-retention':'usage-cache-reset');
   rememberActionFocus(control);usageState.metadataChanging=true;clearUsageDownload();syncArchiveButton();syncExportButton();notice('');
   try{await post(retention?'/api/usage/retention':'/api/usage/cache/reset',retention?{enabled:Boolean(control.checked)}:{});if(usageState.stopped)return;usageState.revision=(usageState.revision||0)+1;usageState.data=null;notice(t(retention?'retention_changed':'cache_reset_done'));await loadUsage();}
@@ -1100,7 +1191,7 @@ function syncExportButton(){
   const filters=usageState.data?.filters;
   const matches=filters&&String(filters.days)===$('usage-period').value&&filters.agent===$('usage-agent').value&&filters.project===$('usage-project').value;
   const button=$('usage-export');
-  button.disabled=Boolean(usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||!usageState.data?.has_snapshot||!matches);
+  button.disabled=Boolean(usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||usageState.workBusy||!usageState.data?.has_snapshot||!matches);
   button.textContent=t(usageState.exporting?'export_preparing':'export');
   button.setAttribute('aria-busy',String(usageState.exporting));
 }
@@ -1124,6 +1215,152 @@ function showMoreUsageSessions(){
   usageState.pageSize+=20;renderUsageSessions();
   $('usage-sessions').querySelectorAll('button')[previous]?.focus();
 }
+// Work titles are manual, private metadata. Keep their state separate from measured usage.
+const workState={ready:false,selected:'',pageSize:20,createDraft:'',renameDrafts:{},sessionDrafts:{},sessionChoices:{},openSession:null,action:0,navigation:false,needsRefresh:false,deleteID:null};
+function workViewMemory(){return {selected:workState.selected,create:workState.createDraft,rename:workState.renameDrafts};}
+function restoreWorkMemory(){
+  if(workState.ready)return;workState.ready=true;
+  const saved=usageState.workRestore;delete usageState.workRestore;
+  if(!saved||typeof saved!=='object')return;
+  if(typeof saved.selected==='string'&&/^[a-f0-9]{24}$/.test(saved.selected))workState.selected=saved.selected;
+  if(typeof saved.create==='string')workState.createDraft=saved.create.slice(0,240);
+  if(saved.rename&&typeof saved.rename==='object')for(const [id,title] of Object.entries(saved.rename).slice(0,200))if(/^[a-f0-9]{24}$/.test(id)&&typeof title==='string')workState.renameDrafts[id]=title.slice(0,240);
+}
+function workProjection(){return usageState.data?.work_items;}
+function selectedWork(){return workProjection()?.items?.find(item=>item.id===workState.selected);}
+function workLabel(item){return item.title+' · #'+item.id.slice(0,8);}
+function workBlocked(){return Boolean(usageState.stopped||workState.navigation||usageState.loading||usageState.workBusy||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||usageState.data?.state==='scanning'||!usageState.data?.has_snapshot||workProjection()?.readable!==true||workState.needsRefresh);}
+function validWorkTitle(value){const title=value.trim();return [...title].length>0&&[...title].length<=120&&!/[\u0000-\u001f\u007f-\u009f\ud800-\udfff\u2028\u2029]/u.test(title);}
+function workUsageText(key,value){const share=value.api_priced_share,api=!value.total_tokens?'—':!share?t('work_unpriced'):share<0.9995?t('work_api_covered',{amount:usageUsd(value.api_usd),share:usagePct(share)}):usageUsd(value.api_usd);return t(key,{tokens:number(value.total_tokens),calls:value.calls_complete===false?t('unknown'):number(value.calls),api});}
+function workQualityLimited(value){return ['tokens_complete','calls_complete','attribution_complete','models_complete'].some(key=>value[key]===false);}
+function syncWorkControls(){
+  const box=$('usage-work-items');if(!box)return;
+  const blocked=workBlocked(),item=selectedWork();
+  for(const root of [box,$('usage-session-work-items')])if(root)for(const control of root.querySelectorAll('button,input,select'))control.disabled=blocked;
+  $('usage-work-create').disabled=blocked||!validWorkTitle($('usage-work-create-title').value);
+  $('usage-work-select').disabled=blocked||!workProjection()?.items?.length;
+  $('usage-work-rename').disabled=blocked||!item||!validWorkTitle($('usage-work-rename-title').value)||$('usage-work-rename-title').value.trim()===item.title;
+  $('usage-work-delete').disabled=blocked||!item;
+  $('usage-work-reload').hidden=workProjection()?.readable===true&&!workState.needsRefresh;
+  $('usage-work-reload').disabled=Boolean(usageState.stopped||workState.navigation||usageState.loading||usageState.workBusy||usageState.data?.state==='scanning');
+  $('usage-work-create').textContent=t(usageState.workBusy==='create'?'work_saving':'work_create');
+  const choice=$('usage-session-work-select'),link=$('usage-session-work-link'),create=$('usage-session-work-create'),title=$('usage-session-work-title');
+  if(choice){choice.disabled=blocked||choice.options.length<=1;link.disabled=blocked||!choice.value;create.disabled=blocked||!validWorkTitle(title.value);}
+  const deleting=Boolean(usageState.workBusy&&workState.deleteID);
+  $('usage-work-delete-confirm').disabled=blocked||!workState.deleteID;
+  $('usage-work-delete-cancel').disabled=Boolean(usageState.stopped||deleting);
+  $('usage-work-delete-confirm').textContent=t(deleting?'work_saving':'work_delete_confirm');
+  box.setAttribute('aria-busy',String(Boolean(usageState.workBusy)));
+}
+function renderWorkItems(data){
+  restoreWorkMemory();workState.needsRefresh=false;
+  const box=$('usage-work-items'),value=data.work_items,readable=value?.readable===true,items=readable?value.items:[];
+  box.hidden=!data.has_snapshot;$('usage-work-unavailable').hidden=readable;
+  $('usage-work-empty').hidden=!readable||items.length>0;
+  $('usage-work-summary').hidden=!readable||!items.length;
+  $('usage-work-create-title').value=workState.createDraft;
+  const picker=$('usage-work-select');picker.replaceChildren();
+  if(!items.length){const empty=node('option','',t('work_choose'));empty.value='';picker.append(empty);}
+  for(const item of items){const option=node('option','',workLabel(item));option.value=item.id;picker.append(option);}
+  if(readable&&!items.some(item=>item.id===workState.selected))workState.selected=items[0]?.id||'';
+  picker.value=workState.selected;
+  if(readable&&items.length){
+    const summary=value.summary;
+    $('usage-work-summary').replaceChildren(node('span','',t('work_summary',{works:number(summary.items),selected:number(summary.selected_sessions),unassigned:number(summary.unassigned_sessions),outside:number(summary.outside_selection),missing:number(summary.missing_sessions),overlap:number(summary.overlapping_sessions)})));
+    if(summary.selected_sessions)$('usage-work-summary').append(node('strong','work-union',workUsageText('work_union',summary)));
+    if(summary.selected_sessions&&workQualityLimited(summary))$('usage-work-summary').append(node('span','section-note work-summary-quality',t('work_quality')));
+  }
+  renderSelectedWork();renderSessionWorkItems();syncWorkControls();
+}
+function renderSelectedWork(){
+  const item=selectedWork(),readable=workProjection()?.readable===true;
+  $('usage-work-selected').hidden=!readable||!item;if(!readable||!item)return;
+  $('usage-work-rename-title').value=workState.renameDrafts[item.id]??item.title;
+  $('usage-work-counts').textContent=t('work_counts',{linked:number(item.linked_sessions),available:number(item.linked_sessions-item.missing_sessions),selected:number(item.selected_sessions),outside:number(item.outside_selection),missing:number(item.missing_sessions),overlap:number(item.overlapping_sessions)});
+  $('usage-work-usage').textContent=item.selected_sessions?workUsageText('work_usage',item):t('work_no_selection');
+  $('usage-work-quality').hidden=!item.selected_sessions||!workQualityLimited(item);
+  const list=$('usage-work-members'),rows=new Map((usageState.data.sessions||[]).map(row=>[row.id,row])),missing=new Set(item.missing_session_ids),outside=new Set(item.outside_session_ids);
+  list.replaceChildren();
+  for(const id of item.session_ids.slice(0,workState.pageSize)){
+    const line=node('li','work-member'),label=node('div','work-member-label'),row=rows.get(id),code=id.slice(0,8);
+    if(missing.has(id))label.append(node('span','', '#'+code),node('small','work-missing',t('work_missing')));
+    else{const open=node('button','text-button',(row?row.project+' · '+(usageAgents[row.agent]||row.agent)+' · ':'')+'#'+code);open.type='button';open.addEventListener('click',()=>{if(usageState.stopped)return;if(row)openUsageSession(row);else inspectUsageSession(id);});label.append(open);if(outside.has(id))label.append(node('small','',t('work_outside')));}
+    const unlink=node('button','quiet work-unlink',t('work_unlink'));unlink.type='button';unlink.setAttribute('aria-label',t('work_unlink_label',{code,title:item.title}));unlink.addEventListener('click',()=>performWorkAction({action:'unlink',id:item.id,session:id},{focus:'work'}));
+    line.append(label,unlink);list.append(line);
+  }
+  $('usage-work-no-members').hidden=item.session_ids.length>0;
+  $('usage-work-more').hidden=item.session_ids.length<=workState.pageSize;
+  $('usage-work-more').textContent=t('work_more',{n:number(Math.min(20,item.session_ids.length-workState.pageSize))});
+}
+function renderSessionWorkItems(){
+  const session=workState.openSession;if(!session)return;
+  let box=$('usage-session-work-items');if(!box){box=node('section','session-work-items');box.id='usage-session-work-items';$('usage-session-detail').append(box);}
+  box.replaceChildren(node('h3','',t('work_title')),node('p','section-note',t('work_session_note')));
+  const value=workProjection();
+  if(value?.readable!==true){box.append(node('p','notice',t('work_unreadable')));return;}
+  const linked=value.items.filter(item=>item.session_ids.includes(session)),available=value.items.filter(item=>!item.session_ids.includes(session));
+  if(!linked.length)box.append(node('p','section-note',t('work_linked_none')));
+  const list=node('ul','work-members');
+  for(const item of linked){const line=node('li','work-member'),unlink=node('button','quiet work-unlink',t('work_unlink'));unlink.type='button';unlink.setAttribute('aria-label',t('work_unlink_label',{code:session.slice(0,8),title:item.title}));unlink.addEventListener('click',()=>performWorkAction({action:'unlink',id:item.id,session},{focus:'session',session}));line.append(node('span','',workLabel(item)),unlink);list.append(line);}box.append(list);
+  const form=node('form','work-form'),label=node('label','',t('work_link_choose')),controls=node('div','work-input-action'),select=node('select',''),link=node('button','secondary',t('work_link'));select.id='usage-session-work-select';label.htmlFor=select.id;link.id='usage-session-work-link';link.type='submit';
+  const empty=node('option','',t('work_choose'));empty.value='';select.append(empty);
+  for(const item of available){const option=node('option','',workLabel(item));option.value=item.id;select.append(option);}
+  select.value=available.some(item=>item.id===workState.sessionChoices[session])?workState.sessionChoices[session]:'';
+  select.addEventListener('change',()=>{workState.sessionChoices[session]=select.value;syncWorkControls();});
+  form.addEventListener('submit',event=>{event.preventDefault();if(select.value)performWorkAction({action:'link',id:select.value,session},{focus:'session',session});});controls.append(select,link);form.append(label,controls);box.append(form);
+  const createForm=node('form','work-form'),createLabel=node('label','',t('work_new_title')),createControls=node('div','work-input-action'),title=node('input',''),create=node('button','secondary',t('work_create_link'));title.id='usage-session-work-title';title.maxLength=240;title.autocomplete='off';title.placeholder=t('work_placeholder');title.value=workState.sessionDrafts[session]||'';createLabel.htmlFor=title.id;create.id='usage-session-work-create';create.type='submit';
+  title.addEventListener('input',()=>{workState.sessionDrafts[session]=title.value;syncWorkControls();});createForm.addEventListener('submit',event=>{event.preventDefault();createWork(session);});createControls.append(title,create);createForm.append(createLabel,createControls);box.append(createForm,node('p','section-note',t('work_privacy')));
+  const status=node('p','section-note');status.id='usage-session-work-status';status.setAttribute('role','status');box.append(status);
+  syncWorkControls();
+}
+function createWork(session=null){
+  const title=session?workState.sessionDrafts[session]||'':workState.createDraft;
+  if(!validWorkTitle(title)){notice(t('work_title_invalid'));return;}
+  return performWorkAction({action:'create',title:title.trim(),...(session?{session}:{})},{focus:session?'session':'work',session});
+}
+function renameWork(){
+  const item=selectedWork(),title=$('usage-work-rename-title').value;
+  if(!item)return;if(!validWorkTitle(title)){notice(t('work_title_invalid'));return;}
+  return performWorkAction({action:'rename',id:item.id,title:title.trim()},{focus:'rename'});
+}
+function requestWorkDelete(){
+  const item=selectedWork();if(workBlocked()||!item)return;
+  workState.deleteID=item.id;$('usage-work-delete-name').textContent=workLabel(item);$('usage-work-delete-status').textContent='';$('usage-work-delete-dialog').showModal();syncWorkControls();$('usage-work-delete-cancel').focus();
+}
+function cancelWorkDelete(){if(usageState.workBusy)return;workState.deleteID=null;$('usage-work-delete-dialog').close();$('usage-work-delete').focus();}
+function sessionWorkMessage(context,message){if(context.session&&context.session===workState.openSession&&$('usage-session-work-status'))$('usage-session-work-status').textContent=message;}
+async function performWorkAction(body,context={}){
+  if(workBlocked())return false;
+  const action=++workState.action,current=()=>!usageState.stopped&&!workState.navigation&&action===workState.action;
+  usageState.workBusy=body.action;syncArchiveButton();syncExportButton();syncWorkControls();notice('');
+  sessionWorkMessage(context,t('work_saving'));
+  if(workState.deleteID)$('usage-work-delete-status').textContent=t('work_saving');
+  try{
+    const result=await post('/api/usage/work',body);if(!current())return false;
+    if(result.ok!==true)throw new Error(t('work_failed'));
+    if(body.action==='create'){
+      workState.selected=result.id;workState.pageSize=20;
+      if(body.session)delete workState.sessionDrafts[body.session];else workState.createDraft='';
+    }
+    if(body.action==='rename')delete workState.renameDrafts[body.id];
+    if(body.action==='link')delete workState.sessionChoices[body.session];
+    if(body.action==='delete'){
+      delete workState.renameDrafts[body.id];if(workState.selected===body.id)workState.selected='';
+      workState.deleteID=null;$('usage-work-delete-dialog').close();
+    }
+    const previous=usageState.data;await loadUsage();if(!current())return false;
+    workState.needsRefresh=usageState.data===previous;
+    const message=t(workState.needsRefresh?'work_saved_refresh':'work_saved');notice(message);sessionWorkMessage(context,message);
+    return true;
+  }catch(error){if(current()){notice(error.message);sessionWorkMessage(context,error.message);if(workState.deleteID)$('usage-work-delete-status').textContent=error.message;}return false;}
+  finally{
+    usageState.workBusy=false;syncArchiveButton();syncExportButton();syncWorkControls();
+    if(current()){
+      const target=context.focus==='session'&&workState.openSession===context.session?$('usage-session-work-select'):context.focus==='rename'?$('usage-work-rename-title'):$('usage-work-select');
+      if(target&&!target.disabled&&!$('usage-work-delete-dialog').open)target.focus();
+    }
+  }
+}
 function reconnectFromAccessLink(){if(/^#access=[a-f0-9]{64}$/.test(location.hash))location.reload();}
 applyLanguage();
 $('lang-toggle').addEventListener('click',switchLanguage);$('close-app').addEventListener('click',closeApp);$('usage-refresh').addEventListener('click',refreshUsage);$('usage-export').addEventListener('click',exportUsage);$('usage-close-session').addEventListener('click',()=>$('usage-session-dialog').close());$('usage-more').addEventListener('click',showMoreUsageSessions);
@@ -1133,6 +1370,18 @@ $('usage-cache-reset').addEventListener('click',()=>changeMetadata('cache'));
 $('usage-backup-download').addEventListener('click',downloadUsageBackup);
 $('usage-backup-check').addEventListener('click',checkUsageBackup);
 $('usage-backup-file').addEventListener('change',()=>{$('usage-backup-result').hidden=true;syncBackupControls();});
+$('usage-work-create-title').addEventListener('input',()=>{workState.createDraft=$('usage-work-create-title').value;syncWorkControls();});
+$('usage-work-create-form').addEventListener('submit',event=>{event.preventDefault();createWork();});
+$('usage-work-select').addEventListener('change',()=>{workState.selected=$('usage-work-select').value;workState.pageSize=20;renderSelectedWork();syncWorkControls();});
+$('usage-work-rename-title').addEventListener('input',()=>{if(workState.selected)workState.renameDrafts[workState.selected]=$('usage-work-rename-title').value;syncWorkControls();});
+$('usage-work-rename-form').addEventListener('submit',event=>{event.preventDefault();renameWork();});
+$('usage-work-more').addEventListener('click',()=>{workState.pageSize+=20;renderSelectedWork();syncWorkControls();});
+$('usage-work-delete').addEventListener('click',requestWorkDelete);
+$('usage-work-reload').addEventListener('click',loadUsage);
+$('usage-work-delete-cancel').addEventListener('click',cancelWorkDelete);
+$('usage-work-delete-confirm').addEventListener('click',()=>{if(workState.deleteID)performWorkAction({action:'delete',id:workState.deleteID},{focus:'work'});});
+$('usage-work-delete-dialog').addEventListener('cancel',event=>{if(usageState.workBusy)event.preventDefault();else workState.deleteID=null;});
+$('usage-session-dialog').addEventListener('close',()=>{workState.openSession=null;usageState.sessionRequest=(usageState.sessionRequest||0)+1;});
 $('usage-export-mask').addEventListener('change',()=>{clearUsageDownload();syncExportButton();});
 $('usage-quality-only').addEventListener('change',()=>{usageState.pageSize=20;renderUsageSessions();});
 $('usage-quality-show').addEventListener('click',()=>{$('usage-quality-only').checked=true;$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-section').scrollIntoView({block:'start'});$('usage-quality-only').focus();});

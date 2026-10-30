@@ -8,7 +8,7 @@ From `product/`, with Python and build tools already installed:
 
 ```text
 python -m unittest discover -s tests
-node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs tests/test_lowlevel_view.cjs tests/test_verdict_view.cjs tests/test_backup_view.cjs
+node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs tests/test_lowlevel_view.cjs tests/test_verdict_view.cjs tests/test_backup_view.cjs tests/test_work_items_view.cjs
 python -m pip wheel . --no-deps --no-build-isolation --wheel-dir dist
 python -m venv .qa-venv
 ```

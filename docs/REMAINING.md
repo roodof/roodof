@@ -1,6 +1,6 @@
 # PLER — güncel kalan işler
 
-30 Ekim 2026; güncel uygulama 0.2.25, son test edilen uygulama commit'i `a78f0b6` (önceki özellik commit'i `9a428d6`). Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
+30 Ekim 2026; güncel uygulama 0.2.26 (Y01 iş bağlama), önceki uygulama commit'i `a78f0b6` (0.2.25). Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
 
 Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Her başlığın tamamlanma durumu ayrıca yazılıdır; bir özelliğin uygulanması gerçek kullanıcı faydasının veya ödeme isteğinin kanıtı değildir.
 
@@ -10,7 +10,7 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y01 — Oturumları yapılan işe bağlama
 
-**Durum:** Planlandı; ürün geliştirmesi. **Öncelik:** Y06 tamamlandıktan sonra önerilen ilk iş değeri geliştirmesi.
+**Durum:** 0.2.26'da yerel kapsamla tamamlandı; gerçek kullanıcı değeri pilotta sınanmadı. Kanıt: [iş bağlama raporu](../../reports/work-items-v1/REPORT.md). Kaynak testleri Windows Python 3.9 717 geçti/13 atlandı, 3.12 721 çalıştı/0 hata, 3.14 730 çalıştı/0 hata; Linux WSL `/tmp` ve `/var` 730/730; Node 62/62; kurulu wheel ve portable pakette uydurma iş örnekleri, yedek/geri yükleme ve dışa aktarım sınırı doğrulandı. CI hesap ödeme/harcama limiti engeli nedeniyle çalıştırılmadı.
 
 - Kullanıcı birkaç Claude/Codex oturumunu kendi seçtiği bir işe bağlayabilsin. Aynı oturum birkaç işle ilişkiliyse bu belirsizlik görülsün; tutarı kanıtsız oranlarla bölüştürme.
 - Başlık/etiket gibi isteğe bağlı kullanıcı girdilerinin yerel saklama, silme, yedek ve dışa aktarma kapsamını açık tanımla. Ajan konuşmalarını toplamak gerekmesin.
@@ -122,7 +122,7 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 
 ## Önerilen yürütme sırası ve kapanış disiplini
 
-1. Y06 belirtilen yerel kurtarma kapsamıyla tamamlandı. Sonraki önerilen geliştirme Y01 iş bağlama; bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
+1. Y06 belirtilen yerel kurtarma kapsamıyla, Y01 iş bağlama 0.2.26'da yerel kapsamla tamamlandı. Bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
 2. Y01'den sonra Y03 hedef/sonuç ve Y02 karar takibi; Y04/Y05 kullanıcı yanlış anlamalarını kapatacak kapsamda ilerler. Y07'nin tamamlanabilir yerel kabul hazırlığı sürdürülür; dış engel/kararlar ayrı görünür.
 3. Kullanıcının ürünü hazır bulmasına kadar reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur ve sonraki gerçek kanıt önceliği değiştirebilir.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.

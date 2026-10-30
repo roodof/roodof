@@ -26,6 +26,7 @@ from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
+from .usage import work_items as work_rules
 from .usage.checks import summary as check_summary
 from .usage.insights import tests as test_insight
 from .usage.summary import summarize, quota_burn
@@ -243,6 +244,14 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     verdicts=sources.get('verdicts') or {}
     public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts) for s in rows),
                            key=lambda row:(row['total_tokens'],row['ended'] or ''),reverse=True)
+    # Work subtotals round only after summing the original recorded price values.
+    # The ordinary session row's display amount is already rounded to cents.
+    recorded={session_code(session):session for session in rows}
+    work_rows=[dict(row,api_usd=recorded[row['id']].api_usd,
+                    api_priced_tokens=recorded[row['id']].api_priced_tokens) for row in public_sessions]
+    work=work_rules.project(sources.get('work_items') or {},work_rows,
+                            all_session_ids={session_code(session) for session in sessions})
+    work['readable']=not sources.get('work_items_error',False)
     return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
@@ -257,6 +266,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                     + test_insight(rows, lang),
                 checks=check_summary(rows),
                 verdicts=dict(verdict_summary(public_sessions,verdicts),readable=not sources.get('verdicts_error')),
+                work_items=work,
                 git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
@@ -267,9 +277,11 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
 
 
 class UsageDashboard:
-    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None):
+    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None, work_items=None):
         self.reader = reader or Rescan()
         self.verdict_store = verdicts or Folder()
+        self.work_store = work_items if work_items is not None else work_rules.Folder()
+        self._demo_work_store = work_rules.Memory()
         self.survival_store = survival or Saved()
         self.git_reader = git_reader or read_repository
         self.lock = threading.RLock()
@@ -391,6 +403,8 @@ class UsageDashboard:
         """An already-read row outside the current filters; never opens a source."""
         with self.lock:
             self._check_archive_generation()
+            if self.scanned_at is not None:
+                self.sources.update(self._read_work_items())
             project_names=labels([s.project for s in self.sessions],lang=lang)
             for session in self.sessions:
                 if session_code(session)==identity:
@@ -402,6 +416,37 @@ class UsageDashboard:
             return dict(verdicts=self.verdict_store.read(), verdicts_error=False)
         except (OSError, ValueError, TypeError, UnicodeError):
             return dict(verdicts={}, verdicts_error=True)
+
+    def _work_items_store(self,demo=None):
+        # Even a custom demo reader cannot fall through to a real on-disk store.
+        demo=bool(self.sources.get('demo')) if demo is None else demo
+        return self._demo_work_store if demo else self.work_store
+
+    def _read_work_items(self,demo=None):
+        try:
+            return dict(work_items=self._work_items_store(demo).read(),work_items_error=False)
+        except (OSError,ValueError,TypeError,UnicodeError):
+            return dict(work_items={},work_items_error=True)
+
+    def mutate_work_item(self,action,identity=None,title=None,session=None):
+        """Change only explicit user work annotations; never rescan logs or infer an assignment."""
+        with self.lock:
+            if self._closed or self.scanned_at is None:
+                return dict(ok=False,reason='unavailable')
+            self.sources.update(self._read_work_items())
+            if self.sources.get('work_items_error'):
+                return dict(ok=False,reason='unreadable')
+            if action=='link' or (action=='create' and session is not None):
+                if not any(session_code(row)==session for row in self.sessions):
+                    return dict(ok=False,reason='missing_session')
+            try:
+                value=self._work_items_store().mutate(action,identity=identity,title=title,session=session)
+            except work_rules.WorkError as error:
+                return dict(ok=False,reason=error.code if error.code in ('missing','limit') else 'invalid')
+            except (OSError,ValueError,TypeError,UnicodeError,KeyError):
+                return dict(ok=False,reason='unsaved')
+            self.sources.update(work_items=value['items'],work_items_error=False)
+            return dict(ok=True,id=value['id'])
 
     def set_verdict(self, identity, verdict):
         """Save the user's verdict for a session of the current snapshot; never one PLER has not shown."""
@@ -456,6 +501,7 @@ class UsageDashboard:
                     return
                 # Read under the lock so a verdict saved during the scan is not replaced by an older copy.
                 sources.update(self._read_verdicts())
+                sources.update(self._read_work_items(demo=bool(sources.get('demo'))))
                 self.sessions, self.sources = sessions, sources
                 self.scanned_at = datetime.now(timezone.utc).isoformat()
                 self.state, self.error = 'ready', None
@@ -472,6 +518,8 @@ class UsageDashboard:
     def view(self, days=30, agent='all', project='all', lang='en'):
         with self.lock:
             self._check_archive_generation()
+            if self.scanned_at is not None:
+                self.sources.update(self._read_work_items())
             value = project_view(self.sessions, self.sources, days, agent, project, lang=lang)
             value.update(state=self.state, scanned_at=self.scanned_at, error=self.error and say(value['lang'], self.error),
                          has_snapshot=self.scanned_at is not None)

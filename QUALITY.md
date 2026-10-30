@@ -2,6 +2,12 @@
 
 **Güncel kalan işler:** [docs/REMAINING.md](docs/REMAINING.md). 30 Ekim 2026 satın alma değerlendirmesindeki yedi başlık, önceki altı ayrı iş, kapanış ölçütleri ve önerilen sıra burada tutulur. Dağıtım/CI/temiz makine/imza/tarayıcı kabulü tek başlık altında; ürün geliştirmesi, gerçek kullanıcı kanıtı ve kayıttan bilinemez sınırlar ayrı. Aşağıdaki tarihsel “açık” notlar sonraki sürümlerin kapanış kanıtlarıyla birlikte okunur; giderilmiş kusurlar tekrar iş sayılmaz.
 
+## 30 Ekim: 0.2.26 — oturumları yapılan işe bağlama (Y01)
+
+Kullanıcı kendi adlandırdığı işler oluşturup Claude Code/Codex oturumlarını bağlayabilir; ad değiştirme, bağlantı kaldırma ve silme kayıtları, değerlendirmeleri ve kullanım toplamlarını değiştirmez. Ortak oturumlar iş ara toplamlarında tekrar görünür ama atanmış iş özeti her oturumu bir kez sayar; filtre dışı ve bulunamayan bağlantılar ayrı gösterilir, taşınan oturum başka kimliğe bağlanmaz. `work-items.json` yalnız iş adı, zamanlar ve 24 karakterlik sayfa oturum kodlarını tutar; sınırlı ve doğrulanır, bozuk/yeni dosyanın üzerine yazılmaz. Olağan JSON dışa aktarımı iş adlarını ve bağlantıları içermez; özel yedek/geri yükleme içerir, 0.2.25 yedekleri iş dosyası olmadan kullanılabilir. Demo işleri bellekte kalır.
+
+Codex özelliği, kurulu paket/portable/arayüz kanıtlarını tamamladı ve rapor/commit'ten önce durdu. Claude denetledi: Windows Python 3.9 717 geçti/13 atlandı, Python 3.14 730/0 hata; Linux WSL `/tmp` ve `/var` 730/730; Node 62/62. Codex'in tek Linux hatası (yedek dosyası izni 0777) geçici klasörün Windows diskinde (`/mnt/c`) açılmasından geldi; Linux dosya sisteminde test geçiyor. Gerçek veride 19 depoda kod sayımı 0.2.22 ile aynı sonucu ve süreyi verdi (97 commit, 28.763 eklenen / 27.558 yerinde satır, ~1,4 s). Parser ve şema değişmedi. CI hesap ödeme/harcama limiti engeli nedeniyle çalıştırılmadı. Kanıt: [iş bağlama raporu](../reports/work-items-v1/REPORT.md).
+
 ## 30 Ekim: 0.2.25 — doğrulanmış yerel yedekleme ve yeni klasöre kurtarma
 
 Kullanıcı aylık yaklaşık 3 dolar abonelik düşündüğünü, ürün içine sinmeden reklam veya deneyecek kişi arama başlatılmamasını söyledi. Bu fiyat kesinleşmiş değildir; ücretli talep veya düzenli fayda kanıtı yoktur. İlk yetkilendirilen geliştirme Y06 olarak uygulandı. Profesyonel pilot ve katılımcı arama kullanıcı ürünü hazır bulana kadar ertelendi; pilot ölçütleri değişmedi.

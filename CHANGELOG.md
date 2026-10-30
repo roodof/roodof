@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.26 — 2026-10-30 (private candidate)
+
+- Add user-named local work items and explicit links to Claude Code/Codex sessions. Create, rename, link, unlink and delete work without changing logs, verdicts or usage totals. Demo work stays in memory.
+- Show selected, outside-filter and unavailable linked sessions. Overlapping work subtotals are not additive; the assigned-work summary uses their session union once. Missing or changed identities are never rebound by names or inferred native IDs.
+- Bound and validate the local work store; preserve damaged/newer files instead of overwriting. Work titles render as text and ordinary JSON exports omit titles and memberships, even when project masking is off.
+- Include validated work items and links in private backup/recovery. Older 0.2.25 backups without a work file remain usable; saved titles are private and unencrypted like other backup metadata.
+- Application version advances; token/pricing accounting, parser `accounting-2026-10-30.3` and schema 2 stay unchanged. Grouping does not infer task completion, cost allocation, code quality or savings.
+
 ## 0.2.25 — 2026-10-30 (private candidate)
 
 - Add a versioned, verified private backup of retained metadata, session verdicts, retention preference and Claude quota samples. Snapshot only saved allowlisted files under the archive/quota writers' locks; never rescan original logs for backup.

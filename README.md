@@ -44,9 +44,19 @@ pler demo               # the page with invented logs and an invented Git reposi
 
 **Offline help:** the page's Help link opens versioned English/Turkish documentation included with the installed package. It explains privacy, safe cache reset, retained history, report periods, quality and support. The accounting contract is included too; no source checkout or Internet connection is required.
 
+## Organize sessions around your work
+
+**My work** lets you create a name for an actual task and link the Claude Code and Codex sessions you used for it. Create a work item, then open a session's details to link it; one session can belong to several work items. Rename an item or remove a link without changing the agent logs or session verdicts. Deleting an item removes only that item and its links; an older private backup may still contain them.
+
+Work subtotals follow the current period/agent/project selection and cover the selected sessions in full. A session in two work items contributes to both subtotals, while the overall assigned-work summary counts it once. Do not add the work subtotals together. This grouping does not allocate a session's tokens between different tasks or establish a task's cost, completion or quality.
+
+The view distinguishes selected sessions, known sessions outside the current filters and unavailable references. A moved source or changed session identity does not silently reattach to another session. Missing references remain visible so you can remove or review them; they contribute no invented usage.
+
+Work names and opaque session links are saved only on this computer in `work-items.json` and included in private backups. They are **excluded from ordinary JSON reports**, including unmasked reports. Work names are user-entered private metadata; prompts and replies are not collected for grouping. Demo work stays in memory and disappears when the demo closes.
+
 ## Verified private backup and recovery
 
-Open **Local history and reader cache** to download a private backup or check a selected backup on this computer. A backup covers saved history, session verdicts, retention preference and Claude quota observations, independently of the report filters. It does not read original agent logs or include reader/code caches, demo data, agent settings or access tokens.
+Open **Local history and reader cache** to download a private backup or check a selected backup on this computer. A backup covers saved history, session verdicts, retention preference, Claude quota observations and your work names and links, independently of the report filters. It does not read original agent logs or include reader/code caches, demo data, agent settings or access tokens.
 
 ```text
 pler backup create "my-history.pler-backup.zip"
