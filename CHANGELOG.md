@@ -1,5 +1,9 @@
 # Changes
 
+## 0.2.23 — 2026-10-30 (private candidate)
+
+- A speed guard in the test suite, so large slowdowns fail CI before a release. CI machines differ in speed, so it never compares with a fixed number of seconds. On invented logs shaped like real ones (about 13 MB), it compares timings taken in the same process: a first read against plain JSON parsing of the same bytes (limit 10, seen 2.8–4.3), a later read against parsing the reader caches (limit 60, seen 12–28) and a continued read of a grown log against a full read (limit 0.25, seen 0.02–0.03). These were measured on Windows with Python 3.9, 3.12 and 3.14 and on Linux with Python 3.14. The guard caught each injected regression: a tenfold slower reader, a tenfold slower merge and a lost continued read. Slowdowns below about twofold are left to the recorded measurements.
+
 ## 0.2.22 — 2026-10-30 (private candidate)
 
 - Keep the code-in-place counts across restarts. The page saves the four counts of each measured commit (added, kept, files, skipped) in `git-survival.json` in PLER's cache folder, each under a one-way digest of repository folder, HEAD and commit. No path, commit id, name or text is written. Counts from other counting code, damaged entries and counts cut short by the byte budget are never reused; `pler cache reset` removes the file. The demo keeps its counts in its own folder.
