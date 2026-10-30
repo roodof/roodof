@@ -1,5 +1,7 @@
 # Profesyonel neden kullanmaz?
 
+**Güncel kalan işler:** [docs/REMAINING.md](docs/REMAINING.md). 30 Ekim 2026 satın alma değerlendirmesindeki yedi başlık, önceki altı ayrı iş, kapanış ölçütleri ve önerilen sıra burada tutulur. Dağıtım/CI/temiz makine/imza/tarayıcı kabulü tek başlık altında; ürün geliştirmesi, gerçek kullanıcı kanıtı ve kayıttan bilinemez sınırlar ayrı. Aşağıdaki tarihsel “açık” notlar sonraki sürümlerin kapanış kanıtlarıyla birlikte okunur; giderilmiş kusurlar tekrar iş sayılmaz.
+
 ## 30 Ekim: 0.2.24 — doğruluk ve sınır denetimleri
 
 Claude'un 0.2.16–0.2.23 geliştirmeleri korundu. Yenilemede kaybolan okuma uyarıları, aynı boyut/tarihle değiştirilen dosyada eski cache isabeti, eski bölümün ortasındaki değişimi kaçıran artımlı okuma ve doğrulama/yeniden açma arasında dosya döndürülmesi düzeltildi. Hatalı görüntüler beş saniye sonra yeniden denenir. Yardım/listeleme/toplama/dry-run/yalnız derleme kipleri artık çalışmış test veya derleme olarak sayılmaz.
