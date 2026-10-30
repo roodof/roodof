@@ -1,8 +1,8 @@
 # PLER — güncel kalan işler
 
-30 Ekim 2026; Y06 için 0.2.25 geliştirme adayı hazırlanıyor. Son tamamlanmış 0.2.24 uygulama kanıtı `9891966` kaynağına dayanır. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
+30 Ekim 2026; güncel uygulama 0.2.25, son test edilen uygulama commit'i `a78f0b6` (önceki özellik commit'i `9a428d6`). Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
 
-Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Bu belge yeni özelliğin uygulanmış veya gerçek kullanıcı faydasının kanıtlanmış olduğu anlamına gelmez.
+Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Her başlığın tamamlanma durumu ayrıca yazılıdır; bir özelliğin uygulanması gerçek kullanıcı faydasının veya ödeme isteğinin kanıtı değildir.
 
 **Son kullanıcı yönlendirmesi:** Aylık yaklaşık 3 dolar abonelik düşünülüyor; bu kesinleşmiş fiyat veya ödeme isteğinin kanıtı değildir. Kullanıcının içine sinmeden reklam veya deneyecek kişi arama başlatılmayacak. Önce somut ürün eksikleri giderilecek; ilk yetkilendirilen geliştirme Y06 yedekleme/geri yüklemedir. E06 pilotu ve katılımcı arama bu yeni yönlendirme nedeniyle ertelendi; önceden belirlenen pilot ölçütleri değişmedi.
 
@@ -10,7 +10,7 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y01 — Oturumları yapılan işe bağlama
 
-**Durum:** Planlandı; ürün geliştirmesi. **Öncelik:** Değer geliştirmelerinde ilk.
+**Durum:** Planlandı; ürün geliştirmesi. **Öncelik:** Y06 tamamlandıktan sonra önerilen ilk iş değeri geliştirmesi.
 
 - Kullanıcı birkaç Claude/Codex oturumunu kendi seçtiği bir işe bağlayabilsin. Aynı oturum birkaç işle ilişkiliyse bu belirsizlik görülsün; tutarı kanıtsız oranlarla bölüştürme.
 - Başlık/etiket gibi isteğe bağlı kullanıcı girdilerinin yerel saklama, silme, yedek ve dışa aktarma kapsamını açık tanımla. Ajan konuşmalarını toplamak gerekmesin.
@@ -52,26 +52,25 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y06 — Doğrulanmış yedekleme ve geri yükleme
 
-**Durum:** 0.2.25'te uygulandı; son paket ve kurulu arayüz kabulü henüz bekliyor. **Öncelik:** Yeni kalıcı iş/karar verilerinden önce; kullanıcı bu geliştirmeye başlamayı açıkça istedi.
+**Durum:** 0.2.25'te tamamlandı; aşağıdaki yeni klasör/aynı bilgisayar ve kaynak kökleri kapsamıyla kaynak, kurulu paket, portable ve arayüz kanıtı var. Y07'nin geniş dağıtım ve fiziksel platform kabulü bundan ayrı ve açık kalır.
 
 - **Uygulanan kapsam:** `pler backup create`, `pler backup check` ve `pler backup restore ... --to YENİ_KLASÖR`. Yalnız PLER arşivi, saklama tercihi, oturum değerlendirmeleri ve kota örnekleri sürümlü, bütünlüğü doğrulanan yerel yedeğe alınır; yeniden kurulabilir önbellekler, ajan ayarları ve erişim anahtarları alınmaz.
 - Arayüzde özel yedek indirme ve seçilen dosyayı denetleme var. Geri yükleme komut satırından yalnız yeni, henüz var olmayan yerel klasöre yapılır; mevcut veri klasörü üzerine yazılmaz. Arayüzden tek tıkla geri yükleme bu adayın kapsamı değildir.
 - Geri yüklenen klasör her açılışta açıkça `pler --data-dir KLASÖR` ile seçilir; çalışan sayfa veya sonraki varsayılan açılış kendiliğinden değiştirilmez. Aynı bilgisayar ve özgün seçili kaynak kökleri için kurtarma sağlanır; başka bilgisayara taşıma kaynak yollarını yeniden eşleştirmez.
 - Özgün okuyucu anahtarları, kota zamanları ve saklama açık/kapalı tercihi korunur. Eski okuyucunun arşivi yeni okuyucuyla doğrulanmış gibi yükseltilmez; eski kota örneği yeni ölçüm gibi sunulmaz. Yedek şifreli veya anonim değildir; özel yollar/kimlikler taşıyabilir. Sağlama toplamı kim tarafından üretildiğini kanıtlamaz.
-- **Şu anki doğrulama:** Python 3.12'de 671 test, 0 hata, 5 atlama; Windows Python 3.14'te 680 test, 0 hata, 4 atlama; Node 47/47. Python 3.9, WSL, kurulu wheel, portable ve son tarayıcı kabulü tamamlanmadan geçmiş sayılmaz; nihai sonuçlar [çalışma raporuna](../../reports/backup-v1/REPORT.md) eklenecek.
-
-- Saklanan geçmiş artık asıl kayıt silindikten sonra tek kopya olabilir. Arşiv ve korunacak diğer yerel üst bilgi için açık yedek kapsamı, sürüm/şema, bütünlük ve geri alma kuralları tanımla.
-- Bozuk/desteklenmeyen/yarım yedeği reddet; mevcut sağlam veriyi başarısız geri yüklemeyle kaybetme. Yedek özel üst bilgi taşıyabilir; inceleme ve kullanıcı seçimi olmadan paylaşma.
-- **Kapanış:** Uydurma veride kaynakları kaldırmadan önce ve sonra yedek→boş yalıtılmış ortam→geri yükleme toplamları ve tamlık işaretleri eşleşir. Hasar, sürüm uyuşmazlığı, yazma kesintisi ve geri dönüş sınanır. Ajan kayıtları değişmez.
+- **Son aday doğrulaması:** Linux WSL 681/681; Node 47/47. Son kurulu wheel, Python 3.12'de 672 test, 0 hata, 5 atlama; 51 kaynak dosyası birebir. Modül çıkış kodu düzeltmesinden önce tam kaynak koşuları Python 3.9'da 667 geçti/13 atlandı, Windows Python 3.14'te 680 çalıştı/0 hata/4 atlandı. Son düzeltmeden sonra bu iki ortamda 22 CLI/yardım kontrolü ayrıca hatasız geçti; bunu yeni bir tam Windows takım koşusu diye sunma.
+- **Kurtarma kanıtı:** Son wheel ve PATH'te Python olmadan paketlenmiş portable çalışma ortamında 2 arşiv kaynağı, 1 değerlendirme ve 1 kota örneği; kaynaklar silindikten sonra geri yüklemede toplamlar, tamlık işaretleri, değerlendirme ve zamanlar aynı. Hasarlı yedek ve var olan hedef reddedildi; mevcut veri korundu. Bozuk/uyumsuz/yarım yedek ve yayımlama öncesi kesinti senaryoları regresyonlarla sınandı.
+- **Arayüz kanıtı:** Son kurulu adayda gerçek yedek indirmesi dosyaya kaydedildi ve indirilen dosya denetlendi: yalnız bu arayüz uydurma örneğinde 2 kaynak/0 değerlendirme/0 kota; ayrı güvenilir örnek 2/1/1 verdi. EN/TR, özel veri uyarısı ve mevcut verinin korunması doğrulandı. Kendi test süreci çıkış 0 ile kapandı, test sekmesi kapatıldı, geçici erişim dosyası silindi. Ayrıntılar [çalışma raporunda](../../reports/backup-v1/REPORT.md).
+- **Kapanış sonucu:** Kaynakları silinmiş uydurma geçmiş, boş yalıtılmış yeni klasörde aynı sayım/kalite bilgileriyle kurtarıldı. Ajan kayıtları değişmedi. Bu yerel kurtarma kanıtı, başka bilgisayara yol eşleme, gerçek profesyonel pilot, temiz makine, imza veya bütün tarayıcıların kabulü değildir.
 
 ### Y07 — Dağıtım, güncelleme ve destek güvencesi
 
 **Durum:** Kısmen doğrulandı; aşağıdaki kabul ve kararlar açık. **Öncelik:** Geniş dağıtımdan önce. Ayrıntı: [RELEASE.md](RELEASE.md), [ACCEPTANCE.md](ACCEPTANCE.md).
 
-- [ ] **Güncel platform CI:** `9891966` için [41056121858](https://github.com/OguzayYildiz/pler/actions/runs/41056121858), hesap ödeme/harcama limiti engeli nedeniyle 12 işte sıfır adım çalıştırdı. Hesap engeli giderilince yayınlanacak tam adayın kaynak/kurulu paket/isteğe bağlı çözücü matrisi başarıyla çalışmalı. Hesap ayarları bu görevde değiştirilmez; belge değişikliğinde boş koşu tekrarlanmaz.
+- [ ] **Güncel platform CI:** 0.2.25 için CI çalıştırılmadı. Önceki 0.2.24 `9891966` kaynağının [41056121858](https://github.com/OguzayYildiz/pler/actions/runs/41056121858) koşusu hesap ödeme/harcama limiti engeli nedeniyle 12 işte sıfır adım çalıştırmıştı; bu yeni adayın geçtiği veya testte kaldığı anlamına gelmez. Hesap engeli giderilince yayınlanacak tam adayın kaynak/kurulu paket/isteğe bağlı çözücü matrisi başarıyla çalışmalı. Hesap ayarları bu görevde değiştirilmez; engel sürerken boş koşu tekrarlanmaz.
 - [ ] **Temiz makine:** Geliştirici checkout'u ve Python olmayan standart kullanıcıyla son paket; boş ve ASCII dışı yol, port çakışması, boş kayıt, kurulum/kaldırma, çevrimdışı yardım ve doğru erişim bağlantısı kabulü.
 - [ ] **Güncelleme ve geri dönüş:** Önceki aday→son aday→geri alma; arşiv/tercih/değerlendirme korunması ve parser değişikliklerinin açık yorumlanması. Sürüm/şema geçişi bozuk dosyayı sessizce ezmemeli.
-- [ ] **Fiziksel tarayıcı/erişilebilirlik:** Seçilecek Windows/macOS/Linux tarayıcılarında indirme ve yeniden bağlanma; klavye, odak, gerçek dar dokunmatik cihaz, %200/%400 yakınlaştırma, yüksek karşıtlık ve NVDA/VoiceOver. Son .24 demo kontrolü tam matris yerine geçmez.
+- [ ] **Fiziksel tarayıcı/erişilebilirlik:** Seçilecek Windows/macOS/Linux tarayıcılarında indirme ve yeniden bağlanma; klavye, odak, gerçek dar dokunmatik cihaz, %200/%400 yakınlaştırma, yüksek karşıtlık ve NVDA/VoiceOver. Son .25 yedek indirme/denetleme ve önceki .24 demo kontrolü tam matris yerine geçmez.
 - [ ] **Yayın kararları:** Desteklenen platform/sürüm listesi, ürün lisansı ve dağıtım hakları, kamuya açık ad/paket kimliği, yayıncı, destek/güvenlik kanalı, sürüm ve fiyatlandırma/lisans modeli. Abonelik veya tek seferlik ödeme kararı verilmeden ödeme altyapısı zorunlu geliştirme sayılmaz.
 - [ ] **İmza ve dağıtım:** Onaylanan yayıncıyla son paket baytlarını imzalama/doğrulama, artifact hash'i, yayın kanalı ve geri çekme yolu; güvenlik uyarısını atlatma test yöntemi değildir.
 - **Kapanış:** Seçilen hedefler için her satırda gerçek ortam, sürüm/hash, beklenen/görülen sonuç ve kanıt vardır. Kit hazırlamak, eski CI'ın geçmesi veya geliştirici bilgisayarındaki kurulum bu kabulün tamamlandığı anlamına gelmez.
@@ -123,9 +122,9 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 
 ## Önerilen yürütme sırası ve kapanış disiplini
 
-1. Y06 yedek/geri yükleme ve Y07'nin tamamlanabilir yerel kabul hazırlığı; dış engel/kararlar ayrı görünür.
-2. Kullanıcının ürünü hazır bulmasına kadar somut eksikleri gider; reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur.
-3. Y01 iş bağlama, ardından Y03 hedef/sonuç ve Y02 karar takibi; pilot kanıtı önceliği değiştirebilir. Y04/Y05 kullanıcı yanlış anlamalarını kapatacak kapsamda ilerler.
+1. Y06 belirtilen yerel kurtarma kapsamıyla tamamlandı. Sonraki önerilen geliştirme Y01 iş bağlama; bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
+2. Y01'den sonra Y03 hedef/sonuç ve Y02 karar takibi; Y04/Y05 kullanıcı yanlış anlamalarını kapatacak kapsamda ilerler. Y07'nin tamamlanabilir yerel kabul hazırlığı sürdürülür; dış engel/kararlar ayrı görünür.
+3. Kullanıcının ürünü hazır bulmasına kadar reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur ve sonraki gerçek kanıt önceliği değiştirebilir.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.
 
 Her kapanışta: iş kimliği, somut başarısızlık veya kabul görevi, uygulama commit/sürümü, kullanılan uydurma/izinli veri kapsamı, gözlenen sonuç ve kanıt bağlantısı kaydedilir. Yeni istek olmadan pilot ölçütleri veya mahremiyet sınırları değiştirilmez. Yalnız belge değişikliğinde uygulama sürümü/paket değiştirilmez ve hesap engelli CI yeniden çalıştırılmaz.
