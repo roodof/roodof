@@ -71,6 +71,8 @@ Search narrows only the session list. The summary at the top and the downloaded 
 
 **Did it pay off?** Mark a session **Useful** or **Wasted** with one click (in the list or in its details). PLER sums tokens and the list-price equivalent per verdict for the selection, so you can see what the wasted sessions cost. Verdicts are saved only on this computer; PLER never guesses one.
 
+**Tests and builds the agents ran.** PLER recognises test and build commands in the agents' logs and shows how the last visible run ended in each session. The command text is read only in memory and never stored. When the agent piped the output into another command (for example `| tail`), the exit code is not the test's, so the result is shown as not visible.
+
 **Dated usage within the period** is a separate, conservative view of complete, unambiguous, dated response records. Cumulative totals and unresolved histories cannot be allocated to dates and are excluded with coverage counts. Its interval ends at the scan's fixed observation time. It does not replace the full totals of selected active sessions or establish complete account coverage. The page and terminal show it only when every selected session's usage could be dated; otherwise the JSON export carries it with coverage counts.
 
 While preparing a summary, the download button shows its progress. A **Download again** link remains available for that prepared file. Check your browser downloads to confirm it was saved. Changing the main filters or explicitly reading logs again clears the old link. On a narrow screen, focus the session table and use the left/right arrow keys to reach the other columns.

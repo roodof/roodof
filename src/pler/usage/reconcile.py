@@ -208,9 +208,12 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                 # Patch targets may be relative to the working folder of that moment.
                 payload=dict(payload,edited_files=[value for value in
                     (canonical_target(p,cwd) for p in payload['edited_files']) if value is not None])
-            if not (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted')
+            if not (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted','item_completed')
                     or kind=='response_item' and sub in ('function_call','custom_tool_call')): continue
-            identity=payload.get('call_id') if kind=='response_item' else payload.get('turn_id')
+            if sub=='item_completed':
+                payload=dict(payload,at=timestamp(row.get('timestamp')))
+            identity=(payload.get('call_id') if kind=='response_item' else
+                      payload.get('item_id') if sub=='item_completed' else payload.get('turn_id'))
             if isinstance(identity,str) and identity:
                 key=(sub,identity)
             else:
@@ -295,6 +298,12 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
             target.errors+=any(p.get('error') for p in payloads)
             durations=[p['duration_ms'] for p in payloads if type(p.get('duration_ms')) is int]
             if durations: target.active_ms=(target.active_ms or 0)+max(durations)
+        elif sub=='item_completed':
+            # Copies of one finished command agree on the outcome unless a log was altered.
+            kinds,outcomes={p['check'] for p in payloads},{p['outcome'] for p in payloads}
+            target.record_check(next(iter(kinds)) if len(kinds)==1 else payloads[0]['check'],
+                                next(iter(outcomes)) if len(outcomes)==1 else 'unknown',
+                                min((p['at'] for p in payloads if p['at']),default=None))
         else:
             names={p.get('name') for p in payloads if isinstance(p.get('name'),str)}
             target.count(target.tools,next(iter(names)) if len(names)==1 else 'unknown')

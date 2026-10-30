@@ -1,7 +1,8 @@
 """One shape for every agent's sessions: who, where, when, which models, and what each model call reported.
 
 Only numbers and metadata are kept. Prompt text, replies, tool output and command lines never leave the
-parsers; from tool calls only the tool name and, for file edits, the edited path are kept.
+parsers; from tool calls only the tool name, for file edits the edited path, and for shell commands whether
+they ran a test or build and how it ended (checks.py) are kept.
 
 Token fields are disjoint, so they add up to the session total:
 - input: input that was neither read from nor written to the prompt cache
@@ -112,6 +113,7 @@ class Session:
     efforts: dict = field(default_factory=dict)     # reasoning effort -> turns or calls
     tools: dict = field(default_factory=dict)       # tool name -> calls
     files_edited: set = field(default_factory=set)
+    checks: dict = field(default_factory=dict)      # 'test'/'build' -> runs, passed, failed, last, last_at
     errors: int = 0                 # failed model calls or turns
     aborted: int = 0                # interrupted turns
     reported_cost_usd: float = None # the agent's own figure, when it logs one
@@ -155,6 +157,17 @@ class Session:
     def count(self, table, key, step=1):
         if key:
             table[key] = table.get(key, 0) + step
+
+    def record_check(self, kind, result, moment=None):
+        """One test or build command the agent ran, and how it ended: 'passed', 'failed' or 'unknown'."""
+        row = self.checks.setdefault(kind, dict(runs=0, passed=0, failed=0, last=None, last_at=None))
+        row['runs'] += 1
+        if result not in ('passed', 'failed'):
+            return
+        row[result] += 1
+        stamp = moment.isoformat() if moment else None
+        if row['last'] is None or stamp is not None and (row['last_at'] is None or stamp >= row['last_at']):
+            row['last'], row['last_at'] = result, stamp
 
     def seen(self, moment):
         if moment is None:

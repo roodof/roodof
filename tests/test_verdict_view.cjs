@@ -14,7 +14,7 @@ function page({readable=true,reply}={}){
   const state={data:{sessions,verdicts:{readable},demo:false},stopped:false};
   const context=vm.createContext({usageState:state,$:id=>id==='usage-verdict-summary'?summary:null,
     t:(key,values)=>values?key+' '+JSON.stringify(values):key,count:(n,noun)=>n+' '+noun,usageShort:String,usageUsd:value=>'$'+value.toFixed(2),
-    usageSessionCode:session=>session.id.slice(0,8),notice:text=>messages.push(text),
+    usageSessionCode:session=>session.id.slice(0,8),notice:text=>messages.push(text),number:String,
     node:(tag,cls,text)=>{const item=element(cls,text);made.push(item);return item;},
     document:{querySelectorAll:()=>made.filter(item=>item.className.includes('verdict-button'))},
     post:async(path,body)=>{posts.push([path,body]);if(reply)return reply(body);return {ok:true,id:body.id,verdict:body.verdict};}});
@@ -60,4 +60,13 @@ test('a failed save reports the error and leaves the shown verdict unchanged',as
 test('no verdict yet shows how to start instead of zero totals',()=>{
   const p=page();p.sessions[1].verdict=null;p.context.usageVerdictSummary();
   assert.equal(p.summary.textContent,'verdict_hint');
+});
+test('a session shows how its last visible test and build ended, or that no result was visible',()=>{
+  const p=page(),session={id:'c'.repeat(24),checks:{test:{runs:3,passed:1,failed:1,last:'failed'},build:{runs:2,passed:0,failed:0,last:null}}};
+  const lines=p.context.checkSummaries(session);
+  assert.deepEqual(plain(lines.map(line=>[line.className,line.textContent])),[
+    ['session-check failed','check_test_failed {"runs":"3 run"}'],['session-check hidden','check_build_hidden {"runs":"2 run"}']]);
+  assert.equal(p.context.checkSummaries({id:'d'.repeat(24)}).length,0);
+  const detail=JSON.parse(p.context.checkDetail(session.checks.test).slice('check_detail '.length));
+  assert.deepEqual(plain(detail),{runs:'3 run',last:'check_last_failed',passed:'1',failed:'1',hidden:'1'});
 });

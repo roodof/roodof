@@ -200,6 +200,19 @@ const I18N=/*I18N*/{
 "field_issues": "Errors / interrupted",
 "field_tools": "Tool calls",
 "field_files": "Distinct files (as logged)",
+"field_tests": "Tests the agent ran",
+"field_builds": "Builds the agent ran",
+"check_detail": "{runs}; last visible run {last}; {passed} passed, {failed} failed, {hidden} not visible",
+"check_last_passed": "passed",
+"check_last_failed": "failed",
+"check_last_none": "none",
+"check_test_passed": "Tests: last run passed · {runs}",
+"check_test_failed": "Tests: last run failed · {runs}",
+"check_test_hidden": "Tests: result not visible · {runs}",
+"check_build_passed": "Build: last run passed · {runs}",
+"check_build_failed": "Build: last run failed · {runs}",
+"check_build_hidden": "Build: result not visible · {runs}",
+"check_note": "Tests and builds come from the agent's own commands and their exit codes; the command text is never stored. A result is not visible when the command passed its output on (for example to tail), ran in the background or kept going after the check.",
 "detail_intro": "The record span is the time between the first and last event and includes waiting. Working time is shown only when the agent logged it.",
 "models_in_session": "Models in this session",
 "git_title": "Git during this session",
@@ -259,6 +272,10 @@ const I18N=/*I18N*/{
 "burn_item": "{window} {points} percentage points",
 "metadata_note": "Session metadata is shown. Prompt and reply text never reach this page.",
 "export_file": "pler-usage-summary.json",
+"noun_run": [
+  "run",
+  "runs"
+],
 "noun_session": [
 "session",
 "sessions"
@@ -517,6 +534,19 @@ const I18N=/*I18N*/{
 "field_issues": "Hata / yarıda kesilen",
 "field_tools": "Araç çağrısı",
 "field_files": "Farklı dosya (kayda geçen)",
+"field_tests": "Ajanın çalıştırdığı testler",
+"field_builds": "Ajanın çalıştırdığı derlemeler",
+"check_detail": "{runs}; görünen son çalıştırma: {last}; {passed} geçti, {failed} kaldı, {hidden} görünmüyor",
+"check_last_passed": "geçti",
+"check_last_failed": "kaldı",
+"check_last_none": "yok",
+"check_test_passed": "Testler: son çalıştırma geçti · {runs}",
+"check_test_failed": "Testler: son çalıştırma kaldı · {runs}",
+"check_test_hidden": "Testler: sonuç görünmüyor · {runs}",
+"check_build_passed": "Derleme: son çalıştırma geçti · {runs}",
+"check_build_failed": "Derleme: son çalıştırma kaldı · {runs}",
+"check_build_hidden": "Derleme: sonuç görünmüyor · {runs}",
+"check_note": "Testler ve derlemeler ajanın kendi komutlarından ve çıkış kodlarından gelir; komut metni hiçbir yerde saklanmaz. Komut çıktısını başka bir komuta aktardıysa (örneğin tail), arka planda çalıştıysa ya da kontrolden sonra devam ettiyse sonuç görünmez.",
 "detail_intro": "Kayıt aralığı ilk ve son olay arasındaki zamandır; beklemeleri de içerir. Çalışma süresi yalnız ajan kaydettiyse gösterilir.",
 "models_in_session": "Bu oturumdaki modeller",
 "git_title": "Oturum sırasında Git",
@@ -571,6 +601,7 @@ const I18N=/*I18N*/{
 "metadata_note": "Oturum üstbilgileri gösteriliyor. İstek ve yanıt metinleri bu ekrana alınmadı.",
 "export_file": "pler-kullanim-ozeti.json",
 "noun_session": "oturum",
+"noun_run": "çalıştırma",
 "noun_request": "istek",
 "noun_call": "çağrı",
 "noun_model_call": "model çağrısı",
@@ -806,6 +837,12 @@ function usageVerdictSummary(){
   for(const session of data.sessions){const row=sum[session.verdict]||sum.none;row.sessions++;row.total_tokens+=session.total_tokens;row.api_usd+=session.api_usd||0;}
   box.textContent=(sum.useful.sessions||sum.wasted.sessions?t('verdict_summary',{useful:count(sum.useful.sessions,'session'),useful_tokens:usageShort(sum.useful.total_tokens),useful_usd:usageUsd(sum.useful.api_usd),wasted:count(sum.wasted.sessions,'session'),wasted_tokens:usageShort(sum.wasted.total_tokens),wasted_usd:usageUsd(sum.wasted.api_usd),none:count(sum.none.sessions,'session')}):t('verdict_hint'))+(data.demo?t('verdict_demo'):'');
 }
+const checkLines={test:{passed:'check_test_passed',failed:'check_test_failed',hidden:'check_test_hidden'},build:{passed:'check_build_passed',failed:'check_build_failed',hidden:'check_build_hidden'}};
+function checkSummaries(session){
+  // One short line per kind the agent ran: how its last visible run ended, or that no result was visible.
+  return ['test','build'].filter(kind=>session.checks?.[kind]?.runs).map(kind=>{const row=session.checks[kind],state=row.last||'hidden';return node('small','session-check '+state,t(checkLines[kind][state],{runs:count(row.runs,'run')}));});
+}
+function checkDetail(row){return t('check_detail',{runs:count(row.runs,'run'),last:t(row.last==='passed'?'check_last_passed':row.last==='failed'?'check_last_failed':'check_last_none'),passed:number(row.passed),failed:number(row.failed),hidden:number(row.runs-row.passed-row.failed)});}
 function verdictToggle(session){
   const group=node('div','verdict-toggle');group.setAttribute('role','group');group.setAttribute('aria-label',t('verdict_group',{code:usageSessionCode(session)}));
   for(const verdict of ['useful','wasted']){
@@ -850,7 +887,7 @@ function renderUsageSessions(){
     const dates=node('td','session-dates');
     for(const [name,value] of [[t('start'),session.started],[t('last_activity'),session.ended]]){const line=node('div'),time=node('time','',usageDate(value));if(value)time.dateTime=value;line.append(node('span','date-label',name+': '),time);dates.append(line);}
     dates.append(node('small','task-subject',t('span',{d:usageDuration(session.span_seconds)})));
-    const verdict=node('td','verdict-cell');verdict.append(verdictToggle(session));
+    const verdict=node('td','verdict-cell');verdict.append(verdictToggle(session),...checkSummaries(session));
     row.append(first,dates,node('td','task-number',number(session.total_tokens)),node('td','task-number',session.calls_complete?number(session.calls):t('unknown')),node('td','task-number',usagePct(session.cache_read_share)),verdict);return row;
   }));
   usageVerdictSummary();
@@ -882,13 +919,14 @@ function renderGitActivity(content,activity){
 function openUsageSession(session){
   usageState.sessionRequest=(usageState.sessionRequest||0)+1;
   $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
-  const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],[t('field_api'),session.api_priced_share?usageUsd(session.api_usd)+(session.api_priced_share<0.9995?' ('+usagePct(session.api_priced_share)+')':''):t('unknown')],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)]];
+  const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],[t('field_api'),session.api_priced_share?usageUsd(session.api_usd)+(session.api_priced_share<0.9995?' ('+usagePct(session.api_priced_share)+')':''):t('unknown')],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)],...(session.checks?.test?[[t('field_tests'),checkDetail(session.checks.test)]]:[]),...(session.checks?.build?[[t('field_builds'),checkDetail(session.checks.build)]]:[])];
   fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));
   const verdict=node('div','verdict-dialog');verdict.append(node('span','',t('field_verdict')),verdictToggle(session));
   content.replaceChildren(node('p','session-detail-intro',t('detail_intro')),verdict,dl);
   if(session.source_note)content.append(node('p','notice',session.source_note));
   if(session.models.length){content.append(node('h3','detail-model-title',t('models_in_session')));for(const model of session.models){const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',t('tokens',{n:number(model.total_tokens)})),node('small','',session.calls_complete?count(model.calls,'logged_call'):t('split_unknown')));content.append(row);}}
   content.append(node('p','section-note',t('files_note')));
+  if(session.checks?.test||session.checks?.build)content.append(node('p','section-note',t('check_note')));
   for(const note of session.notes)content.append(node('p','section-note',note));
   if(session.quota_burn.length)content.append(node('p','section-note',t('burn',{items:session.quota_burn.map(w=>t('burn_item',{window:usageWindow(w.window_minutes),points:w.percentage_points})).join(' · ')})));
   renderGitActivity(content,session.git_activity);

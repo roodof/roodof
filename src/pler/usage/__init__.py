@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import sys
 
-from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths, period_usage
+from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths, period_usage, checks
 from ..i18n import LANGUAGES, big, count, decimal, language, moment, say, window
 from ..statusline import samples as claude_quota
 from .cache import FileCache, version
@@ -43,14 +43,14 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
-    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits,checks)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
     codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits)
+    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks)
     claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
     archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
@@ -211,6 +211,9 @@ def main(argv=None):
     notes = insights(rows, windows, since, lang=lang,usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
     reedit = subsequent_edits(sessions, rows, records.timestamp(sources.get('observed_at')) or now)
     notes += edit_insight(reedit, lang)
+    from .insights import tests as test_insight
+    from .checks import summary as check_summary
+    notes += test_insight(rows, lang)
     observed=records.timestamp(sources.get('observed_at')) or now
     dated=period_usage.analyze(sessions,observed-timedelta(days=args.days) if args.days else None,observed)
     sources['_dated_usage']=dated
@@ -237,7 +240,7 @@ def main(argv=None):
         for row in summary['largest_sessions']:
             row['project']=project_names.get(row['project'],label(row['project'],lang=lang) or say(lang,'unknown_project'))
         value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),api_prices=dict(as_of=PRICES_AS_OF,tier='standard'),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
-                     verdicts=dict(sources['_verdicts'],readable=saved is not None),
+                     verdicts=dict(sources['_verdicts'],readable=saved is not None),checks=check_summary(rows),
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))

@@ -108,6 +108,11 @@ def sanitize(agent,rows):
                 if kind=='user':
                     kept.update(prompt=row.get('prompt') is True,isMeta=row.get('isMeta') is True,
                                 uuid=row.get('uuid') if _text(row.get('uuid'),512) else None)
+                    results=row.get('results')
+                    if isinstance(results,list):
+                        results=[dict(id=item['id'],error=item.get('error') is True) for item in results[:1000]
+                                 if isinstance(item,dict) and _text(item.get('id'),512)]
+                        if results: kept['results']=results
                 elif kind=='cost-state' and _number(row.get('totalCostUSD')):
                     kept['totalCostUSD']=row['totalCostUSD']
                 elif kind=='assistant':
@@ -122,9 +127,12 @@ def sanitize(agent,rows):
                         from .claude_code import EDIT_TOOLS
                         field=EDIT_TOOLS.get(block['name'])
                         value=block.get('input') if isinstance(block.get('input'),dict) else {}
-                        blocks.append(dict(type='tool_use',name=block['name'],
-                                           id=block.get('id') if _text(block.get('id'),512) else None,
-                                           input={field:value[field]} if field and _text(value.get(field)) else {}))
+                        kept_block=dict(type='tool_use',name=block['name'],
+                                        id=block.get('id') if _text(block.get('id'),512) else None,
+                                        input={field:value[field]} if field and _text(value.get(field)) else {})
+                        if block.get('check') in ('test','build'):
+                            kept_block.update(check=block['check'],known=block.get('known') is True)
+                        blocks.append(kept_block)
                     slim=dict(id=message.get('id') if _text(message.get('id'),512) else None,
                               model=message.get('model') if _word(message.get('model')) else None,
                               usage=_numbers(usage,agent) if usage else None,content=blocks)
@@ -174,6 +182,11 @@ def sanitize(agent,rows):
                     if sub=='task_complete':
                         kept.update(duration_ms=accounting.count(payload['duration_ms']) if payload.get('duration_ms') is not None else None,
                                     error=payload.get('error') is True)
+                elif kind=='event_msg' and sub=='item_completed':
+                    if payload.get('check') not in ('test','build'): continue
+                    kept=dict(type=sub,item_id=payload.get('item_id') if _text(payload.get('item_id'),512) else None,
+                              check=payload['check'],
+                              outcome=payload.get('outcome') if payload.get('outcome') in ('passed','failed') else 'unknown')
                 elif kind=='response_item' and sub in ('function_call','custom_tool_call'):
                     kept=dict(type=sub,name=payload.get('name') if _word(payload.get('name')) else None,
                               call_id=payload.get('call_id') if _text(payload.get('call_id'),512) else None)

@@ -9,11 +9,13 @@ import math
 from pathlib import Path
 
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
-from . import accounting, discovery, input_limits, pricing
+from . import accounting, checks, discovery, input_limits, pricing
 from .edit_paths import canonical_target
 from .period_usage import event_time, record_response
 
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
+SHELL_TOOLS = ('Bash', 'PowerShell')
+MAX_RESULTS = 1000
 
 
 def roots(skipped=None, access=None, manifest=None):
@@ -81,8 +83,11 @@ def _lines(path, issues):
         note_file_issue(issues, path, type(error).__name__)
 
 
-def _slim(row):
-    """Whitelist metadata before caching; retain no prompt, reply, command or tool result."""
+def _slim(row, asked=None):
+    """Whitelist metadata before caching; retain no prompt, reply, command or tool result.
+
+    `asked` collects the ids of test/build commands seen so far in the file; a tool answer is kept (as
+    failed or not) only for those, since an answer always follows its call in the transcript."""
     kind, identity = row.get('type'), row.get('sessionId')
     if not isinstance(identity, str):
         if kind in ('assistant', 'user'):
@@ -96,6 +101,12 @@ def _slim(row):
     if kind == 'user':
         kept.update(prompt=_prompt(row.get('message')), isMeta=bool(row.get('isMeta')),
                     uuid=row.get('uuid') if isinstance(row.get('uuid'), str) else None)
+        content = row['message'].get('content') if isinstance(row.get('message'), dict) else None
+        if asked and isinstance(content, list):
+            results = [dict(id=item['tool_use_id'], error=item.get('is_error') is True) for item in content
+                       if isinstance(item, dict) and item.get('type') == 'tool_result' and item.get('tool_use_id') in asked]
+            if results:
+                kept['results'] = results[:MAX_RESULTS]
     elif kind == 'cost-state' and type(row.get('totalCostUSD')) in (int, float):
         try:
             if not math.isfinite(row['totalCostUSD']):
@@ -135,8 +146,16 @@ def _slim(row):
                 continue
             field = EDIT_TOOLS.get(item['name'])
             value = item.get('input', {}).get(field) if field and isinstance(item.get('input'), dict) else None
-            blocks.append(dict(type='tool_use', name=item['name'], id=item.get('id') if isinstance(item.get('id'), str) else None,
-                               input={field: value} if isinstance(value, str) and value else {}))
+            block = dict(type='tool_use', name=item['name'], id=item.get('id') if isinstance(item.get('id'), str) else None,
+                         input={field: value} if isinstance(value, str) and value else {})
+            if item['name'] in SHELL_TOOLS and isinstance(item.get('input'), dict):
+                # The command is classified here and dropped; only the kind and a trust flag remain.
+                check = checks.classify(item['input'].get('command'))
+                if check:
+                    block.update(check=check['kind'], known=check['known'] and item['input'].get('run_in_background') is not True)
+                    if asked is not None and isinstance(block['id'], str):
+                        asked.add(block['id'])
+            blocks.append(block)
         kept['message'] = dict(id=message.get('id'), model=message.get('model') if isinstance(message.get('model'), str) else None,
                                usage=slim_usage, content=blocks)
         if zeroed is not None:
@@ -147,12 +166,12 @@ def _slim(row):
 
 def _rows(path):
     projection=input_limits.Projection()
-    rows, issues, malformed = projection.rows, [], False
+    rows, issues, malformed, asked = projection.rows, [], False, set()
     for line in _lines(path, issues):
         if not line.strip():
             continue
         try:
-            row = _slim(json_row(line))
+            row = _slim(json_row(line), asked)
             if row is not None:
                 projection.append(row)
         except input_limits.ReadLimitExceeded:
@@ -168,7 +187,7 @@ def _rows(path):
 def read(paths, skipped=None, cache=None, access=None, archive=None):
     """Merge copies before attribution; source order never determines a project's usage."""
     from collections import defaultdict
-    sessions, replies, prompts = {}, defaultdict(list), defaultdict(list)
+    sessions, replies, prompts, answers = {}, defaultdict(list), defaultdict(list), {}
     projects, branches, source_paths = defaultdict(set), defaultdict(set), defaultdict(set)
     if access is not None: access.read_phase()
     live=discovery.unique(paths)
@@ -239,6 +258,8 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             if isinstance(row.get('gitBranch'),str) and row['gitBranch']: branches[identity].add(row['gitBranch'])
             if isinstance(row.get('version'),str): session.client_version=row['version']
             kind=row.get('type')
+            if kind=='user' and isinstance(row.get('results'),list):
+                for result in row['results']: answers.setdefault(result['id'],result['error'])
             if kind=='pler_archive_ambiguous':
                 session.tokens_complete=False;session.calls_complete=False;session.counts_complete=False
                 session.issues.update(('archive_unverified','unidentified_records'))
@@ -328,10 +349,16 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 key=('tool',uid) if isinstance(uid,str) and uid else ('anonymous',copy['path'],copy['index'],index)
                 if key[0]=='anonymous': target.counts_complete=False;target.issues.add('unidentified_records')
                 tools.setdefault(key,[]).append((item,copy['row'].get('cwd')))
-        for items in tools.values():
+        for key,items in tools.items():
             names={item['name'] for item,_ in items}
             name=next(iter(names)) if len(names)==1 else 'unknown'
             target.count(target.tools,name)
+            kinds={item.get('check') for item,_ in items}
+            if len(kinds)==1 and next(iter(kinds)) in (checks.TEST,checks.BUILD):
+                known=all(item.get('known') is True for item,_ in items)
+                failed=answers.get(key[1]) if key[0]=='tool' else None
+                target.record_check(next(iter(kinds)),checks.outcome(dict(known=known),failed),
+                                    min((c['at'] for c in copies if c['at']),default=None))
             for item,cwd in items:
                 field=EDIT_TOOLS.get(item['name'])
                 value=item.get('input',{}).get(field) if field else None

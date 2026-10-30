@@ -1,5 +1,11 @@
 # Changes
 
+## 0.2.18 — 2026-10-30 (private candidate)
+
+- Show whether the agents' own tests and builds passed. Each shell command is classified in memory as a test or build (many languages and tools); its text is never stored. Claude Code's failed-call flag and Codex's exit code give the outcome. A run whose output was piped on, that ran in the background or that was followed by another step is counted with no visible result.
+- Each session shows its last visible test and build result next to the verdict buttons, and its counts in the details. A new observation says how the selected sessions' tests ended and how many tokens the sessions ending on a failing test used. The terminal report and JSON carry the same sums. The demo includes invented test runs.
+- The readers rebuild their cache once; the first read takes about 7% longer, later reads about 2%.
+
 ## 0.2.17 — 2026-10-30 (private candidate)
 
 - Judge a session with one click: **Useful** or **Wasted**, in a new "Did it pay off?" column and in the session details. The verdict is saved only on this computer, under the page's session code (no path, name or text), and survives cache reset and archive clear. Click the pressed button again to remove it.

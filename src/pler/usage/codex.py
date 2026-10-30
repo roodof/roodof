@@ -12,7 +12,7 @@ import re
 
 from .records import Session, add_tokens, json_row, note_file_issue, percentage, timestamp, total
 from .zstd import decoder
-from . import accounting, discovery, input_limits
+from . import accounting, checks, discovery, input_limits
 
 _PATCH = re.compile(r'\*\*\* Begin Patch.*?(?:\*\*\* End Patch|$)', re.S)
 _TARGET = re.compile(r'^\*\*\* (?:(?:Add|Update|Delete) File|Move to): (.+?)[ \t]*$', re.M)
@@ -100,6 +100,16 @@ def _slim(row):
         if duration is not None:
             accounting.count(duration)
         kept = dict(type=sub,turn_id=payload.get('turn_id'),duration_ms=duration,error=bool(payload.get('error')))
+    elif kind == 'event_msg' and sub == 'item_completed':
+        item = payload.get('item') if isinstance(payload.get('item'), dict) else {}
+        # A finished shell command: its text is classified here and dropped; kind and outcome remain.
+        check = checks.classify(item.get('command')) if item.get('type') == 'CommandExecution' else None
+        if not check:
+            return None
+        _identities(item, 'id')
+        code = item.get('exit_code')
+        kept = dict(type=sub, item_id=item.get('id'), check=check['kind'],
+                    outcome=checks.outcome(check, code != 0 if type(code) is int else None))
     elif kind == 'response_item' and sub in ('function_call', 'custom_tool_call'):
         _identities(payload, 'call_id')
         kept = dict(type=sub,name=payload.get('name'),call_id=payload.get('call_id'))

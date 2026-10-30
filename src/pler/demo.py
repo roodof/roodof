@@ -58,9 +58,10 @@ class _Repository:
         (self.git / 'logs' / 'HEAD').write_text(''.join(self.reflog), 'utf-8')
 
 
-def _claude(folder, name, cwd, start, calls, edits=(), seed=1, model='claude-opus-5-5'):
-    """A Claude Code session: prompts, replies with usage, and Edit tool calls on the given files."""
-    rng, rows, moment = random.Random(seed), [], start
+def _claude(folder, name, cwd, start, calls, edits=(), seed=1, model='claude-opus-5-5', tests=()):
+    """A Claude Code session: prompts, replies with usage, Edit tool calls on the given files, and test
+    commands (command, failed) with their tool answers."""
+    rng, rows, moment, tests = random.Random(seed), [], start, list(tests)
     for index in range(calls):
         if index % 6 == 0:
             rows.append(dict(type='user', uuid='%s-p%d' % (name, index), sessionId=name, timestamp=_iso(moment),
@@ -73,16 +74,26 @@ def _claude(folder, name, cwd, start, calls, edits=(), seed=1, model='claude-opu
             target = edits[(index // 4) % len(edits)]
             blocks.append(dict(type='tool_use', name='Edit', id='%s-t%d' % (name, index),
                                input=dict(file_path=str(target), old_string='a', new_string='b')))
+        answer = None
+        if tests and index % 10 == 7:
+            command, failed = tests.pop(0)
+            blocks.append(dict(type='tool_use', name='Bash', id='%s-b%d' % (name, index), input=dict(command=command)))
+            answer = dict(type='user', sessionId=name, timestamp=_iso(moment + timedelta(seconds=15)), cwd=str(cwd),
+                          message=dict(role='user', content=[dict(type='tool_result', tool_use_id='%s-b%d' % (name, index),
+                                                                  content='Invented output', is_error=failed)]))
         rows.append(dict(type='assistant', sessionId=name, requestId='%s-r%d' % (name, index), timestamp=_iso(moment),
                          cwd=str(cwd), version='2.1.300',
                          message=dict(id='%s-m%d' % (name, index), model=model, role='assistant', content=blocks, usage=usage)))
+        if answer:
+            rows.append(answer)
     _write(folder / 'projects' / cwd.name / (name + '.jsonl'), rows)
     return moment
 
 
-def _codex(folder, name, cwd, start, calls, patches=(), quota=None, week=None, cumulative=False, seed=2):
-    """A Codex rollout: per-response usage (or only cumulative totals, as older CLIs wrote), patches, quota."""
-    rng, moment = random.Random(seed), start
+def _codex(folder, name, cwd, start, calls, patches=(), quota=None, week=None, cumulative=False, seed=2, tests=()):
+    """A Codex rollout: per-response usage (or only cumulative totals, as older CLIs wrote), patches, quota and
+    finished test/build commands (command, exit code)."""
+    rng, moment, tests = random.Random(seed), start, list(tests)
     rows = [dict(timestamp=_iso(moment), type='session_meta', payload=dict(id=name, cwd=str(cwd), cli_version='0.163.0')),
             dict(timestamp=_iso(moment), type='turn_context', payload=dict(model='gpt-6.1-sol', effort='medium', cwd=str(cwd)))]
     totals = dict(input_tokens=0, cached_input_tokens=0, output_tokens=0, reasoning_output_tokens=0)
@@ -105,6 +116,11 @@ def _codex(folder, name, cwd, start, calls, patches=(), quota=None, week=None, c
             rows.append(dict(timestamp=_iso(moment), type='response_item', payload=dict(
                 type='custom_tool_call', name='exec', call_id='%s-c%d' % (name, index),
                 input='const result = await tools.apply_patch(%s);' % json.dumps(text))))
+        if tests and index % 9 == 5:
+            command, code = tests.pop(0)
+            rows.append(dict(timestamp=_iso(moment), type='event_msg', payload=dict(type='item_completed', item=dict(
+                type='CommandExecution', id='%s-x%d' % (name, index), command=command, exit_code=code,
+                status='completed' if code == 0 else 'failed', aggregated_output='Invented output'))))
         if quota and index % 3 == 2:
             # quota: (five-hour start %, rise per call, weekly start %, rise per call); week: weekly reset
             rows.append(dict(timestamp=_iso(moment), type='event_msg', payload=dict(type='token_count', info=None, rate_limits=dict(
@@ -144,7 +160,8 @@ def create(folder=None, now=None):
 
     # Claude Code: a checkout feature in the shop repository, two days ago. One commit is later amended.
     start = now - timedelta(days=2, hours=3)
-    end = _claude(claude, 'demo-checkout', shop, start, 42, [shop / 'src' / 'cart.py', shop / 'tests' / 'test_cart.py'], seed=11)
+    end = _claude(claude, 'demo-checkout', shop, start, 42, [shop / 'src' / 'cart.py', shop / 'tests' / 'test_cart.py'], seed=11,
+                  tests=[('python -m pytest -q', True), ('python -m pytest -q', False)])
     kept = repo.commit(start + (end - start) / 3, first)
     repo.commit(start + (end - start) * 2 / 3, kept)                   # replaced by the amend below
     repo.commit(end - timedelta(minutes=1), kept, 'commit (amend)')
@@ -152,15 +169,18 @@ def create(folder=None, now=None):
     week = now + timedelta(days=3, hours=4)  # when the invented weekly quota resets
     start = now - timedelta(days=1, hours=5)
     end = _codex(codex, 'demo-codex-shop', work, start, 36, [shop / 'src' / 'payment.py', shop / 'README.md'],
-                 quota=(20, 0.8, 38, 0.2), week=week, seed=21)
+                 quota=(20, 0.8, 38, 0.2), week=week, seed=21,
+                 tests=[(['bash', '-lc', 'python -m pytest -q'], 0), (['bash', '-lc', 'python -m pytest -q'], 1)])
     repo.commit(end - timedelta(minutes=2), repo.head)
     repo.save()
     # Codex, just now: its five-hour quota climbs fast, so the page forecasts it filling before it resets.
     _codex(codex, 'demo-codex-api', api, now - timedelta(minutes=45), 40, [api / 'src' / 'routes.py'],
-           quota=(52, 0.5, 47, 0.1), week=week, seed=22)
+           quota=(52, 0.5, 47, 0.1), week=week, seed=22,
+           tests=[(['bash', '-lc', 'go build ./...'], 0), (['bash', '-lc', 'go test ./...'], 0)])
     # Claude Code: three shorter API sessions and one very long one (no Git repository there).
     for index, days in enumerate((9, 6, 4)):
-        _claude(claude, 'demo-api-%d' % index, api, now - timedelta(days=days, hours=2), 18 + index * 6, [api / 'src' / 'routes.py'], seed=30 + index)
+        _claude(claude, 'demo-api-%d' % index, api, now - timedelta(days=days, hours=2), 18 + index * 6, [api / 'src' / 'routes.py'],
+                seed=30 + index, tests=[('npm test 2>&1 | tail -20', False)] if index == 1 else ())
     _claude(claude, 'demo-api-long', api, now - timedelta(hours=9), 130, [api / 'src' / 'models.py'], seed=40)
     # Codex, older CLI format: only cumulative totals, so the per-call split is unknown (a quality warning).
     _codex(codex, 'demo-codex-docs', docs, now - timedelta(days=3), 14, cumulative=True,

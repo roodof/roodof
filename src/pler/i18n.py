@@ -95,6 +95,10 @@ TEXT = {
                                 'Tasks and settings were not held constant. This observation does not establish waste or savings from a new session.'),
         'insight.calls_unknown': 'call count unknown',
         'insight.git.title': 'Commits during your sessions',
+        'insight.tests.title': 'How the agents\' tests ended',
+        'insight.tests.detail': ('{sessions} ran tests. The last visible run passed in {passed} and failed in {failed}; '
+                                 'in {unknown} no result was visible (for example, output piped into another command).'),
+        'insight.tests.failed_tokens': ' Sessions that ended on a failing test used {tokens} tokens.',
         'insight.git.detail': ('{commits} were recorded during {sessions}, in repositories the agents changed. '
                                '{kept} of them are still on a branch.{rest} Timing alone does not prove who made them.'),
         'insight.git.off': ' No longer on any branch: {n} (amended, rebased, reset or on a deleted branch).',
@@ -253,6 +257,10 @@ TEXT = {
                                 'İşler ve ayarlar sabit tutulmadı. Bu gözlem israfı veya yeni oturum açmanın tasarruf sağlayacağını kanıtlamaz.'),
         'insight.calls_unknown': 'çağrı sayısı bilinmiyor',
         'insight.git.title': 'Oturumlarındaki commit\'ler',
+        'insight.tests.title': 'Ajanların testleri nasıl bitti',
+        'insight.tests.detail': ('{sessions} test çalıştırdı. Görünen son çalıştırma {passed} oturumda geçti, {failed} oturumda kaldı; '
+                                 '{unknown} oturumda sonuç görünmüyordu (örneğin çıktı başka bir komuta aktarıldı).'),
+        'insight.tests.failed_tokens': ' Kalan testle biten oturumlar {tokens} token kullandı.',
         'insight.git.detail': ('{sessions} boyunca, ajanların değiştirdiği depolarda {commits} kaydedildi. '
                                'Bunlardan {kept} tanesi hâlâ bir dalda.{rest} Zaman eşleşmesi kimin yaptığını tek başına kanıtlamaz.'),
         'insight.git.off': ' {n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı.',

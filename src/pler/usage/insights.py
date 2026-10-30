@@ -6,7 +6,8 @@ They describe what the logs show and suggest what to try; none of them is a cont
   single model, with at least three complete sessions on both sides; no cause is inferred;
 - concentration: one session holds a large share of the period;
 - limit hits: Claude Code refused requests at its limit;
-- interrupted work: many failed or interrupted turns.
+- interrupted work: many failed or interrupted turns;
+- agent-run tests: how the sessions' last visible test run ended (checks.py).
 Titles and details are written in the requested language (i18n.py).
 """
 from datetime import datetime
@@ -129,6 +130,20 @@ def _interrupted(rows, lang):
                               evidence=dict(agent=agent, errors=sum(s.errors for s in mine),
                                             aborted=sum(s.aborted for s in mine), prompts=prompts)))
     return found
+
+
+def tests(rows, lang='en'):
+    """How the selected sessions' tests ended, from the agents' own test commands and exit codes."""
+    from .checks import summary
+    value = summary(rows)['test']
+    if not value['sessions']:
+        return []
+    detail = say(lang, 'insight.tests.detail', sessions=count(lang, value['sessions'], 'session'),
+                 passed=value['ended_passed'], failed=value['ended_failed'], unknown=value['ended_unknown'])
+    if value['ended_failed']:
+        detail += say(lang, 'insight.tests.failed_tokens', tokens=big(value['ended_failed_tokens'], lang))
+    return [dict(kind='tests', level='warn' if value['ended_failed'] else 'info', title=say(lang, 'insight.tests.title'),
+                 detail=detail, evidence=value)]
 
 
 def insights(rows, outlook, since=None, limit=4, lang='en',usage_complete=True):

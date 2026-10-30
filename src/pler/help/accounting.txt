@@ -1,6 +1,15 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.17 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.18 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Tests and builds the agents ran (0.2.18)
+
+PLER reads each shell command an agent ran, in memory only, to decide whether it ran a test or a build. The command text is then dropped: the cache and archive keep only the kind (`test` or `build`), whether its exit code is the check's own, the call's identity and whether the call failed.
+
+- **Recognised:** common test and build tools of many languages, for example pytest, unittest, tox, npm/pnpm/yarn test and build scripts, node --test, jest, vitest, go test/build, cargo test/build, dotnet test/build, Maven, Gradle, make, CMake/ctest, gcc/clang, rspec, phpunit, mix and swift. A test script named like `test_*.py` counts as a test. Quoted text and here-document bodies are not commands.
+- **Outcome:** Claude Code marks a failed call; Codex logs the exit code of each finished command. A run passed when its exit code is 0 and failed otherwise.
+- **Not visible:** the exit code is the check's own only when the check is the last step of the command line. When its output is passed on (`| tail`), another step follows (`; echo`, `&& next`), it is an alternative (`||`) or it runs in the background, the run is counted with no visible result. Codex logs that do not record finished commands show no checks.
+- **Per session:** runs, passed, failed, and how the last run with a visible result ended. The observation says how the selected sessions' last visible test ended and how many tokens the sessions that ended on a failing test used. It describes the agents' own checks; it is not a quality measure, and a passing run does not prove the work is right.
 
 ## Your verdicts (0.2.17)
 

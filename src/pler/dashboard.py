@@ -25,6 +25,8 @@ from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
+from .usage.checks import summary as check_summary
+from .usage.insights import tests as test_insight
 from .usage.summary import summarize, quota_burn
 from .reporting import provenance,quality,affected
 
@@ -168,6 +170,7 @@ def session_view(session, lang='en', git=None, project_names=None, verdicts=None
                 models=[dict(model=m, calls=session.models.get(m, 0), total_tokens=t)
                         for m, t in sorted(session.model_tokens.items(), key=lambda row: row[1], reverse=True)],
                 tool_calls=sum(session.tools.values()), edited_files=len(session.files_edited),
+                checks={kind: {key: row[key] for key in ('runs', 'passed', 'failed', 'last')} for kind, row in session.checks.items()},
                 quota_burn=[dict(window_minutes=w, percentage_points=used) for w, used in quota_burn(session).items()],
                 notes=_notes(session, lang), git_activity=session_activity(git, session.started, session.ended))
 
@@ -241,7 +244,9 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
-                    + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']) + edit_insight(reedit,lang),
+                    + _git_insight(outcome, lang, trust['tokens_complete'] and trust['attribution_complete']) + edit_insight(reedit,lang)
+                    + test_insight(rows, lang),
+                checks=check_summary(rows),
                 verdicts=dict(verdict_summary(public_sessions,verdicts),readable=not sources.get('verdicts_error')),
                 git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),

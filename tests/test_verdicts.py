@@ -1,6 +1,7 @@
 """Your one-click verdicts stay on this computer, name only page session codes and never replace a file
 PLER cannot read. Sessions, folders and caches are invented and isolated.
 """
+import http.client
 import io
 import json
 import threading
@@ -131,18 +132,36 @@ class VerdictHttpTests(IsolatedMetadata):
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
 
+    def post_raw(self, raw, auth=True):
+        """The reply status, or None when Windows resets an upload the server refused before reading it."""
+        connection = http.client.HTTPConnection('127.0.0.1', self.server.server_port, timeout=10)
+        headers = {'Host': self.server.origin.split('//')[1], 'Content-Type': 'application/json'}
+        if auth:
+            headers.update({'Origin': self.server.origin, 'X-PLER-Token': self.server.token})
+        try:
+            connection.request('POST', '/api/usage/verdict', body=raw, headers=headers)
+            response = connection.getresponse()
+            response.read()
+            return response.status
+        except (ConnectionResetError, ConnectionAbortedError):
+            return None
+        finally:
+            connection.close()
+
     def test_verdict_route_takes_only_a_shown_code_and_one_of_two_words(self):
         identity = self.board.view(days=0)['sessions'][0]['id']
-        self.assertEqual(self.request('/api/usage/verdict', 'POST', dict(id=identity, verdict='useful'), auth=False)[0], 403)
+        unsigned = json.dumps(dict(id=identity, verdict='useful')).encode('ascii')
+        self.assertIn(self.post_raw(unsigned, auth=False), (403, None))
+        self.assertIsNone(self.board.view(days=0)['sessions'][0]['verdict'])
         for body in (dict(id=identity), dict(id=identity, verdict='great'), dict(id=identity, verdict=1),
                      dict(id='C:/' + PRIVATE, verdict='useful'), dict(id=identity, verdict='useful', path='C:/x'),
                      dict(id=identity.upper(), verdict='useful'), [identity, 'useful']):
             with self.subTest(body=body):
                 self.assertEqual(self.request('/api/usage/verdict', 'POST', body)[0], 400)
-        oversized = dict(id=identity, verdict='useful', padding=None)
-        code, _, _ = self.request('/api/usage/verdict', 'POST', oversized,
-                                  headers={'Content-Length': '129'})
-        self.assertEqual(code, 400)
+        compact = json.dumps(dict(id=identity, verdict=None), separators=(',', ':'))
+        self.assertEqual(self.post_raw((compact[:-1] + ' ' * (128 - len(compact)) + '}').encode('ascii')), 200)
+        # Refused before the body is read: a 400 reply, or on Windows possibly a reset of the unread upload.
+        self.assertIn(self.post_raw((compact[:-1] + ' ' * (129 - len(compact)) + '}').encode('ascii')), (400, None))
         self.assertEqual(self.request('/api/usage/verdict', 'POST', dict(id=CODE, verdict='useful'))[0], 404)
         code, _, raw = self.request('/api/usage/verdict', 'POST', dict(id=identity, verdict='useful'))
         self.assertEqual((code, json.loads(raw)), (200, dict(ok=True, id=identity, verdict='useful')))
