@@ -1,8 +1,10 @@
 # PLER — güncel kalan işler
 
-30 Ekim 2026; uygulama 0.2.24, test edilen kaynak `9891966`. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Son rapor](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
+30 Ekim 2026; Y06 için 0.2.25 geliştirme adayı hazırlanıyor. Son tamamlanmış 0.2.24 uygulama kanıtı `9891966` kaynağına dayanır. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
 
 Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Bu belge yeni özelliğin uygulanmış veya gerçek kullanıcı faydasının kanıtlanmış olduğu anlamına gelmez.
+
+**Son kullanıcı yönlendirmesi:** Aylık yaklaşık 3 dolar abonelik düşünülüyor; bu kesinleşmiş fiyat veya ödeme isteğinin kanıtı değildir. Kullanıcının içine sinmeden reklam veya deneyecek kişi arama başlatılmayacak. Önce somut ürün eksikleri giderilecek; ilk yetkilendirilen geliştirme Y06 yedekleme/geri yüklemedir. E06 pilotu ve katılımcı arama bu yeni yönlendirme nedeniyle ertelendi; önceden belirlenen pilot ölçütleri değişmedi.
 
 ## Son değerlendirmeden eklenen yedi başlık
 
@@ -50,7 +52,13 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y06 — Doğrulanmış yedekleme ve geri yükleme
 
-**Durum:** Açık; veri dayanıklılığı. **Öncelik:** Yeni kalıcı iş/karar verilerinden önce.
+**Durum:** 0.2.25'te uygulandı; son paket ve kurulu arayüz kabulü henüz bekliyor. **Öncelik:** Yeni kalıcı iş/karar verilerinden önce; kullanıcı bu geliştirmeye başlamayı açıkça istedi.
+
+- **Uygulanan kapsam:** `pler backup create`, `pler backup check` ve `pler backup restore ... --to YENİ_KLASÖR`. Yalnız PLER arşivi, saklama tercihi, oturum değerlendirmeleri ve kota örnekleri sürümlü, bütünlüğü doğrulanan yerel yedeğe alınır; yeniden kurulabilir önbellekler, ajan ayarları ve erişim anahtarları alınmaz.
+- Arayüzde özel yedek indirme ve seçilen dosyayı denetleme var. Geri yükleme komut satırından yalnız yeni, henüz var olmayan yerel klasöre yapılır; mevcut veri klasörü üzerine yazılmaz. Arayüzden tek tıkla geri yükleme bu adayın kapsamı değildir.
+- Geri yüklenen klasör her açılışta açıkça `pler --data-dir KLASÖR` ile seçilir; çalışan sayfa veya sonraki varsayılan açılış kendiliğinden değiştirilmez. Aynı bilgisayar ve özgün seçili kaynak kökleri için kurtarma sağlanır; başka bilgisayara taşıma kaynak yollarını yeniden eşleştirmez.
+- Özgün okuyucu anahtarları, kota zamanları ve saklama açık/kapalı tercihi korunur. Eski okuyucunun arşivi yeni okuyucuyla doğrulanmış gibi yükseltilmez; eski kota örneği yeni ölçüm gibi sunulmaz. Yedek şifreli veya anonim değildir; özel yollar/kimlikler taşıyabilir. Sağlama toplamı kim tarafından üretildiğini kanıtlamaz.
+- **Şu anki doğrulama:** Python 3.12'de 671 test, 0 hata, 5 atlama; Windows Python 3.14'te 680 test, 0 hata, 4 atlama; Node 47/47. Python 3.9, WSL, kurulu wheel, portable ve son tarayıcı kabulü tamamlanmadan geçmiş sayılmaz; nihai sonuçlar [çalışma raporuna](../../reports/backup-v1/REPORT.md) eklenecek.
 
 - Saklanan geçmiş artık asıl kayıt silindikten sonra tek kopya olabilir. Arşiv ve korunacak diğer yerel üst bilgi için açık yedek kapsamı, sürüm/şema, bütünlük ve geri alma kuralları tanımla.
 - Bozuk/desteklenmeyen/yarım yedeği reddet; mevcut sağlam veriyi başarısız geri yüklemeyle kaybetme. Yedek özel üst bilgi taşıyabilir; inceleme ve kullanıcı seçimi olmadan paylaşma.
@@ -102,9 +110,9 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 
 ### E06 — Gerçek profesyonel pilot ve tekrar kullanım
 
-**Durum:** Kit hazır ve iki kurulum yolunda doğrulanmış; gerçek katılımcı sonucu yok. **Tür:** Kullanıcı kanıtı. **Öncelik:** Değer varsayımlarını büyütmeden sınama.
+**Durum:** Kullanıcının isteğiyle ertelendi; 0.2.24 kiti iki kurulum yolunda doğrulanmış, gerçek katılımcı sonucu yok. **Tür:** Kullanıcı kanıtı. **Öncelik:** Kullanıcı ürünü hazır bulduktan sonra değer varsayımlarını sınama.
 
-[PILOT.md](PILOT.md) ölçütleri değişmeden en az beş profesyonelle mevcut yönteme karşı görevleri karşılaştır; başarısız/yanlış yorumlanan durumları da kaydet. Sonraki hafta somut tekrar kullanım gerekçesini gözle. Katılımcı bulma, onay ve yürütme kullanıcıyla koordine edilir; bu belge kişilere mesaj gönderme yetkisi değildir. **Kapanış:** Önceden belirlenen kritik anlama, bağımsız görev ve tekrar kullanım hedefleri gerçek sonuçlarla değerlendirilir. Başarısız sonuç da rapordur; ölçütler sonuç görüldükten sonra değiştirilmez. Y01–Y05'in tamamını önce yapmak pilot için otomatik ön koşul değildir; gerekli yayın/mahremiyet kabulü korunur.
+[PILOT.md](PILOT.md) ölçütleri değişmeden en az beş profesyonelle mevcut yönteme karşı görevleri karşılaştır; başarısız/yanlış yorumlanan durumları da kaydet. Sonraki hafta somut tekrar kullanım gerekçesini gözle. Kullanıcı ürünü hazır bulduğunu belirtmeden reklam ve katılımcı arama başlatılmaz. Katılımcı bulma, onay ve yürütme daha sonra kullanıcıyla koordine edilir; bu belge kişilere mesaj gönderme yetkisi değildir. **Kapanış:** Önceden belirlenen kritik anlama, bağımsız görev ve tekrar kullanım hedefleri gerçek sonuçlarla değerlendirilir. Başarısız sonuç da rapordur; ölçütler sonuç görüldükten sonra değiştirilmez. Y01–Y05'in tamamını önce yapmak pilot için otomatik ön koşul değildir; kullanıcı yönlendirmesi ve gerekli yayın/mahremiyet kabulü korunur.
 
 ## Tamamlanmış işleri yeniden açmama ve bilgi sınırları
 
@@ -116,7 +124,7 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 ## Önerilen yürütme sırası ve kapanış disiplini
 
 1. Y06 yedek/geri yükleme ve Y07'nin tamamlanabilir yerel kabul hazırlığı; dış engel/kararlar ayrı görünür.
-2. Gerekli kabul koşulları sağlanınca E06 pilotu; yeni özellikleri çoğaltmadan mevcut tekrar kullanım değerini ölç.
+2. Kullanıcının ürünü hazır bulmasına kadar somut eksikleri gider; reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur.
 3. Y01 iş bağlama, ardından Y03 hedef/sonuç ve Y02 karar takibi; pilot kanıtı önceliği değiştirebilir. Y04/Y05 kullanıcı yanlış anlamalarını kapatacak kapsamda ilerler.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.
 

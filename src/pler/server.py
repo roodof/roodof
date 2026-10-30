@@ -1,8 +1,9 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the actions are "read the logs again", the metadata settings, your own verdict on a session
-and "close". It opens no connection to an external service. Selected WSL log roots allow only the fixed
+command; the actions are "read the logs again", metadata settings, your own verdict on a session,
+prepare/check a private metadata backup and "close". An uploaded backup is checked in memory only;
+recovery into a new folder is a CLI action. It opens no connection to an external service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -41,6 +42,8 @@ class Server(ThreadingHTTPServer):
         self._slots = threading.BoundedSemaphore(self.max_workers)
         self._requests = {}
         self._requests_lock = threading.Lock()
+        # At most one large backup body/projection is admitted by this server.
+        self._backup_lock = threading.Lock()
         # A running server must not mix old Python code with files edited after startup.
         self.assets = {route: (WEB / filename).read_bytes() for route, filename in
                        (('/', 'index.html'), ('/app.js', 'app.js'), ('/app.css', 'app.css'))}
@@ -156,7 +159,9 @@ class Handler(BaseHTTPRequestHandler):
         request, lang = urlsplit(self.path), self._lang()
         try:
             if request.path == '/':
-                page = self.server.assets['/'].decode('utf-8').replace('__SESSION_TOKEN__', '')
+                from .usage.backup import MAX_BUNDLE_BYTES
+                page = (self.server.assets['/'].decode('utf-8').replace('__SESSION_TOKEN__', '')
+                        .replace('__BACKUP_MAX_BYTES__',str(MAX_BUNDLE_BYTES)))
                 self._send(200, page, 'text/html; charset=utf-8')
             elif request.path=='/help':
                 query=parse_qs(request.query,keep_blank_values=True)
@@ -214,12 +219,15 @@ class Handler(BaseHTTPRequestHandler):
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
-                         '/api/usage/verdict','/api/quit'):
+                         '/api/usage/verdict','/api/usage/backup','/api/usage/backup/check','/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
                 or not self._token()):
             self._send(403, dict(error=say(self._lang(), 'error.token')))
+            return
+        if route in ('/api/usage/backup','/api/usage/backup/check'):
+            self._backup(route)
             return
         try:
             size = int(self.headers.get('Content-Length', '0'))
@@ -260,3 +268,58 @@ class Handler(BaseHTTPRequestHandler):
             self.server.dashboard.close(timeout=0)
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()
+
+    def _backup(self,route):
+        """A private local backup, not a masked report; uploads are checked in memory only."""
+        from .usage import backup
+        lang=self._lang()
+        with self.server.dashboard.lock:
+            allowed=(self.server.dashboard.scanned_at is not None
+                     and not self.server.dashboard.sources.get('demo')
+                     and not self.server.dashboard._closed)
+        if not allowed:
+            self._send(409,dict(error=say(lang,'error.backup_unavailable'),code='unavailable'))
+            return
+        if not self.server._backup_lock.acquire(blocking=False):
+            self._send(409,dict(error=say(lang,'error.backup_busy'),code='busy'))
+            return
+        try:
+            query=parse_qs(urlsplit(self.path).query,keep_blank_values=True)
+            if (set(query)-{'lang'} or any(len(values)!=1 for values in query.values())
+                    or query.get('lang',['en'])[0] not in LANGUAGES):
+                raise backup.BackupError('invalid')
+            # This route deliberately admits a larger *bounded* body than JSON actions.
+            # Authentication was checked before any body read or metadata access.
+            lengths=self.headers.get_all('Content-Length') or []
+            if len(lengths)!=1 or self.headers.get('Transfer-Encoding') is not None:
+                raise backup.BackupError('invalid')
+            raw_size=lengths[0]
+            if not re.fullmatch('[0-9]{1,9}',raw_size):
+                raise backup.BackupError('invalid')
+            size=int(raw_size)
+            checking=route.endswith('/check')
+            if not 0<size<=(backup.MAX_BUNDLE_BYTES if checking else 64):
+                raise backup.BackupError('limit')
+            wanted='application/octet-stream' if checking else 'application/json'
+            if self.headers.get_content_type()!=wanted:
+                raise backup.BackupError('invalid')
+            data=self.rfile.read(size)
+            if len(data)!=size:
+                raise backup.BackupError('invalid')
+            if checking:
+                self._send(200,dict(ok=True,backup=backup.inspect(data)))
+            else:
+                try:body=json.loads(data)
+                except (ValueError,UnicodeError,RecursionError):raise backup.BackupError('invalid')
+                if body!={}:raise backup.BackupError('invalid')
+                data=backup.create()
+                self._send(200,data,'application/zip',filename='PLER-backup.zip')
+        except backup.BackupError as error:
+            status=409 if error.code=='busy' else 400
+            key='backup.error.'+error.code if error.code in ('invalid','unsupported','limit','unsafe_path','exists','io','busy') else 'error.backup_failed'
+            self._send(status,dict(error=say(lang,key),
+                                   code=error.code))
+        except (OSError,ValueError,TypeError,OverflowError,MemoryError):
+            self._send(500,dict(error=say(lang,'error.backup_failed'),code='io'))
+        finally:
+            self.server._backup_lock.release()

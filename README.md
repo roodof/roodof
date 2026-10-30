@@ -44,6 +44,21 @@ pler demo               # the page with invented logs and an invented Git reposi
 
 **Offline help:** the page's Help link opens versioned English/Turkish documentation included with the installed package. It explains privacy, safe cache reset, retained history, report periods, quality and support. The accounting contract is included too; no source checkout or Internet connection is required.
 
+## Verified private backup and recovery
+
+Open **Local history and reader cache** to download a private backup or check a selected backup on this computer. A backup covers saved history, session verdicts, retention preference and Claude quota observations, independently of the report filters. It does not read original agent logs or include reader/code caches, demo data, agent settings or access tokens.
+
+```text
+pler backup create "my-history.pler-backup.zip"
+pler backup check "my-history.pler-backup.zip"
+pler backup restore "my-history.pler-backup.zip" --to "recovered-history"
+pler --data-dir "recovered-history"
+```
+
+The portable package uses `PLER.exe` instead of `pler`. Restore only creates a **new local folder** with an existing parent. It validates the entire backup before publishing a complete folder and refuses existing destinations; your current data remains intact. Select that folder explicitly with `--data-dir` on future launches, including backup commands. No active profile changes automatically. `--json` returns counts and fixed error codes, without private paths or identifiers.
+
+**The backup is private and unencrypted:** unlike masked JSON, it contains original paths and retained identifiers. Keep it private and use only a trusted own backup. SHA-256 detects damage, not authenticity. Unknown formats, damaged checksums, unexpected files and excessive sizes are refused; uploads for checking stay in memory on this local server. Recovery preserves original source roots, times and reader keys: use the same selected roots on the same computer. Source relocation/another computer is not automatically mapped, retention limits still apply, old quotas stay old and an old reader's archive stays unverified where appropriate. Full instructions are included in installed offline help.
+
 ## WSL log folders on Windows
 
 PLER does not search WSL distributions automatically. Open the distribution yourself, then explicitly select its log root with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` or `--codex-dir`. Both `\\wsl.localhost\Ubuntu\...` and `\\wsl$\Ubuntu\...` are supported. An environment variable names the agent home/config folder; the command options name the projects/sessions folder.

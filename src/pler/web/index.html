@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="pler-session" content="__SESSION_TOKEN__">
+  <meta name="pler-backup-max" content="__BACKUP_MAX_BYTES__">
   <title>PLER · My usage</title>
   <link rel="stylesheet" href="/app.css">
   <script src="/app.js" defer></script>
@@ -25,7 +26,24 @@
       <div class="usage-filters"><div><label for="usage-period" data-i18n="period_label">Active sessions</label><select id="usage-period"><option value="7" data-i18n="period_7">Active in the last 7 days</option><option value="30" selected data-i18n="period_30">Active in the last 30 days</option><option value="90" data-i18n="period_90">Active in the last 90 days</option><option value="0" data-i18n="period_all">All sessions</option></select></div><div><label for="usage-agent" data-i18n="agent_label">Agent</label><select id="usage-agent"><option value="all" data-i18n="agent_all">All agents</option><option value="claude-code">Claude Code</option><option value="codex">Codex</option></select></div><div><label for="usage-project" data-i18n="project_label">Project</label><select id="usage-project"><option value="all" data-i18n="project_all">All projects</option></select></div></div>
       <p id="usage-status" class="usage-status" role="status" data-i18n="status_preparing">Preparing local logs…</p><progress id="usage-progress" class="usage-progress" aria-label="Reading agent logs" data-i18n-label="progress_label" hidden></progress>
       <p class="usage-scope" data-i18n="scope">Tokens cover the selected sessions in full. The period selects sessions by their last activity; it is not spending split by day.</p>
-      <details id="usage-archive-controls" class="metadata-controls" hidden><summary><span data-i18n="metadata_settings">Local history and reader cache</span> · <span id="usage-retention-summary"></span></summary><p id="usage-archive-status" class="section-note" role="status"></p><label class="check-label"><input id="usage-retention" type="checkbox"><span data-i18n="retention_label">Keep metadata after source logs disappear</span></label><p class="section-note" data-i18n="retention_help">Retention can be stopped without deleting existing history.</p><button id="usage-cache-reset" class="secondary" data-i18n="cache_reset" aria-describedby="usage-cache-help">Rebuild reader cache</button><p id="usage-cache-help" class="section-note" data-i18n="cache_reset_help">Archive, quota samples and preferences stay unchanged.</p><button id="usage-archive-clear" class="quiet" data-i18n="archive_clear" aria-describedby="usage-archive-help">Clear PLER archive</button><p id="usage-archive-help" class="section-note" data-i18n="archive_clear_help">Clears the whole PLER archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.</p></details>
+      <details id="usage-archive-controls" class="metadata-controls" hidden>
+        <summary><span data-i18n="metadata_settings">Local history and reader cache</span> · <span id="usage-retention-summary"></span></summary>
+        <p id="usage-archive-status" class="section-note" role="status"></p>
+        <label class="check-label"><input id="usage-retention" type="checkbox"><span data-i18n="retention_label">Keep metadata after source logs disappear</span></label>
+        <p class="section-note" data-i18n="retention_help">Retention can be stopped without deleting existing history.</p>
+        <section class="backup-controls" aria-labelledby="usage-backup-title">
+          <h2 id="usage-backup-title" data-i18n="backup_title">Back up and recover history</h2>
+          <p id="usage-backup-help" class="section-note" data-i18n="backup_scope">Backs up all retained history, verdicts, retention preference and Claude quota samples. Main filters and project-name masking do not apply.</p>
+          <p class="section-note backup-private" data-i18n="backup_privacy">The file includes private paths and identifiers. It is unencrypted and is not an anonymous report. Keep it safe.</p>
+          <button id="usage-backup-download" class="secondary" data-i18n="backup_download" aria-describedby="usage-backup-help">Download private backup</button>
+          <p id="usage-backup-download-result" class="section-note" role="status" hidden><span data-i18n="backup_prepared">Backup prepared. Check your browser downloads; if it did not start,</span> <a id="usage-backup-download-link" data-i18n="export_retry">Download again</a></p>
+          <div class="backup-check"><label for="usage-backup-file" data-i18n="backup_file">Backup file to check</label><input id="usage-backup-file" type="file" accept=".zip,application/zip" aria-describedby="usage-backup-check-help"><button id="usage-backup-check" class="secondary" disabled data-i18n="backup_check">Check backup</button></div>
+          <p id="usage-backup-check-help" class="section-note" data-i18n="backup_check_help">Checking sends this file only to PLER on this computer, keeps it in memory, and does not restore or change history.</p>
+          <p id="usage-backup-result" class="section-note" role="status" hidden></p>
+          <a id="usage-backup-guide" href="/help#backup" data-i18n="backup_guide">How to restore into a new folder</a>
+        </section>
+        <button id="usage-cache-reset" class="secondary" data-i18n="cache_reset" aria-describedby="usage-cache-help">Rebuild reader cache</button><p id="usage-cache-help" class="section-note" data-i18n="cache_reset_help">Archive, quota samples and preferences stay unchanged.</p><button id="usage-archive-clear" class="quiet" data-i18n="archive_clear" aria-describedby="usage-archive-help">Clear PLER archive</button><p id="usage-archive-help" class="section-note" data-i18n="archive_clear_help">Clears the whole PLER archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.</p>
+      </details>
       <div id="usage-content" hidden>
         <div id="usage-totals" class="usage-totals"></div>
         <section id="usage-dated" class="usage-panel" hidden></section>

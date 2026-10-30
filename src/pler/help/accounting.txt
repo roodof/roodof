@@ -1,6 +1,16 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.24 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.25 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Private backup and recovery (0.2.25)
+
+Backup format 1 contains a fixed manifest and only the existing saved metadata archive, retention preference, session verdicts and Claude quota journal. Missing optional files preserve their normal absent/default meaning. Creation holds the archive and quota writers' locks, validates the bounded snapshots and reads no original agent source. Reader/code caches, generation/lock files, demo data, agent settings and access tokens are excluded. Backup is the saved local history, not the currently filtered report or a promise of complete account coverage.
+
+The ZIP uses stored, uncompressed entries with fixed file/count/byte limits. Manifest application/parser/schema versions, fixed members, checksums and each payload's allowlist/types are verified before recovery. SHA-256 detects accidental damage; an attacker able to rewrite metadata and checksums is outside this boundary. Backup files contain private paths and retained identities and are unencrypted; they must not be treated as anonymous JSON or a support attachment. Web checks retain the uploaded file in memory only, require the same origin/access credential, and admit one backup/check operation at a time. Demo snapshots cannot access these operations.
+
+Recovery stages only fixed files and publishes a new local directory. Existing destinations are refused; current data is neither merged nor overwritten. A failure before publication leaves the current data intact; after a directory-sync failure the complete new folder may already exist, so an error does not imply rollback. No power-loss guarantee for hardware or network filesystems is established. Open the recovered folder explicitly with `--data-dir` on each launch; no persistent profile selection is written.
+
+Original paths, timestamps, retention choice and archive reader keys are preserved. Replay still requires the same selected roots on the same computer; source relocation and another computer are not automatically remapped. Retention bounds remain applicable. Older-reader or unavailable-source metadata retains its uncertainty, stale quota observations remain stale and never-read deleted history cannot be recovered. This backup feature changes no token/pricing accounting rule, parser version or schema version.
 
 ## Snapshot and file verification (0.2.24)
 

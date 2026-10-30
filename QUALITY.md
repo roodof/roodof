@@ -2,6 +2,16 @@
 
 **Güncel kalan işler:** [docs/REMAINING.md](docs/REMAINING.md). 30 Ekim 2026 satın alma değerlendirmesindeki yedi başlık, önceki altı ayrı iş, kapanış ölçütleri ve önerilen sıra burada tutulur. Dağıtım/CI/temiz makine/imza/tarayıcı kabulü tek başlık altında; ürün geliştirmesi, gerçek kullanıcı kanıtı ve kayıttan bilinemez sınırlar ayrı. Aşağıdaki tarihsel “açık” notlar sonraki sürümlerin kapanış kanıtlarıyla birlikte okunur; giderilmiş kusurlar tekrar iş sayılmaz.
 
+## 30 Ekim: 0.2.25 — doğrulanmış yerel yedekleme ve yeni klasöre kurtarma
+
+Kullanıcı aylık yaklaşık 3 dolar abonelik düşündüğünü, ürün içine sinmeden reklam veya deneyecek kişi arama başlatılmamasını söyledi. Bu fiyat kesinleşmiş değildir; ücretli talep veya düzenli fayda kanıtı yoktur. İlk yetkilendirilen geliştirme Y06 olarak uygulandı. Profesyonel pilot ve katılımcı arama kullanıcı ürünü hazır bulana kadar ertelendi; pilot ölçütleri değişmedi.
+
+`pler backup create/check/restore` ile yalnız kalıcı PLER üst bilgisi yedeklenir ve doğrulanır. Arşiv, saklama tercihi, değerlendirmeler ve kota örnekleri kapsanır; okuyucu/Git önbellekleri, demo, ajan ayarları ve erişim anahtarları kapsanmaz. Arayüz özel yedek indirme ve dosya denetimi sunar; geri yükleme komut satırından yalnız yeni, henüz var olmayan yerel klasöre yapılır. Mevcut klasörün üzerine yazma ve arayüzden tek tıkla geri yükleme bu adayda yoktur.
+
+Geri yükleme, aynı bilgisayar/özgün seçili kaynak kökleri için kurtarmadır; kaynak yolları başka bilgisayara yeniden eşleştirilmez. Her açılışta `pler --data-dir KLASÖR` ile seçim gerekir. Özgün okuyucu anahtarı, zamanlar ve saklama tercihi korunur; çalışan sayfa ve varsayılan açılış kendiliğinden değiştirilmez. Yedek özel yollar/kimlikler taşır, şifreli veya anonim değildir; sağlama toplamı kazara hasarı kontrol eder, kaynağın güvenilirliğini kanıtlamaz.
+
+Şu an kaynak doğrulaması: Windows Python 3.12'de 671 test, 0 hata, 5 atlama; Python 3.14'te 680 test, 0 hata, 4 atlama; Node 47/47. Python 3.9, WSL, kurulu wheel, portable ve son tarayıcı kabulü henüz bekliyor. Y06 son paket kabulü tamamlanmış sayılmadı; nihai kanıtlar [yedekleme raporunda](../reports/backup-v1/REPORT.md) kaydedilecek. Bu çalışma gerçek kayıt/önbellek okumadı, model çağrısı, reklam veya katılımcı iletişimi yapmadı. Diğer kalan işler açık durumlarını korur.
+
 ## 30 Ekim: 0.2.24 — doğruluk ve sınır denetimleri
 
 Claude'un 0.2.16–0.2.23 geliştirmeleri korundu. Yenilemede kaybolan okuma uyarıları, aynı boyut/tarihle değiştirilen dosyada eski cache isabeti, eski bölümün ortasındaki değişimi kaçıran artımlı okuma ve doğrulama/yeniden açma arasında dosya döndürülmesi düzeltildi. Hatalı görüntüler beş saniye sonra yeniden denenir. Yardım/listeleme/toplama/dry-run/yalnız derleme kipleri artık çalışmış test veya derleme olarak sayılmaz.

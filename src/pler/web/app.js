@@ -29,6 +29,19 @@ const I18N=/*I18N*/{
 "quota_ambiguous": "Conflicting meter history. The current percentage and forecast are unknown. Separate personal/work profiles before comparing their meters.",
 "quota_multiple_sources": "Several local source groups contribute history. A common account cannot be verified, so the current percentage and forecast are unknown. Select one source group.",
 "metadata_settings": "Local history and reader cache",
+"backup_title": "Back up and recover history",
+"backup_scope": "Backs up all retained history, verdicts, retention preference and Claude quota samples. Main filters and project-name masking do not apply. Source logs and rebuildable caches are not included.",
+"backup_privacy": "The file includes private paths and identifiers. It is unencrypted and is not an anonymous report. Keep it safe.",
+"backup_download": "Download private backup",
+"backup_preparing": "Preparing backup…",
+"backup_prepared": "Backup prepared. Check your browser downloads; if it did not start,",
+"backup_file": "Backup file to check",
+"backup_check": "Check backup",
+"backup_checking": "Checking backup…",
+"backup_check_help": "Checking sends this file only to PLER on this computer, keeps it in memory, and does not restore or change history.",
+"backup_guide": "How to restore into a new folder",
+"backup_invalid_file": "Choose a nonempty PLER backup within the supported size limit.",
+"backup_checked": "Backup checked: PLER {version}, {date}; {files} archived sources, {verdicts} verdicts and {quota} quota samples. Saved retention: {retention}. History has not been restored or changed.",
 "retention_label": "Keep metadata after source logs disappear",
 "retention_on": "History retention is on. Stored archive: {bytes}; at most {days} unseen days, {files} files and {limit}.",
 "retention_off": "History retention is off. Existing archive bytes ({bytes}) are preserved, but are not loaded or updated.",
@@ -371,6 +384,19 @@ const I18N=/*I18N*/{
 "quota_ambiguous": "Kota geçmişi çelişkili. Güncel yüzde ve tahmin bilinmiyor. Kişisel/iş profillerinin sayaçlarını ayırarak inceleyin.",
 "quota_multiple_sources": "Birden fazla yerel kaynak grubu geçmiş sağlıyor. Ortak hesap doğrulanamadığı için güncel yüzde ve tahmin bilinmiyor. Tek kaynak grubu seçin.",
 "metadata_settings": "Yerel geçmiş ve okuma önbelleği",
+"backup_title": "Geçmişi yedekle ve kurtar",
+"backup_scope": "Saklanan tüm geçmişi, değerlendirmeleri, saklama tercihini ve Claude kota örneklerini yedekler. Ana filtreler ve proje adlarını gizleme seçeneği uygulanmaz. Kaynak kayıtlar ve yeniden kurulabilir önbellekler dahil değildir.",
+"backup_privacy": "Dosya özel yollar ve kimlikler içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
+"backup_download": "Özel yedek indir",
+"backup_preparing": "Yedek hazırlanıyor…",
+"backup_prepared": "Yedek hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
+"backup_file": "Kontrol edilecek yedek dosyası",
+"backup_check": "Yedeği kontrol et",
+"backup_checking": "Yedek kontrol ediliyor…",
+"backup_check_help": "Kontrol, bu dosyayı yalnız bu bilgisayardaki PLER'e gönderir, bellekte tutar; geçmişi geri yüklemez veya değiştirmez.",
+"backup_guide": "Yeni klasöre geri yükleme adımları",
+"backup_invalid_file": "Desteklenen boyut sınırı içinde, boş olmayan bir PLER yedeği seçin.",
+"backup_checked": "Yedek doğrulandı: PLER {version}, {date}; {files} arşiv kaynağı, {verdicts} değerlendirme ve {quota} kota örneği. Kayıtlı tercih: {retention}. Geçmiş geri yüklenmedi veya değiştirilmedi.",
 "retention_label": "Kaynak kayıtlar kaybolunca üst bilgiyi sakla",
 "retention_on": "Geçmiş saklama açık. Arşiv: {bytes}; en fazla {days} görülmeyen gün, {files} dosya ve {limit}.",
 "retention_off": "Geçmiş saklama kapalı. Mevcut arşiv ({bytes}) korunuyor; yüklenmiyor veya güncellenmiyor.",
@@ -657,6 +683,7 @@ function applyLanguage(){
   for(const item of document.querySelectorAll('[data-i18n-placeholder]'))item.placeholder=t(item.dataset.i18nPlaceholder);
   for(const item of document.querySelectorAll('[data-i18n-label]'))item.setAttribute('aria-label',t(item.dataset.i18nLabel));
   $('usage-help').href='/help?lang='+LANG;
+  $('usage-backup-guide').href='/help?lang='+LANG+'#backup';
 }
 function switchLanguage(){const other=LANG==='tr'?'en':'tr';try{localStorage.setItem('pler-lang',other);sessionStorage.setItem('pler-view',JSON.stringify({days:$('usage-period').value,agent:$('usage-agent').value,project:$('usage-project').value,search:$('usage-session-search').value,sort:$('usage-session-sort').value,quality:Boolean($('usage-quality-only').checked),mask:Boolean($('usage-export-mask').checked)}));}catch(_){}location.search='?lang='+other;}
 async function api(path,options={}){
@@ -669,7 +696,7 @@ async function api(path,options={}){
 }
 async function post(path,body){return api(path+'?lang='+LANG,{method:'POST',headers:{'Content-Type':'application/json','X-PLER-Token':token},body:JSON.stringify(body)});}
 async function closeApp(){
-  try{await post('/api/quit',{});usageState.stopped=true;usageState.revision++;clearTimeout(usageState.timer);clearInterval(usageState.clock);document.querySelectorAll('button,select,input').forEach(item=>item.disabled=true);notice(t('closed'));}
+  try{await post('/api/quit',{});usageState.stopped=true;usageState.revision++;clearTimeout(usageState.timer);clearInterval(usageState.clock);clearUsageBackupDownload();document.querySelectorAll('button,select,input').forEach(item=>item.disabled=true);notice(t('closed'));}
   catch(error){notice(error.message);}
 }
 const usageState={data:null,revision:0,pageSize:20,timer:null,clock:null,stopped:false,loading:false,exporting:false,downloadUrl:null};
@@ -963,14 +990,66 @@ function clearUsageDownload(){
   $('usage-download-result').hidden=true;
   $('usage-download-link').removeAttribute('href');
 }
+function clearUsageBackupDownload(){
+  if(usageState.backupUrl)URL.revokeObjectURL(usageState.backupUrl);
+  usageState.backupUrl=null;
+  if($('usage-backup-download-result'))$('usage-backup-download-result').hidden=true;
+  if($('usage-backup-download-link'))$('usage-backup-download-link').removeAttribute('href');
+}
+function syncBackupControls(){
+  const download=$('usage-backup-download'),check=$('usage-backup-check'),file=$('usage-backup-file');
+  if(!download||!check||!file)return;
+  const data=usageState.data,busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy;
+  const unavailable=!data?.has_snapshot||data.demo||!data.archive?.available;
+  download.disabled=Boolean(busy||unavailable);check.disabled=Boolean(busy||unavailable||!file.files?.length);file.disabled=Boolean(busy||unavailable);
+  download.textContent=t(usageState.backupBusy==='download'?'backup_preparing':'backup_download');
+  check.textContent=t(usageState.backupBusy==='check'?'backup_checking':'backup_check');
+  download.setAttribute('aria-busy',String(usageState.backupBusy==='download'));check.setAttribute('aria-busy',String(usageState.backupBusy==='check'));
+  if($('usage-refresh'))$('usage-refresh').disabled=Boolean(busy||data?.state==='scanning');
+}
+async function backupResponse(path,body,type){
+  let response;
+  try{response=await fetch(path+'?lang='+LANG,{method:'POST',cache:'no-store',headers:{'Content-Type':type,'X-PLER-Token':token},body});}
+  catch(_){throw new Error(t('err_unreachable'));}
+  if(!response.ok){let error;try{error=await response.json();}catch(_){throw new Error(t('err_closed'));}throw new Error(error.error||t('err_read'));}
+  return response;
+}
+async function downloadUsageBackup(){
+  const button=$('usage-backup-download');
+  if(!button||button.disabled||usageState.backupBusy||usageState.stopped)return;
+  if(!confirm(t('backup_privacy')))return;
+  rememberActionFocus(button);usageState.backupBusy='download';clearUsageBackupDownload();syncArchiveButton();syncExportButton();notice('');
+  try{
+    const response=await backupResponse('/api/usage/backup','{}','application/json'),blob=await response.blob();
+    if(usageState.stopped)return;
+    const link=$('usage-backup-download-link');usageState.backupUrl=URL.createObjectURL(blob);link.href=usageState.backupUrl;link.download='PLER-backup.zip';
+    $('usage-backup-download-result').hidden=false;link.click();
+  }catch(error){if(!usageState.stopped)notice(error.message);}
+  finally{usageState.backupBusy=null;syncArchiveButton();syncExportButton();restoreActionFocus();}
+}
+async function checkUsageBackup(){
+  const button=$('usage-backup-check'),file=$('usage-backup-file')?.files?.[0];
+  if(!button||button.disabled||usageState.backupBusy||usageState.stopped)return;
+  const maximum=Number(document.querySelector('meta[name="pler-backup-max"]')?.content);
+  if(!file||!Number.isFinite(maximum)||maximum<=0||file.size<=0||file.size>maximum){notice(t('backup_invalid_file'));return;}
+  rememberActionFocus(button);usageState.backupBusy='check';$('usage-backup-result').hidden=true;syncArchiveButton();syncExportButton();notice('');
+  try{
+    const response=await backupResponse('/api/usage/backup/check',file,'application/octet-stream'),value=(await response.json()).backup;
+    if(usageState.stopped)return;
+    $('usage-backup-result').textContent=t('backup_checked',{version:value.version,date:usageDate(value.created_at),files:number(value.archive_files),verdicts:number(value.verdicts),quota:number(value.quota_samples),retention:t(value.retention_enabled?'retention_short_on':'retention_short_off')});
+    $('usage-backup-result').hidden=false;
+  }catch(error){if(!usageState.stopped)notice(error.message);}
+  finally{usageState.backupBusy=null;syncArchiveButton();syncExportButton();restoreActionFocus();}
+}
 function syncArchiveButton(){
   const button=$('usage-archive-clear'),archive=usageState.data?.archive;
   if(!button)return;
-  const busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging;
-  button.disabled=busy||!archive?.available||(!archive?.stored_bytes&&!archive?.stored_files&&!archive?.errors);
+  const busy=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy;
+  button.disabled=Boolean(busy||!archive?.available||(!archive?.stored_bytes&&!archive?.stored_files&&!archive?.errors));
   button.textContent=t(usageState.archiveClearing?'archive_clearing':'archive_clear');
   button.setAttribute('aria-busy',String(Boolean(usageState.archiveClearing)));
-  for(const id of ['usage-retention','usage-cache-reset'])if($(id))$(id).disabled=busy||!archive?.available;
+  for(const id of ['usage-retention','usage-cache-reset'])if($(id))$(id).disabled=Boolean(busy||!archive?.available);
+  syncBackupControls();
 }
 function renderUsageArchive(data){
   const archive=data.archive,box=$('usage-archive-controls');
@@ -985,7 +1064,7 @@ function renderUsageArchive(data){
   syncArchiveButton();
 }
 async function changeMetadata(action){
-  if(usageState.stopped||usageState.metadataChanging||usageState.exporting||usageState.archiveClearing)return;
+  if(usageState.stopped||usageState.metadataChanging||usageState.exporting||usageState.archiveClearing||usageState.backupBusy)return;
   const retention=action==='retention',control=$(retention?'usage-retention':'usage-cache-reset');
   rememberActionFocus(control);usageState.metadataChanging=true;clearUsageDownload();syncArchiveButton();syncExportButton();notice('');
   try{await post(retention?'/api/usage/retention':'/api/usage/cache/reset',retention?{enabled:Boolean(control.checked)}:{});if(usageState.stopped)return;usageState.revision=(usageState.revision||0)+1;usageState.data=null;notice(t(retention?'retention_changed':'cache_reset_done'));await loadUsage();}
@@ -1021,7 +1100,7 @@ function syncExportButton(){
   const filters=usageState.data?.filters;
   const matches=filters&&String(filters.days)===$('usage-period').value&&filters.agent===$('usage-agent').value&&filters.project===$('usage-project').value;
   const button=$('usage-export');
-  button.disabled=usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||!usageState.data?.has_snapshot||!matches;
+  button.disabled=Boolean(usageState.stopped||usageState.loading||usageState.exporting||usageState.archiveClearing||usageState.metadataChanging||usageState.backupBusy||!usageState.data?.has_snapshot||!matches);
   button.textContent=t(usageState.exporting?'export_preparing':'export');
   button.setAttribute('aria-busy',String(usageState.exporting));
 }
@@ -1051,6 +1130,9 @@ $('lang-toggle').addEventListener('click',switchLanguage);$('close-app').addEven
 $('usage-archive-clear').addEventListener('click',clearUsageArchive);
 $('usage-retention').addEventListener('change',()=>changeMetadata('retention'));
 $('usage-cache-reset').addEventListener('click',()=>changeMetadata('cache'));
+$('usage-backup-download').addEventListener('click',downloadUsageBackup);
+$('usage-backup-check').addEventListener('click',checkUsageBackup);
+$('usage-backup-file').addEventListener('change',()=>{$('usage-backup-result').hidden=true;syncBackupControls();});
 $('usage-export-mask').addEventListener('change',()=>{clearUsageDownload();syncExportButton();});
 $('usage-quality-only').addEventListener('change',()=>{usageState.pageSize=20;renderUsageSessions();});
 $('usage-quality-show').addEventListener('click',()=>{$('usage-quality-only').checked=true;$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-section').scrollIntoView({block:'start'});$('usage-quality-only').focus();});

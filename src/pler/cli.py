@@ -6,11 +6,15 @@
                    show context and Claude subscription use in Claude Code's status line, and let PLER
                    read the Claude Code quota from there (asks before changing Claude Code's settings)
   pler demo        try the page with invented logs and an invented Git repository, not your own
+  pler backup     create, check or restore a private local metadata backup
+  pler --data-dir <folder>
+                   open using the explicitly selected local PLER data folder
   pler --version
 
 No model is called, nothing is sent anywhere, and the logs are only read.
 """
 import argparse
+import os
 import sys
 import webbrowser
 
@@ -43,6 +47,49 @@ def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
+    # One global folder option works before or after any existing subcommand.
+    # Keep it process-local: a completed command never rewrites a saved profile
+    # or changes another running PLER's folder.
+    from .backup_cli import _Parser, _Arguments, _failure
+    parser = _Parser(add_help=False, allow_abbrev=False)
+    parser.add_argument('--data-dir', action='append')
+    try:
+        args, rest = parser.parse_known_args(argv)
+    except _Arguments:
+        return _failure('arguments', language(), '--json' in argv)
+    if args.data_dir is None:
+        return _main(rest)
+    if len(args.data_dir) != 1:
+        return _failure('arguments', language(), '--json' in rest)
+    if any(option in rest for option in ('--help', '-h', '--version')):
+        return _main(rest)
+    if not args.data_dir[0]:
+        return _failure('unsafe_path', language(), '--json' in rest)
+    previous = os.environ.get('PLER_CACHE_DIR')
+    os.environ['PLER_CACHE_DIR'] = args.data_dir[0]
+    try:
+        from .paths import cache_folder
+        try:
+            selected = cache_folder()
+            if selected is not None and selected.exists() and not selected.is_dir():
+                selected = None
+        except (OSError, ValueError, RuntimeError):
+            selected = None
+        if selected is None:
+            return _failure('unsafe_path', language(), '--json' in rest)
+        os.environ['PLER_CACHE_DIR'] = str(selected)
+        return _main(rest)
+    finally:
+        if previous is None:
+            os.environ.pop('PLER_CACHE_DIR', None)
+        else:
+            os.environ['PLER_CACHE_DIR'] = previous
+
+
+def _main(argv):
+    if argv[:1] == ['backup']:
+        from .backup_cli import main as backup
+        return backup(argv[1:])
     if argv[:1] == ['report']:
         from .usage import main as report
         return report(argv[1:])
@@ -83,6 +130,9 @@ def main(argv=None):
     parser.add_argument('--version', action='version', version='PLER ' + __version__)
     parser.add_argument('--port', type=int, default=PORT, help=say(lang, 'cli.port', PORT))
     parser.add_argument('--no-browser', action='store_true', help=say(lang, 'cli.no_browser'))
+    # The global parser removes this option before routing. Advertising it here
+    # keeps the normal page help discoverable without reading any local data.
+    parser.add_argument('--data-dir', metavar='FOLDER', help=say(lang, 'backup.data_dir_help'))
     args = parser.parse_args(argv[1:] if demo else argv)
     if not demo:
         return serve(args.port, not args.no_browser, lang)
