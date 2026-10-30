@@ -5,6 +5,7 @@
 - Add a versioned, verified private backup of retained metadata, session verdicts, retention preference and Claude quota samples. Snapshot only saved allowlisted files under the archive/quota writers' locks; never rescan original logs for backup.
 - Validate manifests, per-file checksums, schemas and metadata before restoring. Reject unknown/duplicate/compressed/oversized members, private extra fields and damaged data. Stage and flush fixed files, then publish only a new local folder; refuse existing targets and preserve the current history.
 - Add `pler backup create/check/restore`, fixed public JSON summaries and explicit `--data-dir` selection. Restore preserves source paths, timestamps and original reader keys; it neither switches the active profile nor remaps sources to another machine.
+- Propagate command failure and argument exit codes from `python -m pler`, so a rejected restore cannot appear successful to calling scripts. The portable terminal entry point already propagates these codes.
 - Add private-backup download and local file checking to history controls, with separate privacy wording and versioned EN/TR recovery help. Backup files are unencrypted and contain private paths/identifiers; a checksum is not an authenticity guarantee. Demo and unauthenticated requests cannot access saved private data.
 - Application 0.2.25; accounting parser and schema stay unchanged. No subscription, advertisement, participant outreach or model call is introduced.
 

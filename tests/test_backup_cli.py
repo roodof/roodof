@@ -4,6 +4,8 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -179,6 +181,22 @@ class BackupCliTests(unittest.TestCase):
                 with redirect_stdout(io.StringIO()), self.assertRaises(SystemExit) as stopped:
                     cli.main(argv)
                 self.assertEqual(stopped.exception.code, 0)
+
+    def test_module_entrypoint_propagates_failure_and_argument_exit_codes(self):
+        environment=os.environ.copy()
+        environment['PYTHONPATH']=str(Path(cli.__file__).resolve().parent.parent)
+        for arguments,expected,code in ((['backup','check',str(self.root/'PRIVATE-MISSING.zip'),'--json'],1,'io'),
+                                        (['backup','restore','PRIVATE-MISSING.zip','--json'],2,'arguments')):
+            with self.subTest(code=code):
+                # Embeddable Python ignores PYTHONPATH; bootstrap the imported installation,
+                # then execute its real module entrypoint in a separate process.
+                entry="import runpy,sys;sys.path.insert(0,sys.argv.pop(1));sys.argv[0]='pler';runpy.run_module('pler',run_name='__main__')"
+                result=subprocess.run([sys.executable,'-B','-c',entry,environment['PYTHONPATH'],*arguments],cwd=str(self.root),
+                                      env=environment,capture_output=True,text=True,encoding='utf-8',timeout=20)
+                self.assertEqual(result.returncode,expected)
+                self.assertEqual(json.loads(result.stdout),dict(ok=False,code=code))
+                self.assertEqual(result.stderr,'')
+                self.assertNotIn('PRIVATE',result.stdout)
 
     def test_real_empty_metadata_bundle_roundtrip_uses_only_explicit_local_folders(self):
         # Complete file roundtrip at the CLI boundary, not just mocked routing.

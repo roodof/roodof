@@ -61,7 +61,7 @@ pler backup restore "gecmisim.pler-backup.zip" --to "kurtarilan-gecmis"
 pler --data-dir "kurtarilan-gecmis"
 ```
 
-Taşınabilir pakette `pler` yerine `PLER.exe` kullanılır. Geri yükleme yalnız üst klasörü var olan **yeni bir yerel klasör** oluşturur. Yedeği tamamen doğrulayıp tam klasörü hazırlar; var olan hedefi reddeder ve mevcut veriyi korur. Sonraki her açılışta bu klasörü `--data-dir` ile açıkça seç; yedek komutları da buna dahildir. Çalışan profil kendiliğinden değişmez. `--json` özel yol/kimlik yerine sayılar ve sabit hata kodları döndürür.
+Taşınabilir paketin terminal komutlarında `pler` yerine `PLER.cmd` kullanılır. Geri yükleme yalnız üst klasörü var olan **yeni bir yerel klasör** oluşturur. Yedeği tamamen doğrulayıp tam klasörü hazırlar; var olan hedefi reddeder ve mevcut veriyi korur. Sonraki her açılışta bu klasörü `--data-dir` ile açıkça seç; yedek komutları da buna dahildir. Çalışan profil kendiliğinden değişmez. `--json` özel yol/kimlik yerine sayılar ve sabit hata kodları döndürür.
 
 **Yedek özeldir ve şifreli değildir:** gizlenmiş JSON'dan farklı olarak özgün yolları ve saklanan kimlikleri içerir. Özel yerde tut; yalnız kendi güvendiğin yedeği kullan. SHA-256 hasarı bulur, kaynağın güvenilirliğini doğrulamaz. Bilinmeyen biçim, tutmayan sağlama toplamı, beklenmeyen dosya ve aşırı boyut reddedilir; kontrol için seçilen dosya yerel sunucunun belleğinde kalır. Kurtarma özgün kaynak köklerini, zamanları ve okuyucu anahtarlarını korur: aynı bilgisayarda aynı kökleri seç. Taşınmış kaynak veya başka bilgisayar otomatik eşlenmez; saklama sınırları geçerlidir, eski kota güncel hale gelmez ve eski okuyucu arşivi uygun durumlarda doğrulanamamış kalır. Tam yönergeler kurulu çevrimdışı yardımdadır.
 
