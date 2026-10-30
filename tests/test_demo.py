@@ -43,6 +43,8 @@ class DemoTests(unittest.TestCase):
         tests = value['checks']['test']
         self.assertEqual((tests['sessions'], tests['ended_passed'], tests['ended_failed'], tests['ended_unknown']), (4, 2, 1, 1))
         self.assertEqual(value['checks']['build']['ended_passed'], 1)
+        # One added discount line is rewritten by the later Codex commit; the amended-away commit is not measured.
+        self.assertEqual(value['git_outcome']['lines'], dict(added=13, kept=12, commits=3, unmeasured=0))
         self.assertEqual((value['reedit']['origin_sessions'],value['reedit']['eligible_sessions'],
                           value['reedit']['matched_sessions']),(8,7,3))
         self.assertTrue(all(m['gap_seconds']>0 for m in value['reedit']['matches']))

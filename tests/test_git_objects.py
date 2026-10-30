@@ -284,8 +284,10 @@ class SessionOutcomeTests(unittest.TestCase):
         dashboard.refresh()
         dashboard.thread.join(10)
         value = dashboard.view(days=0)
+        # These invented commits name a tree that is not written, so their lines cannot be measured.
         self.assertEqual(value['git_outcome'], dict(sessions=2, commits=3, on_branch=2, off_branch=1, unknown=0,
-                                                    token_share=1.0))
+                                                    token_share=1.0,
+                                                    lines=dict(added=0, kept=0, commits=0, unmeasured=2)))
         card = [item for item in value['insights'] if item['kind'] == 'git_outcome'][0]
         self.assertIn('2 sessions', card['detail'])
         self.assertIn('3 commits', card['detail'])

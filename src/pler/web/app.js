@@ -220,6 +220,10 @@ const I18N=/*I18N*/{
 "git_no_repo": "Neither this session's folder nor the files it edited are in an available local Git repository.",
 "git_linked": "Repositories checked: {repos}. A repository counts when the session started in it or edited a file in it, so an agent started in a parent folder is still linked to the repository it changed.",
 "git_outcome": "Commits recorded in this time: {kept} of {total} are still on a local or remote-tracking branch.",
+"git_lines": "Lines its commits added that are still in place at HEAD: {share} ({kept} of {added}, measured in {commits}).",
+"git_lines_unmeasured": " Not measurable: {n} (a merge, a first commit, a file too large or a commit outside HEAD's history).",
+"git_lines_note": "Counted by content: a line moved within its file still counts, a rewritten or moved-file line does not. File contents are read only in memory.",
+"lines_kept_row": "Code: {share} of {added} added lines still in place",
 "git_outcome_off": "No longer on any branch: {n} (amended, rebased, reset or on a deleted branch). A rewritten commit can still carry the same change.",
 "git_outcome_unknown": "Could not be checked: {n} (missing or borrowed objects, a shallow or very long history).",
 "reedit_coverage": "Eligible selected sessions: {eligible} of {selected}. Later-session evidence uses all selected log folders: {timeline} of {total} sessions eligible, across agents and projects.",
@@ -275,6 +279,10 @@ const I18N=/*I18N*/{
 "noun_run": [
   "run",
   "runs"
+],
+"noun_commit": [
+  "commit",
+  "commits"
 ],
 "noun_session": [
 "session",
@@ -554,6 +562,10 @@ const I18N=/*I18N*/{
 "git_no_repo": "Ne bu oturumun klasörü ne de düzenlediği dosyalar erişilebilir bir yerel Git deposunda.",
 "git_linked": "Kontrol edilen depolar: {repos}. Oturum bir depoda başladıysa ya da bir deponun dosyasını düzenlediyse o depo sayılır; böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır.",
 "git_outcome": "Bu sürede kaydedilen commit'ler: {total} commit'ten {kept} tanesi hâlâ yerel ya da uzak izleme dalında.",
+"git_lines": "Commit'lerinin eklediği satırlardan HEAD'de hâlâ yerinde olan: {share} ({added} satırın {kept} tanesi; {commits} ölçüldü).",
+"git_lines_unmeasured": " Ölçülemeyen: {n} (birleştirme, ilk commit, çok büyük dosya ya da HEAD geçmişinde olmayan commit).",
+"git_lines_note": "İçeriğe göre sayılır: dosyası içinde yer değiştiren satır yerinde sayılır; yeniden yazılan ya da dosyası taşınan satır sayılmaz. Dosya içerikleri yalnız bellekte okunur.",
+"lines_kept_row": "Kod: eklenen {added} satırın {share} kadarı yerinde",
 "git_outcome_off": "{n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı. Yeniden yazılan bir commit aynı değişikliği taşımaya devam edebilir.",
 "git_outcome_unknown": "{n} tanesi kontrol edilemedi: eksik ya da başka depodan ödünç nesneler, sığ ya da çok uzun geçmiş.",
 "reedit_coverage": "Değerlendirilebilen seçili oturum: {selected} içinden {eligible}. Sonraki oturum kanıtı, seçili kayıt klasörlerinin tamamından alınır: ajan ve proje ayrımı olmadan {total} oturumdan {timeline} tanesi değerlendirilebilir.",
@@ -602,6 +614,7 @@ const I18N=/*I18N*/{
 "export_file": "pler-kullanim-ozeti.json",
 "noun_session": "oturum",
 "noun_run": "çalıştırma",
+"noun_commit": "commit",
 "noun_request": "istek",
 "noun_call": "çağrı",
 "noun_model_call": "model çağrısı",
@@ -840,7 +853,10 @@ function usageVerdictSummary(){
 const checkLines={test:{passed:'check_test_passed',failed:'check_test_failed',hidden:'check_test_hidden'},build:{passed:'check_build_passed',failed:'check_build_failed',hidden:'check_build_hidden'}};
 function checkSummaries(session){
   // One short line per kind the agent ran: how its last visible run ended, or that no result was visible.
-  return ['test','build'].filter(kind=>session.checks?.[kind]?.runs).map(kind=>{const row=session.checks[kind],state=row.last||'hidden';return node('small','session-check '+state,t(checkLines[kind][state],{runs:count(row.runs,'run')}));});
+  const found=['test','build'].filter(kind=>session.checks?.[kind]?.runs).map(kind=>{const row=session.checks[kind],state=row.last||'hidden';return node('small','session-check '+state,t(checkLines[kind][state],{runs:count(row.runs,'run')}));});
+  const lines=session.git_activity?.lines;
+  if(lines?.added)found.push(node('small','session-check lines',t('lines_kept_row',{share:usagePct(lines.kept/lines.added),added:number(lines.added)})));
+  return found;
 }
 function checkDetail(row){return t('check_detail',{runs:count(row.runs,'run'),last:t(row.last==='passed'?'check_last_passed':row.last==='failed'?'check_last_failed':'check_last_none'),passed:number(row.passed),failed:number(row.failed),hidden:number(row.runs-row.passed-row.failed)});}
 function verdictToggle(session){
@@ -908,6 +924,8 @@ function renderGitActivity(content,activity){
     if(made?.total){box.append(node('p','git-outcome',t('git_outcome',{kept:number(made.on_branch),total:number(made.total)})));
       if(made.off_branch)box.append(node('p','',t('git_outcome_off',{n:number(made.off_branch)})));
       if(made.unknown)box.append(node('p','',t('git_outcome_unknown',{n:number(made.unknown)})));}
+    const lines=activity.lines;
+    if(lines?.added)box.append(node('p','git-outcome',t('git_lines',{share:usagePct(lines.kept/lines.added),kept:number(lines.kept),added:number(lines.added),commits:count(lines.commits,'commit')})+(lines.unmeasured?t('git_lines_unmeasured',{n:number(lines.unmeasured)}):'')),node('p','section-note',t('git_lines_note')));
     const details=node('details','git-events'),summary=node('summary','',t('git_details')),list=node('ol');details.open=activity.events.length<=5;
     for(const event of activity.events){const item=node('li'),time=node('time','',usageDate(event.at));time.dateTime=event.at;const label=node('span','',t(gitLabels[event.kind]||'git_other'));if(event.commit)label.append(node('code','git-event-ref',event.commit));if(event.on_branch!=null)label.append(node('small','git-branch'+(event.on_branch?'':' git-branch-off'),t(event.on_branch?'git_on_branch':'git_off_branch')));item.append(time,label);list.append(item);}
     details.append(summary,list);box.append(details);

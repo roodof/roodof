@@ -102,9 +102,11 @@ Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görün
 
 Böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır. Depo yolları yalnız bellekte tutulur; sayfada yalnız kaç depoya bakıldığı görünür.
 
-Oturum sırasında kaydedilen her commit için PLER, commit'in hâlâ yerel ya da uzak izleme dalında durup durmadığını da kontrol eder. Commit düzeltilmiş (amend), yeniden sıralanmış (rebase), reset edilmiş ya da silinen bir dalda kalmış olabilir. Bunun için commit nesnelerinin yalnız ebeveyn bağları ve zamanları okunur; isim, mesaj ve dosya okunmaz. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
+Oturum sırasında kaydedilen her commit için PLER, commit'in hâlâ yerel ya da uzak izleme dalında durup durmadığını da kontrol eder. Commit düzeltilmiş (amend), yeniden sıralanmış (rebase), reset edilmiş ya da silinen bir dalda kalmış olabilir. Bunun için commit nesnelerinin yalnız ebeveyn bağları ve zamanları okunur; isim ve mesaj okunmaz. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
 
-Ekrana ve JSON'a yalnız olay zamanı, sabit işlem türü ve hedef commit'in ilk sekiz karakteri gider. Yazar adı, e-posta, commit mesajı, dal adı, kaynak dosyalar ve Git ayarları dahil edilmez. Git komutu çalıştırılmaz ve bu bilgiler kalıcı önbelleğe yazılmaz.
+Güncel HEAD geçmişinde duran bu commit'ler için PLER, ekledikleri satırların kaçının HEAD'de hâlâ yerinde olduğunu da sayar. Değişen dosyaları Git'in kendi nesnelerinden yalnız bellekte okur ve yalnız sayıları tutar. Birleştirmeler, ilk commit'ler, ikili ve çok büyük dosyalar dışarıda kalır. Yerinde yeniden yazılan satır ya da taşınan dosya yerinde sayılmaz. Ayrıntı [hesap kurallarında](ACCOUNTING.md#lines-still-in-place-0219).
+
+Ekrana ve JSON'a yalnız olay zamanı, sabit işlem türü, commit'in hâlâ dalda olup olmadığı, satır sayıları ve hedef commit'in ilk sekiz karakteri gider. Yazar adı, e-posta, commit mesajı, dal adı, dosya adları, dosya içerikleri ve Git ayarları dahil edilmez. Git komutu çalıştırılmaz ve bu bilgiler kalıcı önbelleğe yazılmaz.
 
 Yerel günlük silinmiş, süresi dolmuş veya kapalı olabilir. Her projenin günlüğünden en fazla son 1 MiB okunur; eşleşen en yeni 20 hareket listelenir, sayaç okunan bölümdeki tüm eşleşmeleri kapsar. Eksik tarihler ve kısmi ya da okunamayan geçmiş açıkça gösterilir. Sıfır eşleşme, iş yapılmadığı anlamına gelmez. Ağ yolları, sembolik bağlantılar, Windows junction'ları ve ev klasöründeki depolar atlanır. Bare depolar ve başka worktree'lerin hareketleri dahil edilmez.
 

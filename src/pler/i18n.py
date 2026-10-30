@@ -104,6 +104,7 @@ TEXT = {
         'insight.git.off': ' No longer on any branch: {n} (amended, rebased, reset or on a deleted branch).',
         'insight.git.unknown': ' Could not be checked: {n}.',
         'insight.git.share': ' These sessions hold {share}% of the tokens in this selection.',
+        'insight.git.lines': ' Of the {added} lines added in {commits} that are still in the current history, {share}% are still in place.',
         'insight.reedit.title': 'Same edit targets in later sessions',
         'insight.reedit.detail': ('{matched} of {eligible} eligible sessions had a target logged for editing again by a later independent session within 7 days. '
                                   '{pending} unmatched sessions still have an incomplete observation window.'),
@@ -266,6 +267,7 @@ TEXT = {
         'insight.git.off': ' {n} tanesi artık hiçbir dalda değil: düzeltildi (amend), yeniden sıralandı, reset edildi ya da silinen bir dalda kaldı.',
         'insight.git.unknown': ' {n} tanesi kontrol edilemedi.',
         'insight.git.share': ' Bu oturumlar bu seçimdeki tokenların %{share} kadarını kullandı.',
+        'insight.git.lines': ' Güncel geçmişte duran {commits} eklediği {added} satırın %{share} kadarı hâlâ yerinde.',
         'insight.reedit.title': 'Aynı hedefe sonraki oturumda düzenleme kaydı',
         'insight.reedit.detail': ('Değerlendirilebilen {eligible} oturumun {matched} tanesindeki bir hedef, 7 gün içinde başlayan bağımsız bir oturumda yeniden düzenleme hedefi olarak kaydedilmiş. '
                                   'Henüz eşleşmeyen {pending} oturumun gözlem süresi dolmadı.'),

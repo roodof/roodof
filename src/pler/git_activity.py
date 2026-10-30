@@ -1,9 +1,11 @@
 """Bounded, read-only Git activity beside an agent session.
 
 .git's HEAD reflog gives the events. For commits recorded during a session, git_objects.py then checks
-whether they are still on a branch, reading only commit parents and times. Source files and Git
-configuration are never read. Identities and commit messages are discarded. No Git program runs.
-Reflogs are local, incomplete history; a coincident event does not prove authorship.
+whether they are still on a branch, reading only commit parents and times, and git_survival.py counts how
+many of the lines they added are still in place at HEAD, reading the changed files in memory only. Git
+configuration is never read. Identities, commit messages, file names and contents are discarded; only
+counts remain. No Git program runs. Reflogs are local, incomplete history; a coincident event does not
+prove authorship.
 """
 from collections import Counter
 from datetime import datetime, timezone
@@ -12,6 +14,7 @@ from pathlib import Path
 import re
 
 from .git_objects import on_branch
+from .git_survival import survival
 from .paths import local_path, network
 
 MAX_BYTES = 1 << 20
@@ -123,6 +126,26 @@ def check_branches(snapshot, windows):
         snapshot.pop('branch', None)  # unknown, never a guess
 
 
+def check_survival(snapshot):
+    """Count, for commits found on a branch, how many of their added lines HEAD still has."""
+    try:
+        if not snapshot or snapshot.get('state') != 'ready' or not snapshot.get('branch'):
+            return
+        kept = [commit for commit, value in snapshot['branch'].items() if value]
+        times = [event['at'] for event in snapshot['events'] if event.get('full') in kept]
+        if kept:
+            snapshot['survival'] = survival(snapshot['directory'], kept, since=min(times).timestamp() if times else None)
+    except (OSError, ValueError, RuntimeError, MemoryError):
+        snapshot.pop('survival', None)  # unknown, never a guess
+
+
+def _lines(measured):
+    """Sum of per-commit survival counts; None entries are commits that could not be measured."""
+    values = [value for value in measured if value is not None]
+    return dict(added=sum(v['added'] for v in values), kept=sum(v['kept'] for v in values), commits=len(values),
+                unmeasured=len(measured) - len(values))
+
+
 def session_activity(snapshot, started, ended):
     """Explicit public projection. Never expose the raw log, identity, message or repository path.
 
@@ -145,6 +168,12 @@ def session_activity(snapshot, started, ended):
                       key=lambda pair: pair[0]['at'], reverse=True)
     counts = Counter(event['kind'] for event, _ in selected)
     states = [kept for event, kept in selected if event['kind'] in CREATED]
+    measured = {}
+    for item, _ in ready:
+        for event in item['events']:
+            if event['kind'] in CREATED and event.get('full') and started <= event['at'] <= ended \
+                    and item.get('branch', {}).get(event['full']):
+                measured[event['full']] = item.get('survival', {}).get(event['full'])
     beginnings = [min(event['at'] for event in item['events']) for item, _ in ready]
     limited = any(item['truncated'] or item['skipped'] or item['changed'] for item, _ in ready) \
         or max(beginnings) > started
@@ -156,4 +185,5 @@ def session_activity(snapshot, started, ended):
                 history_from=min(beginnings).isoformat(), repositories=len(ready),
                 linked_by=sorted({reason for _, reasons in ready for reason in reasons}),
                 commits=dict(total=len(states), on_branch=states.count(True), off_branch=states.count(False),
-                             unknown=sum(kept is None for kept in states)))
+                             unknown=sum(kept is None for kept in states)),
+                **(dict(lines=_lines(list(measured.values()))) if measured else {}))

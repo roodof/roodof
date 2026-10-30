@@ -1,5 +1,12 @@
 # Changes
 
+## 0.2.19 — 2026-10-30 (private candidate)
+
+- Show how much of the code a session committed is still in place. For each commit made during a session that is still in the current HEAD's history, PLER counts the lines it added and how many HEAD still has, by content. The session list, the session's Git details and the commits observation show the share. Merges, first commits, binary and very large files are left out and counted.
+- File names and contents are read only in memory through PLER's own Git object reader (loose objects and packs); only counts leave it. No Git program runs.
+- Git objects are found with one listing per object folder, which also makes the existing branch check faster. Counts for an unchanged HEAD are reused while PLER runs.
+- The demo repository now has invented files, so the share is visible there.
+
 ## 0.2.18 — 2026-10-30 (private candidate)
 
 - Show whether the agents' own tests and builds passed. Each shell command is classified in memory as a test or build (many languages and tools); its text is never stored. Claude Code's failed-call flag and Codex's exit code give the outcome. A run whose output was piped on, that ran in the background or that was followed by another step is counted with no visible result.

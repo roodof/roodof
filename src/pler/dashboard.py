@@ -15,7 +15,7 @@ import time
 
 from .i18n import LANGUAGES, count, say
 from .runtime import ScanCancelled, cancellation, checkpoint
-from .git_activity import CREATED, check_branches, read_repository, session_activity
+from .git_activity import CREATED, check_branches, check_survival, read_repository, session_activity, _lines
 from .usage import scan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
@@ -101,7 +101,7 @@ def git_outcome(rows, sources):
     links, activity = sources.get('git_links'), sources.get('git_activity', {})
     if links is None:
         return None
-    commits, sessions, tokens = {}, 0, 0
+    commits, sessions, tokens, measured = {}, 0, 0, {}
     for session in rows:
         if not session.started or not session.ended:
             continue
@@ -110,7 +110,10 @@ def git_outcome(rows, sources):
             snapshot = activity.get(path) or {}
             for event in snapshot.get('events', ()) if snapshot.get('state') == 'ready' else ():
                 if event['kind'] in CREATED and event.get('full') and session.started <= event['at'] <= session.ended:
-                    commits[(os.path.normcase(path), event['full'])] = snapshot.get('branch', {}).get(event['full'])
+                    key = (os.path.normcase(path), event['full'])
+                    commits[key] = snapshot.get('branch', {}).get(event['full'])
+                    if commits[key]:
+                        measured[key] = snapshot.get('survival', {}).get(event['full'])
                     found = True
         if found:
             sessions += 1
@@ -120,7 +123,8 @@ def git_outcome(rows, sources):
     states = list(commits.values())
     everything = sum(total(s.tokens) for s in rows)
     return dict(sessions=sessions, commits=len(states), on_branch=states.count(True), off_branch=states.count(False),
-                unknown=sum(state is None for state in states), token_share=tokens / everything if everything else None)
+                unknown=sum(state is None for state in states), token_share=tokens / everything if everything else None,
+                lines=_lines(list(measured.values())))
 
 
 def _git_insight(outcome, lang, usage_complete):
@@ -131,6 +135,10 @@ def _git_insight(outcome, lang, usage_complete):
         rest += say(lang, 'insight.git.off', n=outcome['off_branch'])
     if outcome['unknown']:
         rest += say(lang, 'insight.git.unknown', n=outcome['unknown'])
+    lines = outcome.get('lines') or {}
+    if lines.get('added'):
+        rest += say(lang, 'insight.git.lines', added=lines['added'], share=round(lines['kept'] / lines['added'] * 100),
+                    commits=count(lang, lines['commits'], 'commit'))
     if usage_complete and outcome['token_share'] is not None:
         rest += say(lang, 'insight.git.share', share=round(outcome['token_share'] * 100))
     return [dict(kind='git_outcome', level='info', title=say(lang, 'insight.git.title'),
@@ -436,6 +444,8 @@ class UsageDashboard:
             for path, snapshot in sources['git_activity'].items():
                 checkpoint()
                 check_branches(snapshot, windows.get(path, ()))
+                checkpoint()
+                check_survival(snapshot)
             # Validate the projection before publishing a replacement snapshot.
             checkpoint()
             project_view(sessions, sources, days=0)

@@ -1,7 +1,8 @@
 """Is a commit still on a branch? A read-only, bounded walk over local Git commit objects.
 
-Only commit objects are opened, and only their parent ids and committer time are used. Author and
-committer identities, messages, trees and files are never kept. Branch names are read only to find
+Here only commit objects are opened, and only their parent ids and committer time are used. Author and
+committer identities and messages are never kept. git_survival.py reuses the object reader for trees and
+files, in memory only. Branch names are read only to find
 branch tips and are discarded. No Git program runs and nothing is written. Loose objects and version-2
 pack indexes (with delta entries) are supported. Anything else gives 'unknown', never a guess: alternates,
 missing or shallow history, a very long walk or an unreadable object.
@@ -225,14 +226,33 @@ class Objects:
             return (base[0], data) if data is not None else None
         return kind, data
 
+    def _folder(self, prefix):
+        """A fan-out folder of the checked objects folder and its file names; checked and listed once.
+
+        Its parents were checked with the objects folder, so one look at the folder itself refuses a link,
+        and a packed object then costs no file-system call here."""
+        if prefix not in self.fanout:
+            folder, names = self.base / prefix, set()
+            try:
+                info = folder.lstat()
+                if (stat.S_ISDIR(info.st_mode) and not stat.S_ISLNK(info.st_mode)
+                        and not getattr(info, 'st_file_attributes', 0) & 0x400):
+                    with os.scandir(str(folder)) as entries:
+                        names = {entry.name for entry in entries if entry.is_file(follow_symlinks=False)}
+                else:
+                    folder = None
+            except OSError:
+                folder = None
+            self.fanout[prefix] = (folder, names)
+        return self.fanout[prefix]
+
     def _object(self, key, depth=0):
         """(type, bytes) for a binary object id, or None."""
         hexed = key.hex()
         if self.base is None:
             return None
-        if hexed[:2] not in self.fanout:  # each fan-out folder is checked for links once
-            self.fanout[hexed[:2]] = _safe(self.base / hexed[:2])
-        loose = _regular(self.fanout[hexed[:2]], hexed[2:], MAX_OBJECT)
+        folder, names = self._folder(hexed[:2])
+        loose = _regular(folder, hexed[2:], MAX_OBJECT) if hexed[2:] in names else None
         if loose is not None:
             try:
                 data = zlib.decompressobj().decompress(loose, MAX_OBJECT + 64)
@@ -326,8 +346,10 @@ def _apply(base, delta):
         return None
 
 
-def on_branch(directory, targets, since=None):
+def on_branch(directory, targets, since=None, starts=None):
     """{commit id: True (on a branch), False (not on any), None (unknown)} for hexadecimal commit ids.
+
+    `starts` replaces the branch tips (git_survival.py asks about HEAD's history only).
 
     Walks from every branch tip, newest committer time first. A target not met before the walk passes
     `since` (minus a day of slack) is not on a branch. A missing object, an incomplete history or the
@@ -337,7 +359,7 @@ def on_branch(directory, targets, since=None):
         return {}
     size = len(next(iter(targets))) // 2
     result = dict.fromkeys(targets)
-    starts = tips(Path(directory), size)
+    starts = tips(Path(directory), size) if starts is None else set(starts)
     if not starts:
         return result
     store = Objects(Path(directory), size)

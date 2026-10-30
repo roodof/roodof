@@ -14,7 +14,7 @@ function page({readable=true,reply}={}){
   const state={data:{sessions,verdicts:{readable},demo:false},stopped:false};
   const context=vm.createContext({usageState:state,$:id=>id==='usage-verdict-summary'?summary:null,
     t:(key,values)=>values?key+' '+JSON.stringify(values):key,count:(n,noun)=>n+' '+noun,usageShort:String,usageUsd:value=>'$'+value.toFixed(2),
-    usageSessionCode:session=>session.id.slice(0,8),notice:text=>messages.push(text),number:String,
+    usageSessionCode:session=>session.id.slice(0,8),notice:text=>messages.push(text),number:String,usagePct:value=>Math.round(value*100)+'%',
     node:(tag,cls,text)=>{const item=element(cls,text);made.push(item);return item;},
     document:{querySelectorAll:()=>made.filter(item=>item.className.includes('verdict-button'))},
     post:async(path,body)=>{posts.push([path,body]);if(reply)return reply(body);return {ok:true,id:body.id,verdict:body.verdict};}});
@@ -69,4 +69,9 @@ test('a session shows how its last visible test and build ended, or that no resu
   assert.equal(p.context.checkSummaries({id:'d'.repeat(24)}).length,0);
   const detail=JSON.parse(p.context.checkDetail(session.checks.test).slice('check_detail '.length));
   assert.deepEqual(plain(detail),{runs:'3 run',last:'check_last_failed',passed:'1',failed:'1',hidden:'1'});
+});
+test('a session whose commits were measured shows how much of the added code is still in place',()=>{
+  const p=page(),lines=p.context.checkSummaries({id:'e'.repeat(24),git_activity:{lines:{added:200,kept:150,commits:2,unmeasured:0}}});
+  assert.deepEqual(plain(lines.map(line=>[line.className,line.textContent])),[['session-check lines','lines_kept_row {"share":"75%","added":"200"}']]);
+  assert.equal(p.context.checkSummaries({id:'f'.repeat(24),git_activity:{lines:{added:0,kept:0,commits:0,unmeasured:1}}}).length,0);
 });

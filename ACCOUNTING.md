@@ -1,6 +1,6 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.18 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.19 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
 ## Tests and builds the agents ran (0.2.18)
 
@@ -127,7 +127,7 @@ A session is linked to the repository of its working folder and to the nearest r
 
 ### Commits still on a branch
 
-For every commit, amend or merge event recorded during a linked session, PLER checks whether that commit is still reachable from HEAD, a local branch or a remote-tracking branch. It reads commit objects (loose, or from version-2 packs including deltas) and uses only their parent ids and committer time. Identities and messages are skipped unread, branch names are discarded, trees and files are never opened, and no Git program runs. The walk starts at the newest commit and stops a day before the oldest checked commit or after 20,000 commits.
+For every commit, amend or merge event recorded during a linked session, PLER checks whether that commit is still reachable from HEAD, a local branch or a remote-tracking branch. It reads commit objects (loose, or from version-2 packs including deltas) and uses only their parent ids and committer time. Identities and messages are skipped unread, branch names are discarded, and no Git program runs. Only the line count below opens trees and files. The walk starts at the newest commit and stops a day before the oldest checked commit or after 20,000 commits.
 
 The answer is `on_branch`, `off_branch` or `unknown`:
 - **on_branch:** reached from a branch tip.
@@ -135,6 +135,17 @@ The answer is `on_branch`, `off_branch` or `unknown`:
 - **unknown:** objects were missing or borrowed through alternates, the history was shallow, a link was refused or the walk bound was hit. An unknown commit is never counted as kept or lost.
 
 The period summary counts each commit once, even when several sessions overlap it. It reports the share of tokens in sessions with such commits only when usage and attribution are complete. Timing does not prove who made a commit.
+
+### Lines still in place (0.2.19)
+
+For a commit found on a branch that is also in the current HEAD's history, PLER counts the lines it added and how many are still in place at HEAD.
+
+- **Added lines:** per file, the lines whose count grew compared with the commit's only parent. Blank lines and lines without a letter or digit (such as a lone `}`) are not counted. Surrounding whitespace is ignored.
+- **Still in place:** an added line is looked for, by content, in the same file at HEAD. A line that existed before the commit is assumed to be the copy that remained, so a repeated line counts as kept only when HEAD has more copies than the parent had.
+- **Not measured:** merges, a repository's first commit, commits outside HEAD's history and unreadable objects. Binary files, files of 1 MiB or more, more than 400 changed files in one commit and more than 256 MiB of file content per repository and read are counted as skipped.
+- **Approximation:** a line moved within its file counts as kept. A line rewritten in place, or in a file that was renamed or moved, does not.
+- **Privacy:** file names and contents are read only in memory, from loose objects and version-2 packs, never written, cached or shown. Only counts per commit reach the page and JSON. Counts for the same HEAD are reused while PLER runs; a new HEAD is measured again.
+- **Meaning:** kept lines show that the change was not undone or rewritten so far. They do not prove that it is correct or that the session's tokens were well spent.
 
 ## Numbers, models and events
 
