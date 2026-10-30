@@ -21,7 +21,6 @@ import time
 
 from ..paths import cache_file, cache_folder
 from . import accounting, discovery, preferences
-from .cache import _checksum
 from .records import timestamp
 
 MAX_BYTES=64*1024*1024
@@ -208,6 +207,19 @@ def _encoded(value):
     return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')
 
 
+_SIZES={}  # checksum -> encoded size of those rows, shared by every scan of this process
+
+
+def _measured(rows):
+    """The rows' checksum, the same as the reader cache's (cache._checksum hashes these bytes); the encoded
+    size that bounds the archive is remembered with it, so the rows are encoded once instead of twice."""
+    data=_encoded(rows)
+    checksum=hashlib.sha256(data).hexdigest()
+    if len(_SIZES)>=4*MAX_FILES:_SIZES.clear()
+    _SIZES[checksum]=len(data)
+    return checksum
+
+
 READ_LIMIT=65*1024*1024
 
 
@@ -309,7 +321,7 @@ def _entry(value):
     if not discovery.contains(value['root'],value['source']) or not _number(value.get('last_seen')):
         raise ValueError('invalid archive entry')
     rows=value.get('rows')
-    if not isinstance(rows,list) or value.get('checksum')!=_checksum(rows): raise ValueError('invalid archive checksum')
+    if not isinstance(rows,list) or value.get('checksum')!=_measured(rows): raise ValueError('invalid archive checksum')
     # Rows are rebuilt through the allowlist when a read uses them (Archive.rows), not on every load.
     return dict(agent=value['agent'],source=value['source'],root=value['root'],reader_key=value['reader_key'],
                 last_seen=value['last_seen'],rows=rows,checksum=value['checksum'],incomplete=value.get('incomplete') is True)
@@ -358,7 +370,7 @@ class Archive:
         self.stale_snapshot=False
         self.dirty=False
         self._clean=set()  # entries whose rows crossed the allowlist in this process
-        self._sizes={}
+        self._sizes=_SIZES  # shared: a size depends only on the rows its checksum names
         self._loaded=None
         if self.available:
             try:
@@ -406,12 +418,12 @@ class Archive:
             identity=_identity(agent,source)
             if identity in self.entries or not manifest.selected(source) or not isinstance(value,dict): continue
             try:
-                if value.get('checksum')!=_checksum(value.get('rows')): raise ValueError('invalid cache')
+                if value.get('checksum')!=_measured(value.get('rows')): raise ValueError('invalid cache')
                 rows=sanitize(agent,value['rows'])
                 root=manifest.scope(source)
                 self.entries[identity]=dict(agent=agent,source=source,root=root,
                     reader_key=cache.historical_key if _text(cache.historical_key,256) else 'unknown',
-                    rows=rows,checksum=_checksum(rows),last_seen=self.now)
+                    rows=rows,checksum=_measured(rows),last_seen=self.now)
                 self._clean.add(identity);self.dirty=True
             except (ValueError,TypeError,OverflowError): self.errors+=1
 
@@ -445,7 +457,7 @@ class Archive:
         else:
             clean=sanitize(agent,rows)
             entry=dict(agent=agent,source=source,root=root,reader_key=self.keys[agent],last_seen=self.now,
-                       rows=clean,checksum=_checksum(clean),incomplete=False)
+                       rows=clean,checksum=_measured(clean),incomplete=False)
         self.observed[identity]=entry
         self.used[(agent,source)]=dict(state='live',deleted=False,old=False,unverified=False)
         if (agent,source) in self.signatures:
@@ -468,7 +480,7 @@ class Archive:
         if entry is None or not self.manifests[agent].selected(path): return None
         if identity not in self._clean:
             clean=sanitize(agent,entry['rows'])
-            checksum=_checksum(clean)
+            checksum=_measured(clean)
             if checksum!=entry['checksum']:
                 entry=self.entries[identity]=dict(entry,rows=clean,checksum=checksum);self.dirty=True
             self._clean.add(identity)

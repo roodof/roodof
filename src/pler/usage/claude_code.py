@@ -267,7 +267,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             if not admitted:input_limits.admit(rows)
         except input_limits.ReadLimitExceeded:
             note_file_issue(skipped,path,'ReadLimitExceeded');continue
-        affected=[]
+        affected,name,current=[],str(path),None
         for index,row in enumerate(rows):
             if row.get('type')=='pler_file_issue':
                 note_file_issue(skipped,path,row['reason'])
@@ -276,11 +276,15 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 continue
             identity=row.get('sessionId')
             if not isinstance(identity,str): continue
-            session=sessions.setdefault(identity,Session('claude-code',identity,str(path)))
-            source_paths[identity].add(str(path))
-            if archive is not None: archive.mark(session,'claude-code',path)
-            session.source=min(session.source,str(path))
-            if session not in affected: affected.append(session)
+            if identity!=current:
+                # A file's rows almost always share one session; its source facts are recorded once per run.
+                current=identity
+                session=sessions.get(identity)
+                if session is None: session=sessions[identity]=Session('claude-code',identity,name)
+                source_paths[identity].add(name)
+                if archive is not None: archive.mark(session,'claude-code',path)
+                session.source=min(session.source,name)
+                if session not in affected: affected.append(session)
             moment=timestamp(row.get('timestamp'));session.seen(moment)
             if isinstance(row.get('cwd'),str) and row['cwd']: projects[identity].add(row['cwd'])
             if isinstance(row.get('gitBranch'),str) and row['gitBranch']: branches[identity].add(row['gitBranch'])

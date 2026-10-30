@@ -7,7 +7,9 @@ CODEX_HOME) are read. Only numbers and metadata are kept; see records.py.
 import argparse
 from datetime import datetime, timedelta, timezone
 import json
+import os
 import sys
+import time
 
 from . import claude_code, codex, records, unzstd, xxh64, zstd, accounting, reconcile, edit_paths, period_usage, checks
 from ..i18n import LANGUAGES, big, count, decimal, language, moment, say, window
@@ -27,30 +29,89 @@ from ..reporting import provenance,quality
 AGENTS = {'claude-code': 'Claude Code', 'codex': 'Codex'}
 
 
+class Rescan:
+    """scan() for a long-running page. A refresh whose inputs are all unchanged returns the previous sessions
+    instead of merging every log again: the same found log files (path, size, modification time, file
+    identity), the same discovery issues and reader versions, and PLER's own cache, archive and retention files
+    as the previous scan left them. A result is reused for at most MAX_AGE seconds."""
+    MAX_AGE = 3600
+
+    def __init__(self):
+        self.kept = None
+
+    def __call__(self):
+        return scan(memo=self)
+
+    @staticmethod
+    def own_files():
+        from . import archive, preferences
+        from ..paths import cache_file
+        names = ('claude.json', 'codex.json', archive.FILENAME, archive.GENERATION, preferences.FILENAME)
+        signatures = []
+        for name in names:
+            path = cache_file(name)
+            try:
+                info = os.stat(str(path)) if path is not None else None
+                signatures.append(None if info is None else (info.st_size, info.st_mtime_ns, info.st_ino))
+            except OSError:
+                signatures.append(None)
+        return signatures
+
+    @staticmethod
+    def inputs(files, skipped, keys):
+        found = []
+        for path in files:
+            input_limits.checkpoint()
+            try:
+                info = os.stat(str(path))
+                found.append((str(path), info.st_size, info.st_mtime_ns, info.st_ino))
+            except OSError as error:
+                found.append((str(path), type(error).__name__))
+        return keys, found, [(str(path), reason) for path, reason in skipped]
+
+    def reuse(self, inputs):
+        kept = self.kept
+        if kept is None or kept[0] != inputs or not 0 <= time.monotonic() - kept[2] < self.MAX_AGE:
+            return None
+        return kept[3:] if kept[1] == self.own_files() else None
+
+    def keep(self, inputs, sessions, details):
+        self.kept = (inputs, self.own_files(), time.monotonic(), sessions, details)
+
+
 @input_limits.scoped
-def scan(claude_folders=None, codex_folders=None, retain=False):
+def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
     """Sessions from the agents' log folders. Both readers' metadata extracts are cached (cache.py), so
     unchanged logs are not decompressed and parsed again; explicitly given folders are always read. With the
     default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota'].
     Metadata of default (or environment-selected) folders is kept in PLER's archive after a source disappears;
-    explicitly given folders only with `retain`."""
+    explicitly given folders only with `retain`. `memo` (a Rescan) returns its previous result while every
+    input is unchanged."""
     observed_at=datetime.now(timezone.utc).isoformat()
     skipped=[]
     access=claude_code.discovery.WslRoots()
     from . import archive as archive_rules
     from .discovery import Manifest
-    archive=archive_rules.Archive(enabled=retain or claude_folders is None or codex_folders is None)
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
     codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits,checks)
+    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks)
+    if memo is not None:
+        inputs=memo.inputs([*claude_files,*codex_files],skipped,
+                           (codex_key,claude_key,claude_folders,codex_folders,retain,len(claude_files)))
+        reused=memo.reuse(inputs)
+        if reused is not None:
+            sessions,details=reused
+            return sessions,dict(details,skipped=list(skipped),observed_at=observed_at,
+                                 claude_quota=claude_quota() if claude_folders is None else [])
+    archive=archive_rules.Archive(enabled=retain or claude_folders is None or codex_folders is None)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
     codex_sessions, codex_skipped = codex.read(codex_files, cached,access,archive)
     skipped.extend(codex_skipped)
     if cached:
         cached.save()
-    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks)
     claude_cache = FileCache('claude', claude_key) if claude_folders is None else None
     archive.prepare('claude-code',claude_files,claude_manifest,claude_key,claude_cache,persistent=retain or claude_folders is None)
     sessions = assign(claude_code.read(claude_files, skipped, cache=claude_cache,access=access,archive=archive) + codex_sessions)
@@ -59,8 +120,11 @@ def scan(claude_folders=None, codex_folders=None, retain=False):
     quota_groups=source_groups(claude_manifest,codex_manifest,
         [*claude_files,*(path for agent,path in archive.used if agent=='claude-code')],
         [*codex_files,*(path for agent,path in archive.used if agent=='codex')])
-    return sessions, dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),observed_at=observed_at,
-                          claude_quota=claude_quota() if claude_folders is None else [],quota_source_groups=quota_groups)
+    details=dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),observed_at=observed_at,
+                 claude_quota=claude_quota() if claude_folders is None else [],quota_source_groups=quota_groups)
+    if memo is not None and not (details['archive'] or {}).get('stale_snapshot'):
+        memo.keep(inputs,sessions,dict(details,skipped=list(skipped)))
+    return sessions,details
 
 
 def _local(iso, lang):

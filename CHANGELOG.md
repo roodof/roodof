@@ -1,5 +1,11 @@
 # Changes
 
+## 0.2.21 — 2026-10-30 (private candidate)
+
+- While the page stays open, a refresh whose inputs are all unchanged returns the previous result without merging the logs again. The inputs are the found log files (path, size, modification time, file identity), the discovery issues, the reader versions and PLER's own cache, archive and retention files as the previous read left them. Any change, a cache reset, an archive clear or a retention switch means a full read, and a result is reused for at most an hour. `pler report` always reads.
+- Claude Code rows of one session in a file now record their source once instead of once per row, and the archive encodes each entry once to check its checksum and measure its size (sizes are kept for the life of the process).
+- On this computer's real logs: a page refresh with nothing changed fell from about 12 s to 0.94 s (0.1 s of it the log scan, the rest Git and the view). A scan after the running session's transcript grew fell from 18.9 s (0.2.19) and 14.2 s (0.2.20) to 10.4 s, with identical sessions and totals.
+
 ## 0.2.20 — 2026-10-30 (private candidate)
 
 - Read a growing log only from where the last read ended. The reader cache now keeps, per plain log, the byte position of its last complete line, the file's identity, a digest of its first 4 KiB and of the 4 KiB before that position, and the small state the reader needs to continue (the Codex rollout's first and last times, whether a malformed line was seen, which Claude Code calls were test or build commands). A different file, changed bytes, a shorter file or a half-written last line mean a read from the start, as before. Compressed rollouts are always read whole.

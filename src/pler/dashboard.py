@@ -16,7 +16,7 @@ import time
 from .i18n import LANGUAGES, count, say
 from .runtime import ScanCancelled, cancellation, checkpoint
 from .git_activity import CREATED, check_branches, check_survival, read_repository, session_activity, _lines
-from .usage import scan, AGENTS
+from .usage import Rescan, AGENTS
 from .usage.forecast import outlook as quota_outlook
 from .usage.insights import insights as find_insights
 from .usage.projects import ProjectRoots, label, labels
@@ -267,7 +267,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
 
 class UsageDashboard:
     def __init__(self, reader=None, git_reader=None, verdicts=None):
-        self.reader = reader or scan
+        self.reader = reader or Rescan()
         self.verdict_store = verdicts or Folder()
         self.git_reader = git_reader or read_repository
         self.lock = threading.RLock()
