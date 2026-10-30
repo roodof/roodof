@@ -69,10 +69,12 @@ def _prompt(message):
     return False
 
 
-def _lines(path, issues):
+def _lines(path, issues, offset=0, ending=None):
     try:
         with open(str(path),'rb') as stream:
-            parts=input_limits.chunks(input_limits.Source(stream),input_limits.MAX_SOURCE_BYTES)
+            if offset: stream.seek(offset)
+            parts=input_limits.chunks(input_limits.Source(stream),input_limits.MAX_SOURCE_BYTES-offset)
+            if ending is not None: parts=ending.watch(parts)
             for line in input_limits.lines(input_limits.expanded(parts)):
                 if line is None:
                     note_file_issue(issues,path,'ReadLimitExceeded')
@@ -164,10 +166,33 @@ def _slim(row, asked=None):
     return sanitize('claude-code',[kept])[0]
 
 
-def _rows(path):
+def _resumed(rows, resume):
+    """The rows, projected size, malformed flag and asked ids a grown transcript's earlier read ended with,
+    before its closing row; None when the stored point does not fit those rows."""
+    state, size = resume.get('state'), resume.get('size')
+    if not isinstance(state, dict) or type(size) is not int:
+        return None
+    malformed, asked = state.get('malformed'), state.get('asked')
+    if type(malformed) is not bool or not isinstance(asked, list) or not all(isinstance(value, str) for value in asked):
+        return None
+    closing = [dict(type='pler_file_issue', reason='MalformedRows')] if malformed else []
+    body = len(rows) - len(closing)
+    if body < 0 or rows[body:] != closing:
+        return None
+    return rows[:body], size, malformed, set(asked)
+
+
+def _rows(path, resume=None, point=None):
+    """`resume` (rows, point) from the cache continues a transcript that has only grown since that read;
+    `point`, when given, receives where a later read may continue: a read to a line end without an issue."""
     projection=input_limits.Projection()
     rows, issues, malformed, asked = projection.rows, [], False, set()
-    for line in _lines(path, issues):
+    restored = _resumed(*resume) if resume is not None else None
+    offset, ending = 0, input_limits.Ending()
+    if restored is not None:
+        body, projection.bytes, malformed, asked = restored
+        rows.extend(body); offset = resume[1]['offset']
+    for line in _lines(path, issues, offset, ending):
         if not line.strip():
             continue
         try:
@@ -178,6 +203,8 @@ def _rows(path):
             note_file_issue(issues,path,'ReadLimitExceeded');break
         except ValueError:
             malformed = True
+    if point is not None and not issues and ending.newline:
+        point.update(offset=offset+ending.size, size=projection.bytes, state=dict(malformed=malformed, asked=sorted(asked)))
     if malformed and not issues:
         issues.append((str(path), 'MalformedRows'))
     rows.extend(dict(type='pler_file_issue', reason=reason) for _, reason in issues)
@@ -212,10 +239,11 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             if not archived:
                 rows=cache.get(path) if cache else None
             if rows is None and not archived:
-                rows=_rows(path)
+                point={}
+                rows=_rows(path,cache.grown(path) if cache else None,point)
                 input_limits.admit(rows);admitted=True
                 if cache and not any(row.get('type')=='pler_file_issue' and row['reason']!='MalformedRows' for row in rows):
-                    cache.put(path,rows)
+                    cache.put(path,rows,point)
             if rows is not None and not admitted:
                 input_limits.admit(rows);admitted=True
             if archive is not None and not archived:

@@ -1,5 +1,10 @@
 # Changes
 
+## 0.2.20 — 2026-10-30 (private candidate)
+
+- Read a growing log only from where the last read ended. The reader cache now keeps, per plain log, the byte position of its last complete line, the file's identity, a digest of its first 4 KiB and of the 4 KiB before that position, and the small state the reader needs to continue (the Codex rollout's first and last times, whether a malformed line was seen, which Claude Code calls were test or build commands). A different file, changed bytes, a shorter file or a half-written last line mean a read from the start, as before. Compressed rollouts are always read whole.
+- On copies of this computer's 13 real logs grown in steps, the continued reads gave exactly the rows of full reads. Reading the 121 MB transcript of a running Claude Code session again took 7.1 s and now takes about 0.01 s. A refresh after that transcript grew went from 20.4 s to 14.2 s with identical sessions and totals; the rest of a refresh is work done on every read (next item in the plan).
+
 ## 0.2.19 — 2026-10-30 (private candidate)
 
 - Show how much of the code a session committed is still in place. For each commit made during a session that is still in the current HEAD's history, PLER counts the lines it added and how many HEAD still has, by content. The session list, the session's Git details and the commits observation show the share. Merges, first commits, binary and very large files are left out and counted.

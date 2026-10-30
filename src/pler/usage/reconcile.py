@@ -62,9 +62,10 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
             if archive is not None and not archived: archive.begin('codex',path)
             if not archived: rows=cache.get(path) if cache else None
             if rows is None and not archived:
-                rows=reader(path,decode)
+                point={}
+                rows=reader(path,decode,cache.grown(path) if cache else None,point)
                 input_limits.admit(rows);admitted=True
-                if cache: cache.put(path,rows)
+                if cache: cache.put(path,rows,point)
             if rows is not None and not admitted:
                 input_limits.admit(rows);admitted=True
             if archive is not None and not archived: archive.observe('codex',path,rows,cache.checksum(path) if cache else None)

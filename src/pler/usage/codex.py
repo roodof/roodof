@@ -122,12 +122,38 @@ def _slim(row):
     return sanitize('codex',[dict(type=kind,timestamp=row.get('timestamp'),payload=kept)])[0]
 
 
-def _rows(path, decode):
-    """Slim rows in log order; rows that only move the session's first/last time become two timestamps."""
+def _resumed(rows, resume):
+    """The rows, projected size, times and incomplete flag a grown plain log's earlier read ended with, before
+    its closing rows were added; None when the stored point does not fit those rows."""
+    state,size=resume.get('state'),resume.get('size')
+    if not isinstance(state,dict) or type(size) is not int:return None
+    texts,incomplete=state.get('times'),state.get('incomplete')
+    if not isinstance(texts,list) or len(texts) not in (0,2) or type(incomplete) is not bool:return None
+    times=[(timestamp(text),text) for text in texts]
+    if any(moment is None or not isinstance(text,str) for moment,text in times):return None
+    closing=[dict(timestamp=text) for text in texts]+([dict(type='pler_incomplete_log')] if incomplete else [])
+    body=len(rows)-len(closing)
+    if body<0 or rows[body:]!=closing:return None
+    return rows[:body],size,times,incomplete
+
+
+def _rows(path, decode, resume=None, point=None):
+    """Slim rows in log order; rows that only move the session's first/last time become two timestamps.
+
+    `resume` (rows, point) from the cache continues a plain log that has only grown since that read; `point`,
+    when given, receives where a later read may continue: plain logs read to a line end without a limit."""
     projection=input_limits.Projection()
+    plain=not path.name.endswith('.zst')
+    restored=_resumed(*resume) if resume is not None and plain else None
+    offset,times,incomplete=0,[],False
+    if restored is not None:
+        body,projection.bytes,times,incomplete=restored
+        projection.rows.extend(body);offset=resume[1]['offset']
+    ending=input_limits.Ending()
     with path.open('rb') as stream:
+        if offset:stream.seek(offset)
         stream=input_limits.Source(stream)
-        if path.name.endswith('.zst'):
+        if not plain:
             iterator=getattr(decode,'iter_chunks',None)
             if iterator is None:
                 # Compatibility for explicitly injected decoders, still with input/output bounds.
@@ -136,12 +162,18 @@ def _rows(path, decode):
                 parts=(raw[index:index+input_limits.CHUNK_BYTES] for index in range(0,len(raw),input_limits.CHUNK_BYTES))
             else:
                 parts=iterator(stream,max_output=input_limits.MAX_EXPANDED_BYTES,max_input=input_limits.MAX_SOURCE_BYTES)
-        else:parts=input_limits.chunks(stream,input_limits.MAX_SOURCE_BYTES)
-        return _project_lines(input_limits.lines(input_limits.expanded(parts)),projection)
+        else:parts=ending.watch(input_limits.chunks(stream,input_limits.MAX_SOURCE_BYTES-offset))
+        mark={} if point is not None and plain else None
+        rows=_project_lines(input_limits.lines(input_limits.expanded(parts)),projection,times,incomplete,mark)
+    if mark and ending.newline:
+        point.update(offset=offset+ending.size,**mark)
+    return rows
 
 
-def _project_lines(lines,projection):
-    rows,times,incomplete,limited=projection.rows,[],False,False
+def _project_lines(lines,projection,times=(),incomplete=False,mark=None):
+    """`mark`, when given and nothing was limited, receives the projected size and the state that the closing
+    rows are made from, so a later read can continue this one."""
+    rows,times,limited=projection.rows,list(times),False
     for line in lines:
         if line is None:
             incomplete=True;limited=True;continue
@@ -166,10 +198,13 @@ def _project_lines(lines,projection):
             else:
                 if moment<times[0][0]:times[0]=(moment,moment.isoformat())
                 if moment>times[1][0]:times[1]=(moment,moment.isoformat())
+    size=projection.bytes
     if times:
         for moment,text in times:
             try:projection.append(dict(timestamp=text))
             except input_limits.ReadLimitExceeded:incomplete=True;limited=True;break
+    if mark is not None and not limited:
+        mark.update(size=size,state=dict(times=[text for _,text in times],incomplete=incomplete))
     if incomplete:
         rows.append(dict(type='pler_incomplete_log',**({'reason':'ReadLimitExceeded'} if limited else {})))
     return rows

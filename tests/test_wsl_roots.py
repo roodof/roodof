@@ -178,13 +178,13 @@ class BoundaryTests(unittest.TestCase):
         entries = [SimpleNamespace(name=name, path=value,
                    stat=lambda **_: SimpleNamespace(st_mode=stat.S_IFREG, st_file_attributes=0))
                    for name,value in zip(names,files)]
-        def codex_rows_for(path, _decode):
+        def codex_rows_for(path, _decode, *_resume):
             result = codex_rows(str(path))
             for row in result:
                 if row['type'] == 'token_usage_record':
                     row['payload']['response_id'] += str(path)
             return result
-        def claude_rows_for(path):
+        def claude_rows_for(path, *_resume):
             return [claude_reply(str(path), str(path), str(path), USAGE, [], '2026-10-20T10:00:05Z')]
         with patch.object(wsl, 'WINDOWS', True), patch.object(wsl, 'running', return_value={'ubuntu': 'Ubuntu'}), \
                 patch.object(wsl.WslRoots, '_checked', side_effect=lambda value: Path(str(value))), \

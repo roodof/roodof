@@ -123,8 +123,8 @@ class ArchiveSafetyTests(unittest.TestCase):
         rows=codex_rows()
         write_jsonl(source,rows)
         original=codex._rows
-        def growing(path,decode):
-            result=original(path,decode)
+        def growing(path,decode,*resume):
+            result=original(path,decode,*resume)
             write_jsonl(path,rows+codex_rows(response='later-response')[-1:])
             return result
         with patch.object(codex,'_rows',side_effect=growing):

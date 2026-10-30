@@ -106,6 +106,16 @@ class Source:
         return data
 
 
+class Ending:
+    """Counts the bytes that pass and whether the last one ended a line; a plain log read to such an end can
+    later be read on from there."""
+    def __init__(self):self.size=0;self.newline=False
+    def watch(self,parts):
+        for part in parts:
+            if part:self.size+=len(part);self.newline=part.endswith(b'\n')
+            yield part
+
+
 def expanded(parts):
     for part in parts:
         count('expanded_bytes',len(part),MAX_SCAN_EXPANDED_BYTES)

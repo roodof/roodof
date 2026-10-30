@@ -194,9 +194,9 @@ class ZeroedCopyTests(unittest.TestCase):
             self.assertEqual(issues, [(str(self.a), 'InconsistentReasoning')])
             write_jsonl(self.b, [reply()])
             parse = claude_code._rows
-            def only_new_file(path):
+            def only_new_file(path, *resume):
                 self.assertNotEqual(path, self.a, 'unchanged cached candidate was reopened')
-                return parse(path)
+                return parse(path, *resume)
             cache = FileCache('contextual-witness', key)
             with patch.object(claude_code, '_rows', side_effect=only_new_file):
                 issues = [];resolved = claude_code.read([self.a, self.b], issues, cache=cache)

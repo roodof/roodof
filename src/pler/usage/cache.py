@@ -1,6 +1,7 @@
 """Per-user cache of what a reader extracted from a log file, reused while the file is unchanged (same size
-and modification time). It holds the reader's numbers and metadata only, never prompt or output text, and it
-lives in the user's cache folder, not next to the logs. PLER_CACHE_DIR moves it."""
+and modification time). A plain log that has only grown since is read on from where the last read ended
+(see grown()). It holds the reader's numbers and metadata only, never prompt or output text, and it lives in
+the user's cache folder, not next to the logs. PLER_CACHE_DIR moves it."""
 import hashlib
 import json
 import os
@@ -9,6 +10,8 @@ import tempfile
 
 from ..paths import cache_folder as folder, cache_file
 from . import input_limits
+
+WINDOW = 4096  # bytes compared at the start of a grown log and just before where its last read ended
 
 
 def _checksum(rows):
@@ -33,6 +36,19 @@ def _intact(text, data):
     return hashlib.sha256(text[len(prefix):-1].encode('utf-8')).hexdigest() == digest
 
 
+def _window(path, offset):
+    """A digest of the first bytes and of the bytes just before `offset`; a log that was only appended to
+    keeps both. None when the file is shorter than `offset`."""
+    size = min(WINDOW, offset)
+    with open(str(path), 'rb') as stream:
+        head = stream.read(size)
+        stream.seek(offset - size)
+        tail = stream.read(size)
+    if len(head) != size or len(tail) != size:
+        return None
+    return hashlib.sha256(head + b'\0' + tail).hexdigest()
+
+
 def version(*modules):
     """Changes whenever a reader's source changes, so an edited reader never sees its old extracts."""
     digest = hashlib.sha256()
@@ -45,7 +61,7 @@ class FileCache:
     def __init__(self, name, key):
         base = folder()
         self.path = cache_file(name + '.json', base) if base is not None else None
-        self.key, self.old, self.new, self.signatures = key, {}, {}, {}
+        self.key, self.old, self.new, self.signatures, self.files = key, {}, {}, {}, {}
         self.historical,self.historical_key={},None
         self.intact = False
         if self.path is None:
@@ -71,28 +87,58 @@ class FileCache:
             return None
         stat = os.stat(path)
         name, signature = str(path), [stat.st_size, stat.st_mtime_ns]
-        self.signatures[name] = signature
+        self.signatures[name], self.files[name] = signature, stat.st_ino or None
         entry = self.old.get(name)
         if isinstance(entry, dict) and entry.get('signature') == signature:
-            rows = entry.get('rows')
-            try:
-                # put() stored each checksum from its rows; an intact file proves they still match.
-                valid = (isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
-                         and isinstance(entry.get('checksum'), str)
-                         and (self.intact or entry.get('checksum') == _checksum(rows)))
-            except (TypeError, ValueError, OverflowError, RecursionError):
-                valid = False
-            if valid:
+            rows = self._stored(entry)
+            if rows is not None:
                 self.new[name] = entry
                 return rows
         return None
+
+    def _stored(self, entry):
+        rows = entry.get('rows')
+        try:
+            # put() stored each checksum from its rows; an intact file proves they still match.
+            valid = (isinstance(rows, list) and all(isinstance(row, dict) for row in rows)
+                     and isinstance(entry.get('checksum'), str)
+                     and (self.intact or entry.get('checksum') == _checksum(rows)))
+        except (TypeError, ValueError, OverflowError, RecursionError):
+            valid = False
+        return rows if valid else None
+
+    def grown(self, path):
+        """After get() missed: (rows, resume) of the last read of `path` when the file has only grown since,
+        else None. Only a read that ended at a line end leaves a resume point, and only while the file keeps
+        its identity, its first bytes and the bytes up to that point is it read on from there; the reader
+        checks the point's own state. Anything else is read from the start, as before."""
+        input_limits.checkpoint()
+        name = str(path)
+        entry = self.old.get(name)
+        resume = entry.get('resume') if isinstance(entry, dict) else None
+        if name not in self.signatures or not isinstance(resume, dict):
+            return None
+        offset, window = resume.get('offset'), resume.get('window')
+        if (type(offset) is not int or not 0 < offset < self.signatures[name][0] or not isinstance(window, str)
+                or resume.get('file') != self.files[name]):
+            return None
+        rows = self._stored(entry)
+        if rows is None:
+            return None
+        try:
+            same = _window(path, offset) == window
+        except OSError:
+            return None
+        return (rows, resume) if same else None
 
     def checksum(self, path):
         """The checksum of the rows this read got or stored for `path`, or None."""
         entry = self.new.get(str(path)) if self.path is not None else None
         return entry.get('checksum') if isinstance(entry, dict) else None
 
-    def put(self, path, rows):
+    def put(self, path, rows, resume=None):
+        """`resume`: where a later read of this plain log may go on (offset, the reader's projected size and
+        state), when the read ended at a line end."""
         if self.path is None:
             return
         name = str(path)
@@ -102,9 +148,14 @@ class FileCache:
                 if [stat.st_size, stat.st_mtime_ns] != self.signatures[name]:
                     return  # a growing/replaced log must be re-read on the next scan
                 checksum = _checksum(rows)
+                entry = dict(signature=self.signatures[name], rows=rows, checksum=checksum)
+                if resume and type(resume.get('offset')) is int and 0 < resume['offset'] <= stat.st_size:
+                    window = _window(path, resume['offset'])
+                    if window is not None:
+                        entry['resume'] = dict(resume, file=self.files[name], window=window)
             except (OSError, TypeError, ValueError, OverflowError):
                 return  # a cache must never prevent reading the original
-            self.new[name] = dict(signature=self.signatures[name], rows=rows, checksum=checksum)
+            self.new[name] = entry
 
     def save(self):
         """Keeps only the files of this scan. A cache that cannot be written is skipped, never an error."""
