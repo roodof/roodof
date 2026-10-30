@@ -59,12 +59,12 @@ _HERESTRING = re.compile(r'''@(['"])\r?\n.*?\r?\n\1@''', re.S)
 _MAX_WORDS = 40
 
 
-def _words(segment):
+def _words(segment, maximum=_MAX_WORDS):
     """The first words of one shell step; quote characters are removed, nothing is evaluated."""
     words = []
     for match in _WORD.finditer(segment):
         words.append(match.group().replace('"', '').replace("'", ''))
-        if len(words) >= _MAX_WORDS:
+        if len(words) >= maximum:
             break
     return words
 
@@ -121,7 +121,8 @@ def _unwrap(command):
     return command
 
 
-def _kind(words):
+def _command(words):
+    """The tool and its arguments after the supported environment/wrapper prefixes."""
     while words and (re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*=.*', words[0]) or words[0] in ('&', '.')):
         words = words[1:]
     while words and _program(words[0]) in _WRAPPERS:
@@ -129,9 +130,62 @@ def _kind(words):
         while words and (words[0].lower() in _WRAPPER_WORDS or re.fullmatch(r'-?[\d.]+[smh]?|-[A-Za-z-]+(=\S+)?', words[0])
                          or re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*=.*', words[0])):
             words = words[1:]
-    if not words:
-        return None
-    name, rest = _program(words[0]), [word for word in words[1:]]
+    return (_program(words[0]), words[1:]) if words else ('', [])
+
+
+def _non_running(words):
+    """Known inspection/dry-run modes are not evidence that a check ran.
+
+    Match complete options, never pieces of paths or argument values. This only
+    recognises explicit modes; a zero exit still cannot establish how many tests ran.
+    """
+    name, rest = _command(words)
+    options = {word.split('=', 1)[0] for word in rest if word.startswith('--')}
+    if options & {'--help', '--version', '--dry-run', '--dryrun', '--collect-only', '--co',
+                  '--list-tests', '--listTests', '--list-test-names-only', '--list-suites',
+                  '--collectonly', '--fixtures', '--fixtures-per-test', '--setup-plan', '--setup-only'}:
+        return True
+    # javac -h generates headers while compiling; it is not that tool's help switch.
+    if name != 'javac' and '-h' in rest:
+        return True
+    if '-V' in rest or (name in ('javac', 'java') and '-version' in rest):
+        return True
+    if name in _MAKE:
+        return (any(word in ('--just-print', '--recon', '--question') for word in rest)
+                or any(re.fullmatch(r'-[A-Za-z]*[nq][A-Za-z]*', word) for word in rest)
+                or name == 'nmake' and any(word.lower() in ('/n', '/q', '/?') for word in rest))
+    if name == 'ctest' and ('-N' in rest or '--show-only' in options):
+        return True
+    if name == 'go' and any(word in ('-c', '-n', '-list') or word.startswith('-list=') for word in rest):
+        return True
+    if name == 'cargo' and ('--no-run' in options or rest[:2] == ['nextest', 'list'] or '--list' in options):
+        return True
+    if name in ('vitest', 'playwright') and 'list' in rest:
+        return True
+    if name in ('gradle', 'gradlew') and '-m' in rest:
+        return True
+    if name == 'tox' and (any(word in ('-l', '-a', '--listenvs', '--listenvs-all', '--showconfig') for word in rest)
+                          or rest[:1] in (['list'], ['config'])):
+        return True
+    if name == 'nox' and any(word in ('-l', '--list', '--list-sessions') for word in rest):
+        return True
+    if name in ('ninja', 'scons', 'rake') and '-n' in rest:
+        return True
+    if name == 'tsc' and options & {'--showConfig', '--listFilesOnly'}:
+        return True
+    if name == 'javac' and '-help' in rest:
+        return True
+    if name == 'cl' and '/?' in rest:
+        return True
+    if name in ('mvn', 'mvnw') and any(re.fullmatch(r'-D(?:skipTests|maven\.test\.skip)(?:=true)?', word) for word in rest):
+        return True
+    if name == 'dotnet' and any(word.lower() in ('-t', '/listtests', '/listtests:true') for word in rest):
+        return True
+    return False
+
+
+def _kind(words):
+    name, rest = _command(words)
     first = next((word.lower() for word in rest if not word.startswith('-')), '')
     if _PYTHON.fullmatch(name):
         for position, word in enumerate(rest):
@@ -209,16 +263,18 @@ def classify(command):
     steps = _steps(script)
     found = None
     for position, (operator, text) in enumerate(steps):
-        kind = _kind(_words(text)) if _candidate(text) else None
+        words = _words(text, _MAX_WORDS + 1) if _candidate(text) else []
+        truncated = len(words) > _MAX_WORDS
+        kind = _kind(words[:_MAX_WORDS]) if words and not _non_running(words) else None
         if kind is not None:
-            found = position, kind
+            found = position, kind, truncated
     if found is None:
         return None
-    position, kind = found
+    position, kind, truncated = found
     last = position == len(steps) - 1
     hidden = any(operator in ('||', '&') for operator, _ in steps[1:position + 1])
     background = position + 1 < len(steps) and steps[position + 1][0] == '&'
-    return dict(kind=kind, known=last and not hidden and not background)
+    return dict(kind=kind, known=last and not hidden and not background and not truncated)
 
 
 def outcome(check, failed):

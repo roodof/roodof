@@ -75,17 +75,34 @@ class SpeedGuardTests(unittest.TestCase):
         self.assertLess(ratio, 60, 'a later read took %.1f times parsing its caches' % ratio)
 
     def test_a_grown_log_is_read_on_from_where_the_last_read_ended(self):
-        # Seen: 0.018-0.026 of a full read.
+        # Preserve the original parser-only guard; also measure the verification/persistence pipeline.
         cache = FileCache('claude', 'speed-guard')
         cache.get(self.claude)
         point = {}
         cache.put(self.claude, claude_code._rows(self.claude, None, point), point)
         cache.save()
+        baseline=cache.path.read_bytes()
         self.grow()
         cache = FileCache('claude', 'speed-guard')
         self.assertIsNone(cache.get(self.claude))
         resume = cache.grown(self.claude)
         self.assertIsNotNone(resume)
-        continued = best(lambda: claude_code._rows(self.claude, resume, {}))
-        full = best(lambda: claude_code._rows(self.claude))
-        self.assertLess(continued / full, 0.25, 'continuing took %.2f of a full read' % (continued / full))
+        parsed_continued=best(lambda:claude_code._rows(self.claude,resume,{}))
+        parsed_full=best(lambda:claude_code._rows(self.claude))
+        self.assertLess(parsed_continued/parsed_full,0.25,'continued parsing lost its append path')
+        def continued_read():
+            # Restore the same old cache for each sample; include verification and persistence.
+            cache.path.write_bytes(baseline)
+            current=FileCache('claude','speed-guard');current.get(self.claude)
+            point={};rows=claude_code._rows(self.claude,current.grown(self.claude),point)
+            current.put(self.claude,rows,point);current.save()
+        def full_read():
+            cache.path.write_bytes(baseline)
+            current=FileCache('claude','speed-guard');current.get(self.claude)
+            point={};rows=claude_code._rows(self.claude,None,point)
+            current.put(self.claude,rows,point);current.save()
+        continued = best(continued_read)
+        full = best(full_read)
+        # Entire old-prefix validation is additional I/O. Require a whole-pipeline benefit too,
+        # instead of pretending the old parser-only ratio also measured hashes and writes.
+        self.assertLess(continued / full, 0.8, 'continued pipeline took %.2f of a full pipeline' % (continued / full))

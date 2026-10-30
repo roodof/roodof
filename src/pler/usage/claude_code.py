@@ -11,6 +11,7 @@ from pathlib import Path
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
 from . import accounting, checks, discovery, input_limits, pricing
 from .edit_paths import canonical_target
+from .cache import ResumeChanged,resume_matches
 from .period_usage import event_time, record_response
 
 EDIT_TOOLS = {'Edit': 'file_path', 'MultiEdit': 'file_path', 'Write': 'file_path', 'NotebookEdit': 'notebook_path'}
@@ -69,10 +70,12 @@ def _prompt(message):
     return False
 
 
-def _lines(path, issues, offset=0, ending=None):
+def _lines(path, issues, offset=0, ending=None, resume=None):
     try:
         with open(str(path),'rb') as stream:
-            if offset: stream.seek(offset)
+            if offset:
+                if not resume_matches(stream,resume or {}):raise ResumeChanged()
+                stream.seek(offset)
             parts=input_limits.chunks(input_limits.Source(stream),input_limits.MAX_SOURCE_BYTES-offset)
             if ending is not None: parts=ending.watch(parts)
             for line in input_limits.lines(input_limits.expanded(parts)):
@@ -183,6 +186,13 @@ def _resumed(rows, resume):
 
 
 def _rows(path, resume=None, point=None):
+    try:return _read_rows(path,resume,point)
+    except ResumeChanged:
+        if point is not None:point.clear()
+        return _read_rows(path,None,point)
+
+
+def _read_rows(path, resume=None, point=None):
     """`resume` (rows, point) from the cache continues a transcript that has only grown since that read;
     `point`, when given, receives where a later read may continue: a read to a line end without an issue."""
     projection=input_limits.Projection()
@@ -192,7 +202,7 @@ def _rows(path, resume=None, point=None):
     if restored is not None:
         body, projection.bytes, malformed, asked = restored
         rows.extend(body); offset = resume[1]['offset']
-    for line in _lines(path, issues, offset, ending):
+    for line in _lines(path,issues,offset,ending,resume[1] if restored is not None else None):
         if not line.strip():
             continue
         try:

@@ -1,6 +1,16 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.19 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.24 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Snapshot and file verification (0.2.24)
+
+An unchanged page refresh preserves the previous reader/decompression/budget issues together with its figures. A snapshot with reader or archive errors is reused for at most five seconds before another read is attempted; a healthy snapshot still has the one-hour maximum. Quota samples are refreshed on reuse.
+
+An exact reader-cache hit requires the same device/file identity, size and modification time. Old entries or filesystems without a usable identity require a full read. Plain-log continuation hashes every byte of the old prefix in bounded, cancellable chunks; this replaces the earlier first/last 4 KiB sample. The newly opened reading handle must match the verified identity, size and modification time before seeking. Rotation between verification and opening falls back to a full read. The reader source-version key includes this cache implementation. A normal unchanged hit still trusts filesystem metadata; it is not cryptographic proof against a writer deliberately preserving all metadata during an in-place rewrite.
+
+Prefix verification adds I/O (also counted in the scan's source-byte budget) without retaining transcript text. The original parser-only speed guard remains; a separate whole-pipeline comparison includes cache loading, prefix hashing, tail parsing and cache persistence. No previous timing is claimed to include work it excluded.
+
+Explicit help, version, collection/listing, dry-run and compile-only test modes are not counted as executed checks. If a command exceeds the inspected word budget, it cannot claim a known pass/fail outcome. A successful process exit still does not prove that a nonzero number of tests ran; no test-output text is collected to prove that.
 
 ## Tests and builds the agents ran (0.2.18)
 
@@ -142,8 +152,8 @@ For a commit found on a branch that is also in the current HEAD's history, PLER 
 
 - **Added lines:** per file, the lines whose count grew compared with the commit's only parent. Blank lines and lines without a letter or digit (such as a lone `}`) are not counted. Surrounding whitespace is ignored.
 - **Still in place:** an added line is looked for, by content, in the same file at HEAD. A line that existed before the commit is assumed to be the copy that remained, so a repeated line counts as kept only when HEAD has more copies than the parent had.
-- **Not measured:** merges, a repository's first commit, commits outside HEAD's history and unreadable objects. Binary files, files of 1 MiB or more, more than 400 changed files in one commit and more than 256 MiB of file content per repository and read are counted as skipped.
-- **Approximation:** a line moved within its file counts as kept. A line rewritten in place, or in a file that was renamed or moved, does not.
+- **Not measured:** merges, a repository's first commit, commits outside HEAD's history and unreadable objects. A traversal/file cutoff leaves the entire commit unknown and is never cached as a complete count. Per repository/read, tree parsing is capped at 4,096 distinct trees and 100,000 entries, traversal at 100,000 visits and 128 path levels; at most 400 changed files are admitted per commit. Binary files, files of 1 MiB or more and file contents beyond the 256 MiB budget are skipped. Every traversal checks cancellation.
+- **Approximation:** a line moved within its file counts as kept. A line rewritten in place, or in a file that was renamed or moved, does not. A copy/rename can increase a new path's line counts without newly authored code; this observation does not establish authorship or new work.
 - **Privacy:** file names and contents are read only in memory, from loose objects and version-2 packs, never written, cached or shown. Only counts per commit reach the page and JSON. Counts for the same HEAD are reused, also after a restart: the page keeps the four counts in `git-survival.json` under a one-way digest of repository folder, HEAD and commit, with no path, commit id, name or text (0.2.22). A new HEAD or other counting code is measured again; a count cut short by the byte budget is never kept; cache reset removes the file.
 - **Meaning:** kept lines show that the change was not undone or rewritten so far. They do not prove that it is correct or that the session's tokens were well spent.
 

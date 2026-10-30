@@ -12,6 +12,7 @@ import re
 
 from .records import Session, add_tokens, json_row, note_file_issue, percentage, timestamp, total
 from .zstd import decoder
+from .cache import ResumeChanged,resume_matches
 from . import accounting, checks, discovery, input_limits
 
 _PATCH = re.compile(r'\*\*\* Begin Patch.*?(?:\*\*\* End Patch|$)', re.S)
@@ -138,6 +139,13 @@ def _resumed(rows, resume):
 
 
 def _rows(path, decode, resume=None, point=None):
+    try:return _read_rows(path,decode,resume,point)
+    except ResumeChanged:
+        if point is not None:point.clear()
+        return _read_rows(path,decode,None,point)
+
+
+def _read_rows(path, decode, resume=None, point=None):
     """Slim rows in log order; rows that only move the session's first/last time become two timestamps.
 
     `resume` (rows, point) from the cache continues a plain log that has only grown since that read; `point`,
@@ -151,7 +159,9 @@ def _rows(path, decode, resume=None, point=None):
         projection.rows.extend(body);offset=resume[1]['offset']
     ending=input_limits.Ending()
     with path.open('rb') as stream:
-        if offset:stream.seek(offset)
+        if offset:
+            if not resume_matches(stream,resume[1]):raise ResumeChanged()
+            stream.seek(offset)
         stream=input_limits.Source(stream)
         if not plain:
             iterator=getattr(decode,'iter_chunks',None)

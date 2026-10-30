@@ -7,7 +7,7 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 - **Calls no model.** Measuring costs zero tokens.
 - **Sends nothing to external services.** The page opens on this computer only (`127.0.0.1`). Explicit WSL log roots on this computer are supported; other network shares stay refused.
 - **Agent logs stay unchanged.** PLER keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
-- **Any programming language.** It reads agent logs and local Git activity metadata, not source code.
+- **Any programming language.** It reads agent logs. The local Git line observation also reads committed file names and contents in memory; only counts are stored or shown.
 
 ## Install
 

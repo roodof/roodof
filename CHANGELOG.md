@@ -1,5 +1,14 @@
 # Changes
 
+## 0.2.24 — 2026-10-30 (private candidate)
+
+- Preserve reader/decompression/budget warnings when reusing a page result; retry error snapshots after five seconds instead of retaining them for an hour.
+- Require device/file identity on exact cache hits. Verify the entire old prefix before continuing a grown log, and recheck the reopened descriptor before seeking; rotation falls back to a full read. Legacy cache entries rebuild. Prefix hashing adds bounded I/O; unchanged exact hits remain metadata-only checks.
+- Exclude explicit informational, collection, listing, dry-run and compile-only invocations from test/build outcomes. Commands beyond the inspected word budget cannot claim a pass. Token and pricing rules stay unchanged.
+- Bound and cancel Git tree traversal before collecting changed-file lists. Cutoff commits remain unknown and are not cached. Bound saved-count reads and validate kept lines do not exceed added lines; update verdicts from one bounded validated snapshot.
+- Add seeded malformed-input and incremental/full differential regressions. Keep the original parser speed guard and additionally time verification and cache persistence in the continued-read pipeline.
+- Parser `accounting-2026-10-30.3`, schema 2. Preserve Claude's 0.2.16–0.2.23 features and optimizations.
+
 ## 0.2.23 — 2026-10-30 (private candidate)
 
 - A speed guard in the test suite, so large slowdowns fail CI before a release. CI machines differ in speed, so it never compares with a fixed number of seconds. On invented logs shaped like real ones (about 13 MB), it compares timings taken in the same process: a first read against plain JSON parsing of the same bytes (limit 10, seen 2.8–4.3), a later read against parsing the reader caches (limit 60, seen 12–28) and a continued read of a grown log against a full read (limit 0.25, seen 0.02–0.03). These were measured on Windows with Python 3.9, 3.12 and 3.14 and on Linux with Python 3.14. The guard caught each injected regression: a tenfold slower reader, a tenfold slower merge and a lost continued read. Slowdowns below about twofold are left to the recorded measurements.

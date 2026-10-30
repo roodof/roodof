@@ -3,7 +3,7 @@ from . import __version__
 from .i18n import say
 
 SCHEMA_VERSION=2
-PARSER_VERSION='accounting-2026-10-30.2'
+PARSER_VERSION='accounting-2026-10-30.3'
 ISSUES={'invalid_records':'quality.invalid_records','conflicting_usage':'quality.conflicting_usage',
         'unreconciled_totals':'quality.unreconciled_totals','shared_attribution':'quality.shared_attribution',
         'unknown_model':'quality.unknown_model','cumulative_usage':'quality.cumulative_usage',

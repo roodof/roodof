@@ -31,11 +31,8 @@ def _valid(entries):
         and item['verdict'] in VERDICTS and type(item['at']) is int and item['at'] >= 0 for code, item in entries.items()))
 
 
-def read(base=None):
-    """{code: verdict}; empty when no verdict was ever saved. Raises ValueError/OSError for an unusable file."""
-    path = cache_file(FILENAME, base)
-    if path is None:
-        raise OSError('unsafe verdict file')
+def _entries(path):
+    """Read and validate one bounded snapshot, keeping timestamps for a later update."""
     try:
         size = path.stat().st_size
         if size > MAX_BYTES:
@@ -53,7 +50,15 @@ def read(base=None):
     if not isinstance(value, dict) or set(value) != {'format', 'verdicts'} or value['format'] != FORMAT \
             or type(value['format']) is not int or not _valid(value['verdicts']):
         raise ValueError('invalid verdict file')
-    return {code: item['verdict'] for code, item in value['verdicts'].items()}
+    return value['verdicts']
+
+
+def read(base=None):
+    """{code: verdict}; empty when no verdict was ever saved. Raises ValueError/OSError for an unusable file."""
+    path = cache_file(FILENAME, base)
+    if path is None:
+        raise OSError('unsafe verdict file')
+    return {code: item['verdict'] for code, item in _entries(path).items()}
 
 
 def save(code, verdict, base=None):
@@ -65,11 +70,8 @@ def save(code, verdict, base=None):
     if path is None:
         raise OSError('unsafe verdict file')
     with _locked(path.parent):
-        read(path.parent)  # refuse to replace a file this version cannot read
-        try:
-            stored = json.loads(path.read_bytes().decode('utf-8'))['verdicts']
-        except FileNotFoundError:
-            stored = {}
+        # Use the same validated snapshot throughout the update, never reopen unbounded.
+        stored = _entries(path)
         if verdict is None:
             stored.pop(code, None)
         else:

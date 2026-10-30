@@ -7,7 +7,7 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 - **Model çağırmaz.** Ölçmek için tek bir token harcamaz.
 - **Hiçbir şey göndermez.** İnternete bağlanmaz; sayfa yalnız bu bilgisayardan açılır (`127.0.0.1`).
 - **Ajan kayıtlarını değiştirmez.** PLER üst bilgi önbelleği tutar; istek, yanıt, komut ve araç çıktısı ekrana ve önbelleğe girmez. İsteğe bağlı durum satırı, Claude Code ayarını onaydan sonra ve yedek alarak değiştirir.
-- **Her dilde çalışır.** Kaynak kodunu okumadan ajan kayıtlarını ve yerel Git hareketlerinin üst bilgilerini inceler.
+- **Her dilde çalışır.** Ajan kayıtlarını inceler. Yerel Git satır gözlemi ayrıca commit'lerdeki dosya adlarını ve içeriklerini bellekte okur; yalnız sayılar saklanır veya gösterilir.
 
 ## Kurulum
 

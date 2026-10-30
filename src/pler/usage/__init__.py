@@ -17,7 +17,7 @@ from ..statusline import samples as claude_quota
 from .cache import FileCache, version
 from .forecast import outlook
 from .quota_scope import source_groups
-from . import input_limits
+from . import input_limits, cache as cache_rules
 from .insights import insights
 from .projects import assign, label, labels
 from .pricing import PRICES_AS_OF
@@ -35,6 +35,7 @@ class Rescan:
     identity), the same discovery issues and reader versions, and PLER's own cache, archive and retention files
     as the previous scan left them. A result is reused for at most MAX_AGE seconds."""
     MAX_AGE = 3600
+    ERROR_MAX_AGE = 5
 
     def __init__(self):
         self.kept = None
@@ -71,7 +72,12 @@ class Rescan:
 
     def reuse(self, inputs):
         kept = self.kept
-        if kept is None or kept[0] != inputs or not 0 <= time.monotonic() - kept[2] < self.MAX_AGE:
+        if kept is None or kept[0] != inputs:
+            return None
+        details=kept[4]
+        failed=bool(details.get('skipped') or (details.get('archive') or {}).get('errors'))
+        maximum=self.ERROR_MAX_AGE if failed else self.MAX_AGE
+        if not 0 <= time.monotonic() - kept[2] < maximum:
             return None
         return kept[3:] if kept[1] == self.own_files() else None
 
@@ -95,15 +101,15 @@ def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
     claude_manifest,codex_manifest=Manifest(),Manifest()
     claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
     codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
-    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits,checks)
-    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks)
+    codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits,checks,cache_rules)
+    claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks,cache_rules)
     if memo is not None:
         inputs=memo.inputs([*claude_files,*codex_files],skipped,
                            (codex_key,claude_key,claude_folders,codex_folders,retain,len(claude_files)))
         reused=memo.reuse(inputs)
         if reused is not None:
             sessions,details=reused
-            return sessions,dict(details,skipped=list(skipped),observed_at=observed_at,
+            return sessions,dict(details,skipped=list(details.get('skipped',())),observed_at=observed_at,
                                  claude_quota=claude_quota() if claude_folders is None else [])
     archive=archive_rules.Archive(enabled=retain or claude_folders is None or codex_folders is None)
     cached = FileCache('codex', codex_key) if codex_folders is None else None

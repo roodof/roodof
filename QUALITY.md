@@ -1,5 +1,15 @@
 # Profesyonel neden kullanmaz?
 
+## 30 Ekim: 0.2.24 — doğruluk ve sınır denetimleri
+
+Claude'un 0.2.16–0.2.23 geliştirmeleri korundu. Yenilemede kaybolan okuma uyarıları, aynı boyut/tarihle değiştirilen dosyada eski cache isabeti, eski bölümün ortasındaki değişimi kaçıran artımlı okuma ve doğrulama/yeniden açma arasında dosya döndürülmesi düzeltildi. Hatalı görüntüler beş saniye sonra yeniden denenir. Yardım/listeleme/toplama/dry-run/yalnız derleme kipleri artık çalışmış test veya derleme olarak sayılmaz.
+
+Git ağaçları ve değişen dosyalar toplandıktan sonra değil, dolaşım sırasında sınırlandırılır ve iptal kontrolü yapılır. Sınıra takılan commit bilinmiyor kalır; kısmi sayım eksiksiz diye saklanmaz. Git sayımı ve kullanıcı değerlendirmesi dosyaları tek, sınırlı okumadan geçer; kalan satır sayısı eklenen satırı aşamaz.
+
+Yerel son kaynak testleri: Windows Python 3.9 pytest 618 geçti / 11 atlandı; Python 3.12 unittest 620 çalıştı / 3 atlandı; Python 3.14.10 unittest 629 çalıştı / 2 atlandı. Linux WSL Python 3.14.4 629/629; Node 39/39. Önce/sonra kanıtı ve paket/platform durumu [güncel raporda](../reports/integrity-v1/REPORT.md). Kaynak sürümü ile eski pilot kiti eşitlenmeden eski kitin kanıtı yeni sürüme atfedilmez. Gerçek pilot, temiz makine, erişilebilirlik ve imzalı dağıtım açık kabul kapılarıdır.
+
+---
+
 26 Ekim 2026. Aktif çalışma yönü: yeni özellik eklemek yerine kullanmama nedenlerini somut kanıtla azaltmak. Eski raporlardaki “kapandı” ifadeleri müşteri kabulü kanıtı olarak alınmaz. Bir testin geçmesi, yalnız sınadığı kusurun düzeldiğini gösterir.
 
 ## 30 Ekim: 0.2.15 — büyük ve bozuk kayıtlar okumayı durduramıyor

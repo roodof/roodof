@@ -11,7 +11,22 @@ import tempfile
 from ..paths import cache_folder as folder, cache_file
 from . import input_limits
 
-WINDOW = 4096  # bytes compared at the start of a grown log and just before where its last read ended
+PREFIX_FORMAT = 'sha256-prefix-v1'
+
+
+class ResumeChanged(Exception):
+    """The path no longer opens the file whose prefix was verified."""
+
+
+def resume_matches(stream,resume):
+    info=os.fstat(stream.fileno())
+    return (_identity(info)==resume.get('file') and
+            [info.st_size,info.st_mtime_ns]==resume.get('observed'))
+
+
+def _identity(info):
+    """A file identity includes its device; unavailable identities never justify a cache hit."""
+    return [info.st_dev,info.st_ino] if info.st_ino else None
 
 
 def _checksum(rows):
@@ -36,17 +51,22 @@ def _intact(text, data):
     return hashlib.sha256(text[len(prefix):-1].encode('utf-8')).hexdigest() == digest
 
 
-def _window(path, offset):
-    """A digest of the first bytes and of the bytes just before `offset`; a log that was only appended to
-    keeps both. None when the file is shorter than `offset`."""
-    size = min(WINDOW, offset)
+def _prefix(path, offset, identity):
+    """Verify every old byte before appending, with bounded memory and cancellable reads."""
+    if identity is None or not 0 < offset <= input_limits.MAX_SOURCE_BYTES:return None
+    digest=hashlib.sha256();remaining=offset
     with open(str(path), 'rb') as stream:
-        head = stream.read(size)
-        stream.seek(offset - size)
-        tail = stream.read(size)
-    if len(head) != size or len(tail) != size:
-        return None
-    return hashlib.sha256(head + b'\0' + tail).hexdigest()
+        before=os.fstat(stream.fileno())
+        if _identity(before)!=identity or before.st_size<offset:return None
+        source=input_limits.Source(stream)
+        while remaining:
+            input_limits.checkpoint()
+            data=source.read(min(input_limits.CHUNK_BYTES,remaining))
+            if not data:return None
+            digest.update(data);remaining-=len(data)
+        after=os.fstat(stream.fileno())
+        if (_identity(after),after.st_size,after.st_mtime_ns)!=(_identity(before),before.st_size,before.st_mtime_ns):return None
+    return digest.hexdigest()
 
 
 def version(*modules):
@@ -87,9 +107,10 @@ class FileCache:
             return None
         stat = os.stat(path)
         name, signature = str(path), [stat.st_size, stat.st_mtime_ns]
-        self.signatures[name], self.files[name] = signature, stat.st_ino or None
+        self.signatures[name], self.files[name] = signature, _identity(stat)
         entry = self.old.get(name)
-        if isinstance(entry, dict) and entry.get('signature') == signature:
+        if (self.files[name] is not None and isinstance(entry,dict) and
+                entry.get('signature')==signature and entry.get('file')==self.files[name]):
             rows = self._stored(entry)
             if rows is not None:
                 self.new[name] = entry
@@ -109,9 +130,9 @@ class FileCache:
 
     def grown(self, path):
         """After get() missed: (rows, resume) of the last read of `path` when the file has only grown since,
-        else None. Only a read that ended at a line end leaves a resume point, and only while the file keeps
-        its identity, its first bytes and the bytes up to that point is it read on from there; the reader
-        checks the point's own state. Anything else is read from the start, as before."""
+        else None. Only a read that ended at a line end leaves a resume point. All old bytes are hashed,
+        and the reader rechecks the newly opened descriptor against this observation before seeking.
+        Missing identity, an old verification format or any mismatch means a full read."""
         input_limits.checkpoint()
         name = str(path)
         entry = self.old.get(name)
@@ -120,16 +141,17 @@ class FileCache:
             return None
         offset, window = resume.get('offset'), resume.get('window')
         if (type(offset) is not int or not 0 < offset < self.signatures[name][0] or not isinstance(window, str)
-                or resume.get('file') != self.files[name]):
+                or resume.get('file') != self.files[name] or self.files[name] is None
+                or resume.get('verification')!=PREFIX_FORMAT):
             return None
         rows = self._stored(entry)
         if rows is None:
             return None
         try:
-            same = _window(path, offset) == window
-        except OSError:
+            same = _prefix(path, offset, self.files[name]) == window
+        except (OSError,ValueError):
             return None
-        return (rows, resume) if same else None
+        return (rows,dict(resume,observed=list(self.signatures[name]))) if same else None
 
     def checksum(self, path):
         """The checksum of the rows this read got or stored for `path`, or None."""
@@ -145,14 +167,17 @@ class FileCache:
         if name in self.signatures:
             try:
                 stat = os.stat(path)
-                if [stat.st_size, stat.st_mtime_ns] != self.signatures[name]:
+                if ([stat.st_size,stat.st_mtime_ns]!=self.signatures[name] or
+                        _identity(stat)!=self.files[name] or self.files[name] is None):
                     return  # a growing/replaced log must be re-read on the next scan
                 checksum = _checksum(rows)
-                entry = dict(signature=self.signatures[name], rows=rows, checksum=checksum)
+                entry = dict(signature=self.signatures[name], file=self.files[name], rows=rows, checksum=checksum)
                 if resume and type(resume.get('offset')) is int and 0 < resume['offset'] <= stat.st_size:
-                    window = _window(path, resume['offset'])
+                    window = _prefix(path,resume['offset'],self.files[name])
                     if window is not None:
-                        entry['resume'] = dict(resume, file=self.files[name], window=window)
+                        entry['resume'] = dict(resume,file=self.files[name],window=window,verification=PREFIX_FORMAT)
+                final=os.stat(path)
+                if ([final.st_size,final.st_mtime_ns]!=self.signatures[name] or _identity(final)!=self.files[name]):return
             except (OSError, TypeError, ValueError, OverflowError):
                 return  # a cache must never prevent reading the original
             self.new[name] = entry

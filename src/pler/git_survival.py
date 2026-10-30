@@ -6,9 +6,10 @@ same file at HEAD. Blank lines and lines without a letter or digit (a lone `}`) 
 
 File names and contents are read only in memory, through git_objects.py; only counts leave this module.
 No Git program runs and nothing is written to the repository; with a Saved store, the counts alone are kept
-in PLER's cache folder. Merge commits, renamed or moved files, binary or very large files and anything
-unreadable are left out and counted as such, never guessed. Matching by content is an approximation: a line
-moved within its file still counts as kept, a line rewritten in place does not.
+in PLER's cache folder. Merge/root commits and traversal-limited histories are not measurable; binary,
+very large or unreadable files are skipped. Renames are not followed: additions are per-path count
+increases, not proof of newly written code. A line moved within its file counts as kept; a rewritten
+line or a file moved to another path does not.
 """
 from collections import Counter
 import hashlib
@@ -21,11 +22,15 @@ import tempfile
 from . import git_objects
 from .git_objects import MAX_OBJECT, Objects, _common, _hex, _read, on_branch
 from .paths import cache_file
+from .runtime import checkpoint
 
 MAX_COMMITS = 200        # commits measured per repository and scan
 MAX_FILES = 400          # changed files measured per commit
 MAX_BYTES = 256 << 20    # file contents inflated per repository and scan
 MAX_MEMO = 20000
+MAX_TREES = 4096         # distinct trees retained per repository and scan
+MAX_ENTRIES = 100000     # parsed tree entries and traversal visits, independently bounded
+MAX_TREE_DEPTH = 128
 _TEXT_PROBE = 8000
 _FIELDS = ('added', 'kept', 'files', 'skipped')
 _DIGEST = re.compile('[0-9a-f]{64}')
@@ -33,6 +38,16 @@ _DIGEST = re.compile('[0-9a-f]{64}')
 # later read of the same HEAD reuses the counts instead of reading the files again.
 _MEMO = {}
 _VERSION = None
+
+
+class _LimitExceeded(ValueError):
+    pass
+
+
+def _counts(numbers):
+    return (isinstance(numbers, list) and len(numbers) == len(_FIELDS)
+            and all(type(number) is int and 0 <= number < 1 << 53 for number in numbers)
+            and numbers[1] <= numbers[0])
 
 
 def _key(directory, tip, commit):
@@ -71,14 +86,21 @@ class Saved:
         self.loaded = True
         path = self._path()
         try:
-            if path is None or path.stat().st_size > self.MAX_SIZE:
+            if path is None:
                 return {}
-            value = json.loads(path.read_bytes().decode('utf-8'))
-            if value.get('format') != 1 or value.get('version') != _version() or not isinstance(value.get('counts'), dict):
+            size = path.stat().st_size
+            if size > self.MAX_SIZE:
+                return {}
+            with path.open('rb') as stream:
+                data = stream.read(size + 1)
+            if len(data) != size:
+                return {}
+            value = json.loads(data.decode('utf-8'))
+            if (not isinstance(value, dict) or type(value.get('format')) is not int or value['format'] != 1
+                    or value.get('version') != _version() or not isinstance(value.get('counts'), dict)):
                 return {}
             counts = {key: dict(zip(_FIELDS, numbers)) for key, numbers in value['counts'].items()
-                      if _DIGEST.fullmatch(key) and isinstance(numbers, list) and len(numbers) == len(_FIELDS)
-                      and all(type(number) is int and 0 <= number < 1 << 53 for number in numbers)}
+                      if isinstance(key, str) and _DIGEST.fullmatch(key) and _counts(numbers)}
         except (OSError, ValueError, AttributeError, RecursionError):
             return {}
         self.saved = frozenset(counts)
@@ -87,15 +109,26 @@ class Saved:
     def save(self, memo):
         """Replace the file with `memo` when its keys differ from what was last read or written; a file that
         cannot be written is skipped, never an error."""
-        keys = frozenset(memo)
+        clean = {}
+        for key, value in memo.items():
+            if len(clean) >= MAX_MEMO:
+                break
+            if not isinstance(key, str) or not _DIGEST.fullmatch(key) or not isinstance(value, dict):
+                continue
+            numbers = [value.get(name) for name in _FIELDS]
+            if _counts(numbers):
+                clean[key] = numbers
+        keys = frozenset(clean)
         path = self._path()
         if keys == self.saved or path is None:
             return
         temporary = None
         try:
             body = json.dumps(dict(format=1, version=_version(),
-                                   counts={key: [value[name] for name in _FIELDS] for key, value in memo.items()}),
+                                   counts=clean),
                               separators=(',', ':'))
+            if len(body) > self.MAX_SIZE:
+                return
             path.parent.mkdir(parents=True, exist_ok=True)
             if cache_file(path.name, path.parent) != path:
                 return
@@ -103,6 +136,8 @@ class Saved:
                                              suffix='.tmp', delete=False) as stream:
                 temporary = Path(stream.name)
                 stream.write(body)
+            if cache_file(path.name, path.parent) != path:
+                return
             os.replace(str(temporary), str(path))
             temporary, self.saved = None, keys
         except (OSError, MemoryError):
@@ -110,7 +145,8 @@ class Saved:
         finally:
             if temporary is not None:
                 try:
-                    temporary.unlink()
+                    if cache_file(temporary.name, temporary.parent) == temporary:
+                        temporary.unlink()
                 except OSError:
                     pass
 
@@ -145,17 +181,26 @@ def head(directory, size):
 class _Reader:
     def __init__(self, directory, size):
         self.store, self.size, self.trees, self.files, self.spent = Objects(Path(directory), size), size, {}, {}, 0
+        self.entries = self.visits = 0
+        self.limited = False
+
+    def limit(self):
+        self.limited = True
+        raise _LimitExceeded('Git traversal limit reached')
 
     def close(self):
         self.store.close()
 
     def commit(self, hexed):
         """(tree id, [parent ids]) from a commit header; identities and the message are never read."""
+        checkpoint()
         found = self.store._object(bytes.fromhex(hexed))
+        checkpoint()
         if not found or found[0] != 1:
             return None
         tree, parents = None, []
         for line in found[1].split(b'\n'):
+            checkpoint()
             if not line:
                 break
             if line.startswith(b'tree '):
@@ -166,12 +211,19 @@ class _Reader:
 
     def tree(self, hexed):
         """{name: (is_tree, id)} for regular files and folders; links and submodules are skipped."""
+        checkpoint()
         if hexed not in self.trees:
+            if len(self.trees) >= MAX_TREES:
+                self.limit()
             found = self.store._object(bytes.fromhex(hexed))
             entries = None
             if found and found[0] == 2:
                 entries, data, at = {}, found[1], 0
                 while at < len(data):
+                    checkpoint()
+                    if self.entries >= MAX_ENTRIES:
+                        self.limit()
+                    self.entries += 1
                     space = data.index(b' ', at)
                     end = data.index(b'\0', space)
                     mode, name = data[at:space], data[space + 1:end]
@@ -186,33 +238,58 @@ class _Reader:
 
     def lines(self, hexed):
         """Counter of counted lines of a text file, or None (binary, too large, unreadable, over budget)."""
+        checkpoint()
         if hexed not in self.files:
             value = None
             if self.spent < MAX_BYTES:
                 found = self.store._object(bytes.fromhex(hexed))
+                checkpoint()
                 if found and found[0] == 3 and len(found[1]) < MAX_OBJECT and b'\0' not in found[1][:_TEXT_PROBE]:
+                    if self.spent + len(found[1]) > MAX_BYTES:
+                        self.limited = True
+                        self.files[hexed] = None
+                        return None
                     self.spent += len(found[1])
-                    value = Counter(line for line in (raw.strip() for raw in found[1].decode('utf-8', 'replace').splitlines())
-                                    if any(char.isalnum() for char in line))
+                    value = Counter()
+                    for raw in found[1].decode('utf-8', 'replace').splitlines():
+                        checkpoint()
+                        line = raw.strip()
+                        if any(char.isalnum() for char in line):
+                            value[line] += 1
+            else:
+                self.limited = True
             self.files[hexed] = value
         return self.files[hexed]
 
     def changed(self, old, new, prefix=()):
         """(path parts, old file id or None, new file id) for files added or changed between two trees."""
-        before, after = (self.tree(old) if old else {}), self.tree(new)
-        if before is None or after is None:
-            raise ValueError('unreadable tree')
-        for name, (folder, key) in after.items():
-            previous = before.get(name)
-            if previous and previous[1] == key:
-                continue
-            if folder:
-                yield from self.changed(previous[1] if previous and previous[0] else None, key, prefix + (name,))
-            else:
-                yield prefix + (name,), previous[1] if previous and not previous[0] else None, key
+        pending = [(old, new, prefix)]
+        while pending:
+            checkpoint()
+            old, new, path = pending.pop()
+            if len(path) > MAX_TREE_DEPTH:
+                self.limit()
+            before, after = (self.tree(old) if old else {}), self.tree(new)
+            if before is None or after is None:
+                raise ValueError('unreadable tree')
+            for name, (folder, key) in after.items():
+                checkpoint()
+                if self.visits >= MAX_ENTRIES:
+                    self.limit()
+                self.visits += 1
+                previous = before.get(name)
+                if previous and previous[1] == key:
+                    continue
+                if folder:
+                    if len(pending) >= MAX_TREES:
+                        self.limit()
+                    pending.append((previous[1] if previous and previous[0] else None, key, path + (name,)))
+                else:
+                    yield path + (name,), previous[1] if previous and not previous[0] else None, key
 
     def find(self, tree, parts):
         for index, name in enumerate(parts):
+            checkpoint()
             entries = self.tree(tree)
             if entries is None or name not in entries:
                 return None
@@ -227,6 +304,7 @@ def survival(directory, commits, since=None, store=None):
 
     A commit outside HEAD's history, a merge, a root commit or an unreadable one gives None. `store` (a Saved)
     keeps the counts across restarts."""
+    checkpoint()
     commits = [value for value in dict.fromkeys(commits) if value][:MAX_COMMITS]
     result = dict.fromkeys(commits)
     if not commits:
@@ -255,6 +333,9 @@ def survival(directory, commits, since=None, store=None):
         if top is None:
             return result
         for commit in commits:
+            checkpoint()
+            if reader.limited:
+                break
             if reachable.get(commit) is not True:
                 continue
             found = reader.commit(commit)
@@ -263,31 +344,32 @@ def survival(directory, commits, since=None, store=None):
             parent = reader.commit(found[1][0])
             if parent is None:
                 continue
+            added = kept = measured = skipped = 0
             try:
-                files = list(reader.changed(parent[0], found[0]))
+                for index, (parts, old, new) in enumerate(reader.changed(parent[0], found[0])):
+                    checkpoint()
+                    if index >= MAX_FILES:
+                        reader.limit()  # do not invent an exact skipped count from an unvisited tail
+                    before = reader.lines(old) if old else Counter()
+                    after = reader.lines(new)
+                    if before is None or after is None:
+                        skipped += 1
+                        continue
+                    grown = after - before
+                    if not grown:
+                        continue
+                    now_id = reader.find(top[0], parts)
+                    now = reader.lines(now_id) if now_id else Counter()
+                    if now is None:
+                        skipped += 1
+                        continue
+                    measured += 1
+                    added += sum(grown.values())
+                    kept += sum(min(count, max(0, now[line] - before[line])) for line, count in grown.items())
             except (ValueError, IndexError):
                 continue
-            added = kept = measured = skipped = 0
-            for parts, old, new in files[:MAX_FILES]:
-                before = reader.lines(old) if old else Counter()
-                after = reader.lines(new)
-                if before is None or after is None:
-                    skipped += 1
-                    continue
-                grown = after - before
-                if not grown:
-                    continue
-                now_id = reader.find(top[0], parts)
-                now = reader.lines(now_id) if now_id else Counter()
-                if now is None:
-                    skipped += 1
-                    continue
-                measured += 1
-                added += sum(grown.values())
-                kept += sum(min(count, max(0, now[line] - before[line])) for line, count in grown.items())
-            skipped += max(0, len(files) - MAX_FILES)
             result[commit] = dict(added=added, kept=kept, files=measured, skipped=skipped)
-            if reader.spent < MAX_BYTES:  # a count cut short by the byte budget is not remembered
+            if not reader.limited and reader.spent < MAX_BYTES:  # partial counts are never remembered
                 if len(_MEMO) >= MAX_MEMO:
                     _MEMO.clear()
                 _MEMO[keys[commit]] = dict(result[commit])
