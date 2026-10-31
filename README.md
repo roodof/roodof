@@ -9,6 +9,12 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 - **Agent logs stay unchanged.** PLER keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
 - **Any programming language.** It reads agent logs. The local Git line observation also reads committed file names and contents in memory; only counts are stored or shown.
 
+## Windows beta quick start
+
+Download the Windows x64 package from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the whole ZIP and open `PLER.exe`. Python is included. `PLER-Demo.cmd` opens invented data only; close the demo and open `PLER.exe` to use your selected local records. `PLER.cmd` is the terminal entry point.
+
+Open **Help** in the app for the first work-group walkthrough, empty-record guidance, privacy, removal and local-data retention. Support: plersolutions1st@gmail.com. The beta is unsigned; clean-machine acceptance remains open. No automatic update delivery is included.
+
 ## Install
 
 Python 3.9 or newer; no other dependencies.

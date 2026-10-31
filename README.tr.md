@@ -9,6 +9,12 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 - **Ajan kayıtlarını değiştirmez.** PLER üst bilgi önbelleği tutar; istek, yanıt, komut ve araç çıktısı ekrana ve önbelleğe girmez. İsteğe bağlı durum satırı, Claude Code ayarını onaydan sonra ve yedek alarak değiştirir.
 - **Her dilde çalışır.** Ajan kayıtlarını inceler. Yerel Git satır gözlemi ayrıca commit'lerdeki dosya adlarını ve içeriklerini bellekte okur; yalnız sayılar saklanır veya gösterilir.
 
+## Windows betasında ilk adımlar
+
+[PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 paketini indir, ZIP dosyasının tamamını klasöre çıkar ve `PLER.exe` dosyasını aç. Python pakete dahildir. `PLER-Demo.cmd` yalnız uydurma kayıtları açar; kendi seçili yerel kayıtların için demoyu kapatıp `PLER.exe` dosyasını aç. `PLER.cmd` terminal girişidir.
+
+İlk iş grubunu oluşturmak, boş kayıt durumunu anlamak, gizlilik, kaldırma ve yerel veri saklama için uygulamadaki **Yardım** bölümünü aç. Destek: plersolutions1st@gmail.com. Beta imzasızdır; temiz makine kabulü açıktır. Otomatik güncelleme dağıtımı yoktur.
+
 ## Kurulum
 
 Python 3.9 veya üstü yeter; başka bağımlılık yoktur.

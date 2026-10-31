@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.29 — 2026-11-01 (early beta)
+
+- Add a practical English/Turkish first-use walkthrough to offline Help: try the demo, close it, open your own selected records, identify a session and link it to named work. Include empty-record guidance, removal/data retention and the public support address.
+- The demo banner explains how to return to normal use; demo work remains temporary and is not copied into personal work.
+- The closed-page message points Windows portable users to `PLER.exe` instead of an unavailable globally installed `pler` command.
+- Align Windows early-beta package instructions with the download page: `PLER.exe` starts the app, `PLER-Demo.cmd` starts invented data, and `PLER.cmd` remains the terminal entry point. The packager has an explicit early-beta channel; private candidates retain their previous default.
+- This release changes guidance and packaging, not accounting, parser/schema, quota rules or update delivery. It remains unsigned; clean-machine and physical platform acceptance remain separate open checks.
+
 ## 0.2.28 — 2026-10-31 (private candidate)
 
 - Quota warning: the page shows a warning at the top when a 5-hour or weekly limit is reached, or at the current pace fills before its reset within an hour (a weekly limit: within a day). It comes from the existing forecast and the page clock, so it also appears or clears between reads.

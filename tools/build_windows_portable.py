@@ -3,8 +3,8 @@
 The runtime is an installed CPython folder (Lib, DLLs) or an extracted official Windows embeddable
 package (pythonXY.zip). Python 3.14+ brings the standard-library zstd decoder, which makes the first
 read of compressed Codex logs much faster. No download, global install, registry setting or signing is
-performed. Output must not already exist. The application remains private until publisher, license
-and signing decisions are resolved.
+performed. Output must not already exist. Output defaults to a private candidate; early-beta is an
+explicit owner-authorized distribution channel. It does not sign the package or grant application licensing rights.
 """
 import argparse
 import hashlib
@@ -21,7 +21,10 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--runtime', type=Path, required=True)
 parser.add_argument('--compiler', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
+parser.add_argument('--channel', choices=('private-candidate', 'early-beta'), default='private-candidate',
+                    help='Select early-beta only for an owner-authorized beta distribution.')
 args = parser.parse_args()
+public_beta = args.channel == 'early-beta'
 if os.name != 'nt':
     parser.error('The Windows portable candidate must be built on Windows.')
 for path in (args.runtime, args.compiler, args.output):
@@ -78,40 +81,49 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
                 '/reference:System.Windows.Forms.dll', '/out:'+str(out/'PLER.exe'),
                 str(PRODUCT/'tools/windows/Launcher.cs')], check=True, capture_output=True, text=True)
 (out/'README.txt').write_text(
-    'PLER '+__version__+' - Windows x64 local candidate\n\n'
+    'PLER '+__version__+' - Windows x64 '+('early beta' if public_beta else 'local candidate')+'\n\n'
     '1. Extract the whole ZIP file into a folder.\n'
     '2. Open PLER.exe. Python is not required.\n'
     '   To try it with invented data only, open PLER-Demo.cmd instead.\n'
     '3. Close the application with the Close button on its page.\n'
     'Terminal report: PLER.cmd report --json\n\n'
-    'This candidate is unsigned; public distribution has not been approved.\n'
+    + ('Unsigned early beta.\n' if public_beta else 'This candidate is unsigned; public distribution has not been approved.\n') +
     'Do not bypass a SmartScreen/security warning. Clean-machine acceptance is pending.\n'
     'Uninstall: close the application and delete this extracted folder.\n'
     'Existing agent logs and Claude settings are not changed.\n'
     'The cache lives in the user cache folder and is not deleted automatically.\n'
     'This package uses the Windows C Runtime and .NET Framework 4.5+ components.\n'
+    'Support: plersolutions1st@gmail.com\n'
+    'First useful result: open Help in the app for the demo-to-own-records walkthrough.\n'
+    'Data: %LOCALAPPDATA%\\pler by default; a chosen data folder stays separate too.\n'
+    'Removing the extracted package does not remove saved PLER history.\n'
     'Turkish: OKU.txt\n', 'utf-8')
 (out/'OKU.txt').write_text(
-    'PLER '+__version__+' — Windows x64 yerel aday\n\n'
+    'PLER '+__version__+' — Windows x64 '+('erken beta' if public_beta else 'yerel aday')+'\n\n'
     '1. ZIP dosyasinin tamamini bir klasore cikarin.\n'
     '2. PLER.exe dosyasini acin. Python kurmaniz gerekmez.\n'
     '   Yalniz uydurma verilerle denemek icin PLER-Demo.cmd dosyasini acin.\n'
     '3. Uygulamayi sayfadaki Kapat dugmesiyle kapatin.\n'
     'Terminal raporu: PLER.cmd report --json\n\n'
-    'Bu aday imzasizdir; genel dagitim onayi verilmemistir.\n'
+    + ('Imzasiz erken beta.\n' if public_beta else 'Bu aday imzasizdir; genel dagitim onayi verilmemistir.\n') +
     'SmartScreen/guvenlik uyarisini atlatmayin. Temiz makine kabul testi bekliyor.\n'
     'Kaldirma: uygulamayi kapatip bu cikartilan klasoru silin.\n'
     'Mevcut ajan kayitlari ve Claude ayarlari degistirilmez.\n'
     'Onbellek kullanici onbellek dizinindedir; otomatik silinmez.\n'
-    'Bu paket Windows sisteminin C Runtime ve .NET Framework 4.5+ bilesenlerini kullanir.\n', 'utf-8')
+    'Bu paket Windows sisteminin C Runtime ve .NET Framework 4.5+ bilesenlerini kullanir.\n'
+    'Destek: plersolutions1st@gmail.com\n'
+    'Ilk sonuc: demodan kendi kayitlarina gecis icin uygulamadaki Yardim bolumunu ac.\n'
+    'Veri: varsayilan %LOCALAPPDATA%\\pler; sectigin veri klasoru de paketten ayri kalir.\n'
+    'Paket klasorunu kaldirmak kayitli PLER gecmisini silmez.\n', 'utf-8')
 (out/'THIRD-PARTY-NOTICES.txt').write_text(
-    'Private local candidate; no public redistribution has been authorized.\n'
+    ('PLER early beta - bundled component notices.\n' if public_beta else 'Private local candidate; no public redistribution has been authorized.\n') +
     'CPython '+python_version+' is bundled unmodified; its complete supplied notice is runtime/LICENSE.txt.\n'
     'The Python runtime is copied from the supplied '+('official embeddable package' if embedded else 'local installation')+'.\n'
-    'Microsoft runtime components accompany that runtime. Publisher/license/redistribution review\n'
-    'and code signing remain release gates. This file grants no new license to the PLER application.\n', 'utf-8')
+    'Microsoft runtime components accompany that runtime.\n'
+    'These component notices grant no new license to the PLER application.\n'
+    'PLER contact: plersolutions1st@gmail.com\n', 'utf-8')
 files = [p for p in out.rglob('*') if p.is_file()]
-manifest = dict(version=__version__,platform='windows-x64',private_candidate=True,signed=False,
+manifest = dict(version=__version__,platform='windows-x64',private_candidate=not public_beta,channel=args.channel,signed=False,
                 runtime='CPython '+python_version,files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
                                            for p in sorted(files)})
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2),'utf-8')
