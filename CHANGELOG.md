@@ -1,5 +1,11 @@
 # Changes
 
+## 0.2.28 — 2026-10-31 (private candidate)
+
+- Quota warning: the page shows a warning at the top when a 5-hour or weekly limit is reached, or at the current pace fills before its reset within an hour (a weekly limit: within a day). It comes from the existing forecast and the page clock, so it also appears or clears between reads.
+- **Watch the quota live** (off by default) makes the open page read the logs again every 5 minutes; a timed read waits while the user types, a dialog is open or another action runs. **Desktop notifications** (off by default) ask the browser once and then show each new warning once, also across reloads. Both choices are kept in this browser only; nothing is sent anywhere.
+- A hidden page still checks the warning every 30 seconds so a notification can arrive; it skips redrawing.
+
 ## 0.2.27 — 2026-10-31 (private candidate)
 
 - Plan check: per agent, the last 30 days of agent work at API list prices next to the plan's published price, and how many 5-hour windows and weeks reached the limit, on the page, in the terminal report and in JSON. Codex's plan comes from its log; for Claude Code the user chooses Pro, Max, Ultra or an API key once, saved only on this computer (`plan-choice.json`; the demo keeps it in memory).

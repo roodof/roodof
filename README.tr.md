@@ -89,6 +89,7 @@ Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerin
 
 - **Durumun:** Kayıtlardan çıkan, dayanağı yanında yazan gözlemler. Örneğin uzun oturumlarda her model çağrısının kısa oturumlara göre kaç kat token harcadığı, ya da harcamanın çoğunun tek bir oturumda toplanması.
 - **Kota:** Codex'in ve Claude Code'un 5 saatlik ve haftalık kotasının en son nerede olduğu, mevcut hızla sıfırlanmadan dolup dolmayacağı. Claude Code için bir kez [durum satırını](#claude-code-kotası) açman gerekir.
+- **Kota uyarısı:** Bir sınır dolduğunda ya da mevcut hızla sıfırlanmadan bir saat içinde (haftalık sınırda bir gün içinde) dolacaksa sayfanın üstünde uyarı çıkar. **Kotayı canlı izle** açık sayfanın kayıtları 5 dakikada bir yeniden okumasını sağlar; sen yazarken ya da bir pencere açıkken okumaz. Her okuma biraz işlemci zamanı kullanır (bu bilgisayarın büyük geçmişinde değişiklik yoksa yaklaşık 1 sn, bir ajan yazdıktan sonra 10–13 sn). **Masaüstü bildirimleri** tarayıcı izin verdikten sonra her yeni uyarıyı bir kez gösterir. İki seçim de yalnız bu tarayıcıda hatırlanır.
 - **Toplamlar:** Token bileşimi: yeni girdi, önbellekten okunan, önbelleğe yazılan ve çıktı. Önbellek dışı miktar ayrıca yazılır, çünkü ajan tokenlarının büyük kısmı aynı bağlamın yeniden okunmasıdır.
 - **Projeler, modeller, oturumlar:** Oturumlar git deposuna göre gruplanır. Geçici klasörlerdeki oturumlar tek bir grupta toplanır.
 - **Oturumlarını bul:** Proje, model veya kısa oturum koduyla ara. En son etkinlik, başlangıç, token kullanımı ya da hata ve kesinti sayısına göre sırala. Her satırın kendine ait kodu, başlangıcı ve son etkinliği vardır.
@@ -189,7 +190,7 @@ PLER'i kaldırmak özel veri klasörünü kendiliğinden silmez. Arşivin özel 
 
 ## Güven ve veri kalitesi
 
-Ekran tarihli bir anlık görüntü gösterir. Kısa pencerelerde 30 dakikadan, günlük/haftalık pencerelerde 24 saatten eski ölçümlerden tahmin çıkarılmaz. Bunlar sağlayıcının kuralları değil, PLER'in temkinli güncellik sınırlarıdır. Sıfırlanma veya tahmini dolma zamanı geçtiyse güncel doluluk bilinmiyor diye gösterilir. Açık sayfa bu etiketleri kendi saatiyle günceller; hesabı sorgulamaz ve kayıtları yeniden okumaz.
+Ekran tarihli bir anlık görüntü gösterir. Kısa pencerelerde 30 dakikadan, günlük/haftalık pencerelerde 24 saatten eski ölçümlerden tahmin çıkarılmaz. Bunlar sağlayıcının kuralları değil, PLER'in temkinli güncellik sınırlarıdır. Sıfırlanma veya tahmini dolma zamanı geçtiyse güncel doluluk bilinmiyor diye gösterilir. Açık sayfa bu etiketleri kendi saatiyle günceller; hesabı sorgulamaz. Kayıtları yalnız **Kayıtları yeniden oku** ile ya da **Kotayı canlı izle** açıkken yeniden okur.
 
 Tamamen okunamayan Claude Code ve Codex dosyaları sayılır. Bozuk JSON, geçersiz kayıt kimliği veya yarım kalmış son satır varsa sağlam satırlar korunur; toplamın eksik olabileceği belirtilir. Her iki ajanın dosyası önbellekten okunurken de uyarı korunur. Hiç kayıt olmaması ile eksik okuma ayrılır. Geçersiz kota sayıları reddedilir. Bulunan dosya sayısı, her konuşma satırının geçerli veya her ajan sürümünün desteklendiği anlamına gelmez.
 

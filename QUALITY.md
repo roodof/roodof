@@ -2,6 +2,10 @@
 
 **Güncel kalan işler:** [docs/REMAINING.md](docs/REMAINING.md). 30 Ekim 2026 satın alma değerlendirmesindeki yedi başlık, önceki altı ayrı iş, kapanış ölçütleri ve önerilen sıra burada tutulur. Dağıtım/CI/temiz makine/imza/tarayıcı kabulü tek başlık altında; ürün geliştirmesi, gerçek kullanıcı kanıtı ve kayıttan bilinemez sınırlar ayrı. Aşağıdaki tarihsel “açık” notlar sonraki sürümlerin kapanış kanıtlarıyla birlikte okunur; giderilmiş kusurlar tekrar iş sayılmaz.
 
+## 31 Ekim: 0.2.28 — anlık kota uyarısı
+
+Bir 5 saatlik veya haftalık sınır dolduğunda ya da mevcut hızla sıfırlanmadan bir saat (haftalıkta bir gün) içinde dolacaksa sayfanın üstünde uyarı çıkar; kaynak mevcut tahmin ve sayfa saatidir, eski örnekler uyarı üretmez. İsteğe bağlı "Kotayı canlı izle" açık sayfayı 5 dakikada bir yeniden okutur (kullanıcı yazarken, pencere açıkken veya başka işlem sürerken atlar); isteğe bağlı masaüstü bildirimleri her yeni uyarıyı bir kez gösterir. Seçimler yalnız bu tarayıcıda tutulur. Windows 3.9 727/13 atlandı, 3.12 731/0 hata, 3.14 740/0 hata; Linux WSL `/tmp` ve `/var` 740/740; Node 70/70. Demo sayfasında şerit, canlı izleme ve engelli bildirim açıklaması gerçek tarayıcıda denendi; bildirim izni verilmedi, izin akışı birim testlerinde. CI hesap ödeme/harcama limiti engeli nedeniyle çalıştırılmadı. Kanıt: [kota uyarısı raporu](../reports/quota-alert-v1/REPORT.md).
+
 ## 31 Ekim: 0.2.27 — plan kontrolü (Y04'ün bir kısmı)
 
 Her ajan için plan, yayımlanmış liste fiyatı (31 Ekim 2026), son 30 günün ajan işinin API liste fiyatı karşılığı ve sınıra dayanılan beş saatlik pencere/hafta sayısı gösterilir. Codex planı kayıttan, Claude planı kullanıcının bir kez yaptığı yerel seçimden gelir. Yalnız yayımlanmış oranlar kullanılır: Claude Max = 5x Pro (5 saat ve hafta), Ultra = haftalık 10x Pro, 5 saat sınırı yok. OpenAI Plus ile Pro arasındaki oranı yayımlamadığı için Codex için plan adı önerilmez. Küçük plan önerisi en az 14 günlük ölçer geçmişi ve %20 pay ister; "API daha ucuz" tam ve tarihli bir dönem ister, sınıra dayanılmışsa gösterilmez.

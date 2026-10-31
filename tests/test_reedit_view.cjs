@@ -48,13 +48,15 @@ test('caps displayed pairs and keeps empty observations understandable',()=>{
   assert(!empty.nodes().some(item=>item.tag==='ol'));assert(empty.text().includes(base.cutoff));
 });
 test('snapshot clock preserves open investigations until a quota observation changes state',()=>{
-  let state='fills_before_reset',quotaRenders=0,insightRenders=0;
+  let state='fills_before_reset',quotaRenders=0,insightRenders=0,alertRenders=0;
   const context=vm.createContext({document:{hidden:false},usageState:{stopped:false,insightQuotaStates:'fills_before_reset',
     data:{has_snapshot:true,insights:[{kind:'quota',evidence:{}}]}},
-    quotaWindowNow:()=>({state}),renderUsageQuota:()=>quotaRenders++,renderUsageInsights:()=>insightRenders++});
+    quotaWindowNow:()=>({state}),renderUsageQuota:()=>quotaRenders++,renderUsageInsights:()=>insightRenders++,
+    renderQuotaAlerts:()=>alertRenders++});
   vm.runInContext(source.slice(source.indexOf('function quotaInsightStates('),source.indexOf('usageState.clock=')),context);
   context.updateSnapshotClock();context.updateSnapshotClock();
   assert.equal(quotaRenders,2);assert.equal(insightRenders,0);
   state='reset';context.updateSnapshotClock();assert.equal(insightRenders,1);
-  context.document.hidden=true;context.updateSnapshotClock();assert.equal(quotaRenders,3);
+  // A hidden page skips drawing but still checks the quota warning, so a notification can reach the user.
+  context.document.hidden=true;context.updateSnapshotClock();assert.equal(quotaRenders,3);assert.equal(alertRenders,4);
 });

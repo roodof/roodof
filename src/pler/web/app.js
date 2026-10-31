@@ -219,6 +219,16 @@ const I18N=/*I18N*/{
 "insights_note": "These are observations from your own logs, not results of a controlled experiment. Each comes with the numbers behind it.",
 "out_reset": "It was {used} full at the last record; the window reset {reset}. The current level is recorded when the agent runs again.",
 "out_full": "Full. Resets {reset}.",
+"quota_alert_full": "{agent}: the {window} limit is reached. It resets {reset}.",
+"quota_alert_soon": "{agent}: at this pace the {window} limit fills around {full}, in {left}. It resets {reset}.",
+"quota_alert_title": "PLER quota warning",
+"live_watch": "Watch the quota live",
+"live_watch_help": "While this page is open, PLER reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this browser remembers the choice.",
+"live_notify_on": "Turn on desktop notifications",
+"live_notify_off": "Turn off desktop notifications",
+"live_notify_active": "Desktop notifications are on for new warnings.",
+"live_notify_blocked": "This browser blocks notifications for this page; the warning still appears here.",
+"live_notify_unsupported": "This browser cannot show notifications here; the warning still appears on the page.",
 "pace_hour": "at this window's pace ({rate} an hour)",
 "pace_day": "at the average of the last {days} days ({rate} a day)",
 "out_fills": "Warning: {pace} it fills around {full}; it resets {reset}.",
@@ -643,6 +653,16 @@ const I18N=/*I18N*/{
 "insights_note": "Bunlar senin kayıtlarındaki gözlemler; kontrollü bir deney sonucu değil. Her birinin dayanağı yanındaki sayılardır.",
 "out_reset": "Son kayıtta {used} doluydu; pencere {reset} sıfırlandı. Şu anki doluluk, ajan yeniden çalışınca kayda geçer.",
 "out_full": "Dolu. Sıfırlanma: {reset}.",
+"quota_alert_full": "{agent}: {window} sınır doldu. Sıfırlanma: {reset}.",
+"quota_alert_soon": "{agent}: bu hızla {window} sınır {full} civarında, {left} sonra dolar. Sıfırlanma: {reset}.",
+"quota_alert_title": "PLER kota uyarısı",
+"live_watch": "Kotayı canlı izle",
+"live_watch_help": "Bu sayfa açıkken PLER kayıtları 5 dakikada bir yeniden okur ve bir sınır bir saat içinde (haftalık sınırda bir gün içinde) dolacaksa uyarır. Her okuma biraz işlemci zamanı kullanır; seçim bu tarayıcıda hatırlanır.",
+"live_notify_on": "Masaüstü bildirimlerini aç",
+"live_notify_off": "Masaüstü bildirimlerini kapat",
+"live_notify_active": "Yeni uyarılar için masaüstü bildirimleri açık.",
+"live_notify_blocked": "Bu tarayıcı bu sayfanın bildirimlerini engelliyor; uyarı yine burada görünür.",
+"live_notify_unsupported": "Bu tarayıcı burada bildirim gösteremiyor; uyarı yine sayfada görünür.",
 "pace_hour": "bu penceredeki çalışma hızıyla (saatte {rate})",
 "pace_day": "son {days} günün ortalamasıyla (günde {rate})",
 "out_fills": "Uyarı: {pace} {full} civarı dolar; sıfırlanma {reset}.",
@@ -909,7 +929,7 @@ function renderUsage(data){
     for(const [key,label] of usageTokens){const segment=node('span','token-'+key.replace('cache_read','cache').replace('cache_write','write'));segment.style.width=(row.total_tokens?row.tokens[key]/row.total_tokens*100:0)+'%';segment.title=label+': '+number(row.tokens[key]);strip.append(segment);}
     article.append(head,strip,node('p','section-note',t('agent_note',{sessions:count(row.sessions,'session'),calls:count(row.calls,'model_call'),share:usagePct(row.cache_read_share),errors:count(row.errors,'error'),aborted:count(row.aborted,'interrupted_turn')})));return article;
   }));
-  renderUsageInsights(data);renderUsageQuota(data);renderUsagePlans(data);
+  renderUsageInsights(data);renderUsageQuota(data);renderUsagePlans(data);renderQuotaAlerts();syncLiveControls();
   $('usage-projects').replaceChildren(...data.projects.slice(0,8).map(project=>{const row=node('div','usage-rank');const button=node('button','text-button',project.name);button.addEventListener('click',()=>{$('usage-project').value=project.id;$('usage-project').focus();usageState.pageSize=20;loadUsage();});row.append(button,node('strong','',usageShort(project.total_tokens)),node('small','',count(project.sessions,'session')));return row;}));
   $('usage-models').replaceChildren(...data.models.slice(0,8).map(model=>{const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',usageShort(model.total_tokens)),node('small','',(usageAgents[model.agent]||model.agent)+' · '+count(model.calls,'call')));return row;}));
   renderUsageSessions();
@@ -982,6 +1002,71 @@ function quotaWindowNow(window,now=Date.now()){
   const age=(window.max_age_seconds??(window.window_minutes<1440?1800:86400))*1000;
   if(!Number.isFinite(at)||now-at>age||at>now+300000||(window.used_percent<100&&Date.parse(window.full_at)<=now))return {...window,state:'stale'};
   return window;
+}
+// Live quota warning: from the server's forecast (forecast.py) and the clock. Warn when a window is full, or
+// fills before its reset within the lead time; optionally read the logs again on a timer and notify once.
+const QUOTA_ALERT_LEAD={300:3600e3,10080:86400e3},LIVE_EVERY=5*60e3;
+const liveState={watch:false,notify:false,notified:new Set(),timer:null};
+function quotaAlerts(data,now=Date.now()){
+  const found=[];
+  for(const row of data?.outlook||[]){
+    const window=quotaWindowNow(row,now),key=[window.agent,window.window_minutes,window.resets_at].join('|');
+    if(window.state==='full')found.push({key:key+'|full',level:'full',window});
+    else if(window.state==='fills_before_reset'&&Date.parse(window.full_at)-now<=(QUOTA_ALERT_LEAD[window.window_minutes]??3600e3))
+      found.push({key:key+'|soon',level:'soon',window});
+  }
+  return found;
+}
+function quotaAlertText(alert,now=Date.now()){
+  const window=alert.window,values={agent:usageAgents[window.agent]||window.agent,window:usageWindow(window.window_minutes),reset:usageDate(window.resets_at)};
+  return alert.level==='full'?t('quota_alert_full',values):t('quota_alert_soon',{...values,full:usageDate(window.full_at),left:usageDuration((Date.parse(window.full_at)-now)/1000)});
+}
+function liveSave(){try{localStorage.setItem('pler-live',JSON.stringify({watch:liveState.watch,notify:liveState.notify}));sessionStorage.setItem('pler-quota-notified',JSON.stringify([...liveState.notified].slice(-50)));}catch(_){}}
+function liveLoad(){
+  try{const saved=JSON.parse(localStorage.getItem('pler-live')||'{}');liveState.watch=saved.watch===true;liveState.notify=saved.notify===true;
+    for(const key of JSON.parse(sessionStorage.getItem('pler-quota-notified')||'[]'))if(typeof key==='string')liveState.notified.add(key);}catch(_){}
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')liveState.notify=false;
+}
+function notifyQuota(alerts){
+  if(!liveState.notify||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  for(const alert of alerts){
+    if(liveState.notified.has(alert.key))continue;
+    liveState.notified.add(alert.key);liveSave();
+    try{new Notification(t('quota_alert_title'),{body:quotaAlertText(alert),tag:alert.key});}catch(_){}
+  }
+}
+function renderQuotaAlerts(){
+  const box=$('usage-quota-alert'),alerts=usageState.data?.has_snapshot&&!usageState.stopped?quotaAlerts(usageState.data):[];
+  box.hidden=!alerts.length;box.replaceChildren(...alerts.map(alert=>node('span','',quotaAlertText(alert))));
+  notifyQuota(alerts);
+}
+function syncLiveControls(){
+  const box=$('usage-live');box.hidden=!usageState.data?.has_snapshot||usageState.stopped;
+  $('usage-live-watch').checked=liveState.watch;
+  const supported=typeof Notification!=='undefined',blocked=supported&&Notification.permission==='denied';
+  $('usage-live-notify').hidden=!supported||blocked;$('usage-live-notify').textContent=t(liveState.notify?'live_notify_off':'live_notify_on');
+  $('usage-live-note').textContent=!supported?t('live_notify_unsupported'):blocked?t('live_notify_blocked'):liveState.notify?t('live_notify_active'):'';
+}
+function liveBusy(){
+  const active=document.activeElement;
+  return usageState.stopped||usageState.loading||usageState.workBusy||usageState.planSaving||usageState.data?.state==='scanning'
+    ||Boolean(document.querySelector('dialog[open]'))||(['INPUT','TEXTAREA','SELECT'].includes(active?.tagName)&&active.type!=='checkbox');
+}
+async function liveTick(){
+  // A timed read never interrupts typing, an open dialog or another action; it simply waits for the next tick.
+  if(!liveState.watch||liveBusy())return;
+  try{await post('/api/usage/refresh',{});await loadUsage();}catch(_){}
+}
+function setLiveWatch(on){
+  liveState.watch=on;liveSave();clearInterval(liveState.timer);liveState.timer=on?setInterval(liveTick,LIVE_EVERY):null;syncLiveControls();
+}
+async function toggleQuotaNotifications(){
+  if(liveState.notify){liveState.notify=false;liveSave();syncLiveControls();return;}
+  if(typeof Notification==='undefined'){syncLiveControls();return;}
+  let permission=Notification.permission;
+  if(permission==='default')try{permission=await Notification.requestPermission();}catch(_){permission='denied';}
+  liveState.notify=permission==='granted';liveSave();syncLiveControls();
+  if(liveState.notify)renderQuotaAlerts();
 }
 function usageOutlookText(window){
   if(window.state==='ambiguous')return t(window.reason==='multiple_source_groups'?'quota_multiple_sources':'quota_ambiguous');
@@ -1487,9 +1572,12 @@ $('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').
 $('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-quality-only').checked=false;$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
 function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}
-function updateSnapshotClock(){if(!usageState.stopped&&!document.hidden&&usageState.data?.has_snapshot){renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}
+function updateSnapshotClock(){if(!usageState.stopped&&usageState.data?.has_snapshot){renderQuotaAlerts();if(document.hidden)return;renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}
 usageState.clock=setInterval(updateSnapshotClock,30000);
 document.addEventListener('visibilitychange',updateSnapshotClock);
 window.addEventListener('focus',updateSnapshotClock);
 window.addEventListener('hashchange',reconnectFromAccessLink);
+$('usage-live-watch').addEventListener('change',event=>setLiveWatch(event.target.checked));
+$('usage-live-notify').addEventListener('click',toggleQuotaNotifications);
+liveLoad();if(liveState.watch)setLiveWatch(true);
 loadUsage();
