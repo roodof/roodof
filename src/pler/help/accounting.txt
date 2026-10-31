@@ -1,6 +1,18 @@
 # Retained-log accounting contract — schema 2
 
-PLER 0.2.26 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+PLER 0.2.27 describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
+
+## Plan check (0.2.27)
+
+The plan check compares, per agent, the subscription plan with the last 30 days of agent work. It uses every session of the account, whatever the page filters select, including sessions whose project is unknown: a plan belongs to the account, not a project.
+
+- **Plan:** Codex logs its plan word with its meter (`plus`, `go`, `pro`); the latest one in the period is used. Claude Code logs no plan, so its plan is what the user chose (Pro, Max, Ultra or an API key), stored only on this computer in `plan-choice.json` format 1 (`{"format":1,"claude":...}`). A file PLER cannot read is reported and never overwritten. The demo keeps its choice in memory.
+- **Prices and ratios:** published US-dollar list prices before tax of 31 October 2026: Claude Pro $20 ($17 a month with annual billing), Max $100, Ultra $200; ChatGPT Go $8, Plus $20, Pro $100/$200/$500 (the Pro tier is not logged, so no Pro price is assumed). Only published limit ratios are used: Anthropic's Max has 5x Pro's usage every 5 hours and every week, Ultra 10x Pro's weekly usage with no 5-hour limit. OpenAI publishes no ratio between Plus and the Pro plans.
+- **API equivalent:** the sum of each accepted response's own list-price equivalent (the API list-price rules above) whose time lies inside the 30 days. Responses without a usable time, or straddling the period start, cumulative-only usage and incomplete sessions mark the sum as possibly low. It is agent work only: a plan also covers chat, which PLER does not see. OpenAI notes that API prices do not estimate what a plan includes; the figure is what the same agent work would cost with an API key.
+- **Limits:** the account-wide meter (Codex logs; Claude Code only through PLER's status line). Samples are grouped by window length and reset time; a period counts as reached when it shows 100%. Claude Code's refused-request events also count. Several quota source groups for an agent withhold the meter, as in the forecast.
+- **Findings:** `limits_reached`; for Codex Go/Plus then `larger_ratio_unpublished` (no plan is named), for Claude Pro/Max `larger_need_unseen` (use above a limit is not recorded). `smaller_fits` names the next smaller Claude plan only when no limit was reached, at least 14 days of meter history exist in every window the smaller plan limits, and the highest use stayed within 80% of what the smaller plan's published ratio allows (Max to Pro: 16%; Ultra to Max weekly: 40%, reported as `smaller_fits_weekly` because Ultra's meter has no 5-hour limit to compare). `api_cheaper` requires a known plan price, a full period of history, no possibly-low sum and no reached limit.
+
+Prices, ratios and plans change; each is dated and replaced only with a new published source. The check is not a bill, a forecast of future need or a recommendation to buy.
 
 ## User-named work (0.2.26)
 

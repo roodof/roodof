@@ -97,6 +97,8 @@ Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerin
 
 Arama yalnız oturum listesini daraltır. Sayfanın üstündeki özet ve indirilen JSON, dönem / ajan / proje seçimini izler. İndirilen özette liste aramasının dışındaki oturumlar da bulunabilir.
 
+**Planın uyuyor mu?** Her ajan için son 30 günün ajan işinin API liste fiyatıyla karşılığı planın fiyatının yanında gösterilir; kaç beş saatlik pencerenin ve kaç haftanın sınıra dayandığı da yazılır. Codex planını kayda yazar; Claude Code için Pro, Max, Ultra ya da API anahtarını bir kez seçersin (yalnız bu bilgisayarda saklanır). Daha küçük bir Claude planı yalnız ölçer onun payla yeteceğini gösterdiğinde, Anthropic'in yayımladığı oranlarla önerilir. OpenAI, Plus ile Pro arasındaki oranı yayımlamadığı için PLER hangi Codex planının yeteceğini söylemez. Plan, PLER'in görmediği sohbet kullanımını da kapsar.
+
 **API liste fiyatıyla**, kayıtlı yanıtların sağlayıcıların yayımlanmış standart fiyatlarıyla ne tutacağını gösterir. Fiyatlar tarihleriyle birlikte pakete gömülüdür; her yanıt kendi modeli ve istem büyüklüğüyle fiyatlanır. Bunu aboneliğine ödediğin tutarla karşılaştır; fatura değildir. Yayımlanmış fiyatı olmayan yanıtlar token toplamlarında kalır ama fiyatlanmaz; fiyatlanan pay gösterilir.
 
 **İşe yaradı mı?** Bir oturumu tek tıkla **İşe yaradı** ya da **Boşa gitti** diye işaretle (listede veya ayrıntısında). PLER seçimdeki tokenları ve liste fiyatı karşılığını değerlendirmeye göre toplar; böylece boşa giden oturumların neye mal olduğunu görürsün. Değerlendirmeler yalnız bu bilgisayarda saklanır; PLER hiçbirini tahmin etmez.

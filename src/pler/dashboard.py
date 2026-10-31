@@ -27,6 +27,7 @@ from .usage.period_usage import analyze as dated_usage
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
 from .usage import work_items as work_rules
+from .usage import plans as plan_rules
 from .usage.checks import summary as check_summary
 from .usage.insights import tests as test_insight
 from .usage.summary import summarize, quota_burn
@@ -213,6 +214,11 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     options = sorted({(_id('project', s.project),project_names[s.project]) for s in sessions}, key=lambda row: row[1].casefold())
     # The meter is account-wide, so every session counts here, plus the Claude Code status line samples.
     windows = quota_outlook(sessions, now, sources.get('claude_quota', ()),sources.get('quota_source_groups'))
+    # A plan is the account's: every session and every project, whatever the filters.
+    plans = dict(rows=plan_rules.advise(sessions, sources.get('claude_quota', ()), now, sources.get('claude_plan'),
+                                        sources.get('quota_source_groups')),
+                 prices_as_of=plan_rules.PRICES_AS_OF, choices=list(plan_rules.CHOICES),
+                 readable=not sources.get('claude_plan_error'))
     # Older logs lack reset timestamps, but their last meter sample is still account-wide.
     # Do not switch to a project's older percentage when a UI filter changes.
     account_rows = [replace(s, started=s.started or s.ended or epoch, ended=s.ended or s.started or epoch) for s in sessions]
@@ -267,6 +273,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 checks=check_summary(rows),
                 verdicts=dict(verdict_summary(public_sessions,verdicts),readable=not sources.get('verdicts_error')),
                 work_items=work,
+                plans=plans,
                 git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
@@ -277,10 +284,11 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
 
 
 class UsageDashboard:
-    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None, work_items=None):
+    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None, work_items=None, plan_choice=None):
         self.reader = reader or Rescan()
         self.verdict_store = verdicts or Folder()
         self.work_store = work_items if work_items is not None else work_rules.Folder()
+        self.plan_store = plan_choice if plan_choice is not None else plan_rules.Choice()
         self._demo_work_store = work_rules.Memory()
         self.survival_store = survival or Saved()
         self.git_reader = git_reader or read_repository
@@ -411,6 +419,26 @@ class UsageDashboard:
                     return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'))
         return None
 
+    def _read_plan_choice(self):
+        try:
+            return dict(claude_plan=self.plan_store.read(), claude_plan_error=False)
+        except (OSError, ValueError, TypeError, UnicodeError):
+            return dict(claude_plan=None, claude_plan_error=True)
+
+    def set_plan(self, plan):
+        """Save which Claude plan the user is on (or None); it changes only the plan advice."""
+        with self.lock:
+            if self._closed or self.scanned_at is None:
+                return dict(ok=False, reason='unavailable')
+            if self.sources.get('claude_plan_error'):
+                return dict(ok=False, reason='unreadable')
+            try:
+                value = self.plan_store.save(plan)
+            except (OSError, ValueError, TypeError, UnicodeError, KeyError):
+                return dict(ok=False, reason='unsaved')
+            self.sources = dict(self.sources, claude_plan=value, claude_plan_error=False)
+            return dict(ok=True, plan=value)
+
     def _read_verdicts(self):
         try:
             return dict(verdicts=self.verdict_store.read(), verdicts_error=False)
@@ -501,6 +529,7 @@ class UsageDashboard:
                     return
                 # Read under the lock so a verdict saved during the scan is not replaced by an older copy.
                 sources.update(self._read_verdicts())
+                sources.update(self._read_plan_choice())
                 sources.update(self._read_work_items(demo=bool(sources.get('demo'))))
                 self.sessions, self.sources = sessions, sources
                 self.scanned_at = datetime.now(timezone.utc).isoformat()

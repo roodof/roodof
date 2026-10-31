@@ -228,6 +228,31 @@ const I18N=/*I18N*/{
 "out_historical": "The log recorded {used} used. Its reset time is missing, so the current level is unknown.",
 "quota_eyebrow": "Account quota",
 "quota_title": "Where is the quota, and where is it heading?",
+"plans_eyebrow": "Subscription",
+"plans_title": "Does your plan fit how you work?",
+"plan_choose_label": "Your Claude plan",
+"plan_choice_none": "Not chosen",
+"plan_choice_pro": "Pro ($20 a month)",
+"plan_choice_max": "Max ($100 a month)",
+"plan_choice_ultra": "Ultra ($200 a month)",
+"plan_choice_api": "API key, no plan",
+"plan_named": "{name}, ${price} a month",
+"plan_api_key": "API key, no plan",
+"plan_unchosen": "plan not chosen",
+"plan_unlogged": "plan not logged",
+"plan_api_line": "The same agent work with an API key at list prices: {usd} ({share} of its tokens priced).",
+"plan_partial": " Some usage has no date, so the sum may be low.",
+"plan_meter_line": "Limit reached in {five} of {five_total} 5-hour windows and {week} of {week_total} weeks seen.",
+"plan_choose_plan": "Choose your Claude plan to compare it with this usage. It is saved only on this computer.",
+"plan_no_meter": "No quota samples: Claude Code writes none. Turn on PLER's status line in a terminal (pler statusline --install) to see its limits.",
+"plan_larger_ratio_unpublished": "OpenAI publishes no limit ratio between Plus and its Pro plans, so PLER cannot say which would be enough. Options: credits, Pro ($100, $200 or $500 a month, no 5-hour limit) or an API key.",
+"plan_larger_need_unseen": "A larger plan has higher limits (Max 5x Pro, Ultra 10x Pro weekly), but use above a limit is not recorded, so whether it would be enough is unknown.",
+"plan_api_cheaper": "For this agent work an API key would have cost less than the plan ({usd} against {price}). The plan also covers chat, which PLER does not see.",
+"plan_smaller_fits": "Your highest use was {peak} of each limit. {smaller} ({price} a month) has {share} of these limits, so it would have fitted with room to spare.",
+"plan_smaller_fits_weekly": "Your highest weekly use was {peak} of the limit. {smaller} ({price} a month) has {share} of it. Ultra has no 5-hour limit, so Max's 5-hour limit cannot be checked from this meter.",
+"plan_unreadable": "The saved plan choice could not be read (damaged, or from a newer PLER), so it was not overwritten.",
+"plan_period": "Last 30 days, all projects. List prices of {date} in US dollars before tax; your bill can differ by region, tax and billing period. Only published limit ratios are used.",
+"plan_note": "PLER sees only the coding agents. A plan also covers chat, so the API equivalent compares agent work, not your bill; OpenAI notes that API prices do not estimate what a plan includes. The quota meter is the whole account.",
 "window_300": "5-hour",
 "window_10080": "Weekly",
 "window_other": "{n}-minute",
@@ -627,6 +652,31 @@ const I18N=/*I18N*/{
 "out_historical": "Kayıtta {used} kullanılmıştı. Sıfırlanma zamanı eksik olduğu için güncel doluluk bilinmiyor.",
 "quota_eyebrow": "Hesap kotası",
 "quota_title": "Kota nerede, nereye gidiyor?",
+"plans_eyebrow": "Abonelik",
+"plans_title": "Planın çalışma biçimine uyuyor mu?",
+"plan_choose_label": "Claude planın",
+"plan_choice_none": "Seçilmedi",
+"plan_choice_pro": "Pro (ayda 20 $)",
+"plan_choice_max": "Max (ayda 100 $)",
+"plan_choice_ultra": "Ultra (ayda 200 $)",
+"plan_choice_api": "API anahtarı, plan yok",
+"plan_named": "{name}, ayda {price} $",
+"plan_api_key": "API anahtarı, plan yok",
+"plan_unchosen": "plan seçilmedi",
+"plan_unlogged": "plan kayıtlarda yok",
+"plan_api_line": "Aynı ajan işi API anahtarıyla liste fiyatından: {usd} (tokenlarının {share} kadarı fiyatlandı).",
+"plan_partial": " Kullanımın bir kısmının tarihi yok; toplam düşük olabilir.",
+"plan_meter_line": "Sınıra dayanılan: görülen {five_total} beş saatlik pencerenin {five} tanesi, {week_total} haftanın {week} tanesi.",
+"plan_choose_plan": "Bu kullanımla karşılaştırmak için Claude planını seç. Seçim yalnız bu bilgisayarda saklanır.",
+"plan_no_meter": "Kota örneği yok: Claude Code kota yazmıyor. Sınırları görmek için terminalde PLER'in durum satırını aç (pler statusline --install).",
+"plan_larger_ratio_unpublished": "OpenAI, Plus ile Pro planları arasındaki sınır oranını yayımlamıyor; hangisinin yeteceğini PLER söyleyemez. Seçenekler: kredi, Pro (ayda 100, 200 ya da 500 $, 5 saatlik sınır yok) ya da API anahtarı.",
+"plan_larger_need_unseen": "Büyük planın sınırı daha yüksek (Max, Pro'nun 5 katı; Ultra haftalık 10 katı), ama sınırın üstündeki kullanım kaydedilmediği için yetip yetmeyeceği bilinmez.",
+"plan_api_cheaper": "Bu ajan işi için API anahtarı plandan ucuz olurdu ({usd}, plan {price}). Plan, PLER'in görmediği sohbet kullanımını da kapsar.",
+"plan_smaller_fits": "En yoğun anında her sınırın en çok {peak} kadarını kullandın. {smaller} (ayda {price}) bu sınırların {share} kadarını verir; yani payla yeterdi.",
+"plan_smaller_fits_weekly": "En yoğun haftanda sınırın en çok {peak} kadarını kullandın. {smaller} (ayda {price}) bunun {share} kadarını verir. Ultra'da 5 saatlik sınır olmadığı için Max'in 5 saatlik sınırı bu ölçerden denetlenemez.",
+"plan_unreadable": "Kayıtlı plan seçimi okunamadı (bozuk ya da daha yeni bir PLER sürümünden); bu yüzden üzerine yazılmadı.",
+"plan_period": "Son 30 gün, bütün projeler. {date} liste fiyatları, vergi hariç ABD doları; faturan bölgeye, vergiye ve ödeme dönemine göre değişebilir. Yalnız yayımlanmış sınır oranları kullanılır.",
+"plan_note": "PLER yalnız kodlama ajanlarını görür. Plan sohbeti de kapsadığı için API karşılığı faturayı değil ajan işini karşılaştırır; OpenAI da API fiyatlarının plana dahil olanı tahmin etmediğini belirtir. Kota ölçeri hesabın tamamıdır.",
 "window_300": "5 saatlik",
 "window_10080": "Haftalık",
 "window_other": "{n} dakikalık",
@@ -859,7 +909,7 @@ function renderUsage(data){
     for(const [key,label] of usageTokens){const segment=node('span','token-'+key.replace('cache_read','cache').replace('cache_write','write'));segment.style.width=(row.total_tokens?row.tokens[key]/row.total_tokens*100:0)+'%';segment.title=label+': '+number(row.tokens[key]);strip.append(segment);}
     article.append(head,strip,node('p','section-note',t('agent_note',{sessions:count(row.sessions,'session'),calls:count(row.calls,'model_call'),share:usagePct(row.cache_read_share),errors:count(row.errors,'error'),aborted:count(row.aborted,'interrupted_turn')})));return article;
   }));
-  renderUsageInsights(data);renderUsageQuota(data);
+  renderUsageInsights(data);renderUsageQuota(data);renderUsagePlans(data);
   $('usage-projects').replaceChildren(...data.projects.slice(0,8).map(project=>{const row=node('div','usage-rank');const button=node('button','text-button',project.name);button.addEventListener('click',()=>{$('usage-project').value=project.id;$('usage-project').focus();usageState.pageSize=20;loadUsage();});row.append(button,node('strong','',usageShort(project.total_tokens)),node('small','',count(project.sessions,'session')));return row;}));
   $('usage-models').replaceChildren(...data.models.slice(0,8).map(model=>{const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',usageShort(model.total_tokens)),node('small','',(usageAgents[model.agent]||model.agent)+' · '+count(model.calls,'call')));return row;}));
   renderUsageSessions();
@@ -944,6 +994,52 @@ function usageOutlookText(window){
   if(window.state==='fills_before_reset')return t('out_fills',{pace,full:usageDate(window.full_at),reset});
   if(window.state==='lasts_until_reset')return t('out_lasts',{pace:pace[0].toUpperCase()+pace.slice(1),reset});
   return t('out_nopace',{reset});
+}
+const planNames={pro:'Pro',max:'Max',ultra:'Ultra',go:'Go',plus:'Plus'};
+const planFindings={choose_plan:'plan_choose_plan',no_meter:'plan_no_meter',larger_ratio_unpublished:'plan_larger_ratio_unpublished',larger_need_unseen:'plan_larger_need_unseen'};
+const planChoices={'':'plan_choice_none',pro:'plan_choice_pro',max:'plan_choice_max',ultra:'plan_choice_ultra',api:'plan_choice_api'};
+function planLabel(row){
+  if(row.plan==='api')return t('plan_api_key');
+  if(row.plan)return row.price_usd?t('plan_named',{name:planNames[row.plan]||row.plan,price:number(row.price_usd)}):planNames[row.plan]||row.plan;
+  return t(row.agent==='claude-code'?'plan_unchosen':'plan_unlogged');
+}
+function planFinding(row,finding){
+  if(finding==='api_cheaper')return t('plan_api_cheaper',{usd:usageUsd(row.api_usd),price:usageUsd(row.price_usd)});
+  if(finding==='smaller_fits'||finding==='smaller_fits_weekly')return t(finding==='smaller_fits'?'plan_smaller_fits':'plan_smaller_fits_weekly',{peak:usagePct(row.smaller.peak/100),smaller:planNames[row.smaller.plan],price:usageUsd(row.smaller.usd),share:usagePct(row.smaller.share)});
+  return planFindings[finding]?t(planFindings[finding]):'';
+}
+function planSelect(value,row){
+  const label=node('label','plan-choice');label.append(node('span','',t('plan_choose_label')));
+  const select=document.createElement('select');select.id='usage-plan-choice';
+  for(const key of ['',...value.choices]){const option=node('option','',t(planChoices[key]));option.value=key;select.append(option);}
+  select.value=row.plan_word||'';select.disabled=usageState.stopped||value.readable===false||Boolean(usageState.planSaving);
+  select.addEventListener('change',()=>setPlan(select.value||null));label.append(select);return label;
+}
+function renderUsagePlans(data){
+  // The advice comes from the server (plans.py); this only lays it out.
+  const value=data.plans,box=$('usage-plans');box.hidden=!value?.rows?.length;if(box.hidden)return;
+  const title=node('h2','',t('plans_title'));title.id='usage-plans-title';
+  box.replaceChildren(node('span','eyebrow',t('plans_eyebrow')),title);
+  for(const row of value.rows){
+    const card=node('div','plan-row'+(row.findings.includes('limits_reached')?' warn':'')),head=node('div','plan-head');
+    head.append(node('strong','',(usageAgents[row.agent]||row.agent)+': '+planLabel(row)));
+    if(row.agent==='claude-code')head.append(planSelect(value,row));
+    card.append(head,node('p','',t('plan_api_line',{usd:usageUsd(row.api_usd),share:usagePct(row.api_priced_share)})+(row.usage_partial?t('plan_partial'):'')));
+    const five=row.meter.find(window=>window.window_minutes===300),week=row.meter.find(window=>window.window_minutes===10080);
+    if(five||week)card.append(node('p','',t('plan_meter_line',{five:number(five?.full??0),five_total:number(five?.periods??0),week:number(week?.full??0),week_total:number(week?.periods??0)})));
+    if(row.agent==='claude-code'&&value.readable===false)card.append(node('p','plan-finding',t('plan_unreadable')));
+    for(const finding of row.findings){const text=planFinding(row,finding);if(text)card.append(node('p','plan-finding',text));}
+    box.append(card);
+  }
+  const date=new Intl.DateTimeFormat(LOCALE,{dateStyle:'long',timeZone:'UTC'}).format(new Date(value.prices_as_of+'T12:00:00Z'));
+  box.append(node('p','section-note',t('plan_period',{date})),node('p','section-note',t('plan_note')));
+}
+async function setPlan(plan){
+  if(usageState.stopped||usageState.planSaving)return;
+  usageState.planSaving=true;
+  try{await post('/api/usage/plan',{plan});if(!usageState.stopped)await loadUsage();}
+  catch(error){if(!usageState.stopped)notice(error.message);}
+  finally{usageState.planSaving=false;}
 }
 function renderUsageQuota(data){
   // Codex rows come from its logs; Claude Code rows only from PLER's status line (pler statusline --install).

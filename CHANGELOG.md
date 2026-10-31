@@ -1,5 +1,12 @@
 # Changes
 
+## 0.2.27 — 2026-10-31 (private candidate)
+
+- Plan check: per agent, the last 30 days of agent work at API list prices next to the plan's published price, and how many 5-hour windows and weeks reached the limit, on the page, in the terminal report and in JSON. Codex's plan comes from its log; for Claude Code the user chooses Pro, Max, Ultra or an API key once, saved only on this computer (`plan-choice.json`; the demo keeps it in memory).
+- Only published figures are used (31 October 2026): Claude Pro $20, Max $100 (5x Pro every 5 hours and week), Ultra $200 (10x Pro weekly, no 5-hour limit); ChatGPT Go $8, Plus $20, Pro $100/$200/$500. A smaller Claude plan is named only with 14 days of meter history and 20% headroom; OpenAI publishes no ratio between Plus and Pro, so no Codex plan is named. "An API key would cost less" needs a full, fully dated period and no reached limit.
+- Each accepted response now keeps its own list-price equivalent with its time, so the period sum counts every session of the account, including those with an unknown project. On this computer: Claude Code $464 and Codex $215 in the last 30 days; Codex Plus reached its 5-hour limit in 9 of 41 windows and its weekly limit in 1 of 12 weeks.
+- The readers rebuild their cache once (the dated record gained the price).
+
 ## 0.2.26 — 2026-10-30 (private candidate)
 
 - Add user-named local work items and explicit links to Claude Code/Codex sessions. Create, rename, link, unlink and delete work without changing logs, verdicts or usage totals. Demo work stays in memory.

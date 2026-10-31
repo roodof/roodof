@@ -35,8 +35,9 @@ def event_time(value):
     return None
 
 
-def record_response(session,tokens,candidates):
-    """Attach one accepted stable response, with only its selected snapshot's times.
+def record_response(session,tokens,candidates,usd=None):
+    """Attach one accepted stable response, with only its selected snapshot's times and its list-price
+    equivalent (`usd`, None when unpriced).
 
     Every copy carrying the selected actual usage must give an aware timestamp;
     a missing or naive one leaves the response undated. Claude Code writes one
@@ -49,7 +50,7 @@ def record_response(session,tokens,candidates):
     dated=bool(times) and None not in times
     if not hasattr(session,'_usage_events'): session._usage_events=[]
     session._usage_events.append(dict(first=min(times) if dated else None,at=max(times) if dated else None,
-                                      tokens=dict(tokens)))
+                                      tokens=dict(tokens),usd=usd))
 
 
 def _reason(session):

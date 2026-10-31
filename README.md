@@ -94,6 +94,8 @@ Search narrows only the session list. The summary at the top and the downloaded 
 
 **At API list prices** shows what the recorded responses would cost at the providers' public standard prices (fixed in the package, with their date), each priced by its own model and prompt size. Compare it with what your subscription costs; it is not a bill. Responses without a published price stay in the token totals but are left unpriced, and the priced share is shown.
 
+**Does your plan fit?** For each agent, the last 30 days of agent work at API list prices next to the plan's price, and how many 5-hour windows and weeks reached the limit. Codex logs its plan; for Claude Code you choose Pro, Max, Ultra or an API key once (saved only on this computer). A smaller Claude plan is named only when the meter shows it would have fitted with room to spare, using Anthropic's published ratios; OpenAI publishes no ratio between Plus and Pro, so PLER does not say which Codex plan would be enough. A plan also covers chat, which PLER does not see.
+
 **Did it pay off?** Mark a session **Useful** or **Wasted** with one click (in the list or in its details). PLER sums tokens and the list-price equivalent per verdict for the selection, so you can see what the wasted sessions cost. Verdicts are saved only on this computer; PLER never guesses one.
 
 **Tests and builds the agents ran.** PLER recognises test and build commands in the agents' logs and shows how the last visible run ended in each session. The command text is read only in memory and never stored. When the agent piped the output into another command (for example `| tail`), the exit code is not the test's, so the result is shown as not visible.

@@ -83,9 +83,11 @@ def response_cost(agent, model, tokens, write_1h=0, standard=True):
 
 
 def charge(session, agent, model, tokens, write_1h=0, standard=True):
-    """Add one accepted response's list-price equivalent to its owning session."""
+    """Add one accepted response's list-price equivalent to its owning session; return it, or None when the
+    response cannot be priced."""
     value = response_cost(agent, model, tokens, write_1h, standard)
     if value is None:
-        return
+        return None
     session.api_usd += value
     session.api_priced_tokens += sum(tokens[name] for name in ('input', 'cache_read', 'cache_write', 'output'))
+    return value

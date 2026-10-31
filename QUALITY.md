@@ -2,6 +2,14 @@
 
 **Güncel kalan işler:** [docs/REMAINING.md](docs/REMAINING.md). 30 Ekim 2026 satın alma değerlendirmesindeki yedi başlık, önceki altı ayrı iş, kapanış ölçütleri ve önerilen sıra burada tutulur. Dağıtım/CI/temiz makine/imza/tarayıcı kabulü tek başlık altında; ürün geliştirmesi, gerçek kullanıcı kanıtı ve kayıttan bilinemez sınırlar ayrı. Aşağıdaki tarihsel “açık” notlar sonraki sürümlerin kapanış kanıtlarıyla birlikte okunur; giderilmiş kusurlar tekrar iş sayılmaz.
 
+## 31 Ekim: 0.2.27 — plan kontrolü (Y04'ün bir kısmı)
+
+Her ajan için plan, yayımlanmış liste fiyatı (31 Ekim 2026), son 30 günün ajan işinin API liste fiyatı karşılığı ve sınıra dayanılan beş saatlik pencere/hafta sayısı gösterilir. Codex planı kayıttan, Claude planı kullanıcının bir kez yaptığı yerel seçimden gelir. Yalnız yayımlanmış oranlar kullanılır: Claude Max = 5x Pro (5 saat ve hafta), Ultra = haftalık 10x Pro, 5 saat sınırı yok. OpenAI Plus ile Pro arasındaki oranı yayımlamadığı için Codex için plan adı önerilmez. Küçük plan önerisi en az 14 günlük ölçer geçmişi ve %20 pay ister; "API daha ucuz" tam ve tarihli bir dönem ister, sınıra dayanılmışsa gösterilmez.
+
+İlk sürümde dönem toplamı tarihli kullanım görünümünden alındı ve projesi belirsiz oturumları dışarıda bıraktı: gerçek veride Codex 215 $ yerine 2 $ çıktı ve yanlış "API daha ucuz" önerisi üretti. Toplam artık yanıtların kendi zaman ve fiyatından, hesabın bütün oturumlarıyla hesaplanıyor; bu durum için regresyon testi var. Gerçek veri: Claude Code son 30 gün 464 $, Codex 215 $; Codex Plus beş saatlik sınıra 41 pencerenin 9'unda, haftalık sınıra 12 haftanın 1'inde dayandı. Oturum, token, çağrı ve kalite işaretleri HEAD ile birebir aynı; okuma süresi aynı.
+
+Testler: Windows Python 3.9 727 geçti/13 atlandı, 3.12 731/0 hata, 3.14 740/0 hata; Linux WSL `/tmp` ve `/var` 740/740; Node hepsi geçti. CI hesap ödeme/harcama limiti engeli nedeniyle çalıştırılmadı. Kanıt: [plan kontrolü raporu](../reports/plan-check-v1/REPORT.md).
+
 ## 30 Ekim: 0.2.26 — oturumları yapılan işe bağlama (Y01)
 
 Kullanıcı kendi adlandırdığı işler oluşturup Claude Code/Codex oturumlarını bağlayabilir; ad değiştirme, bağlantı kaldırma ve silme kayıtları, değerlendirmeleri ve kullanım toplamlarını değiştirmez. Ortak oturumlar iş ara toplamlarında tekrar görünür ama atanmış iş özeti her oturumu bir kez sayar; filtre dışı ve bulunamayan bağlantılar ayrı gösterilir, taşınan oturum başka kimliğe bağlanmaz. `work-items.json` yalnız iş adı, zamanlar ve 24 karakterlik sayfa oturum kodlarını tutar; sınırlı ve doğrulanır, bozuk/yeni dosyanın üzerine yazılmaz. Olağan JSON dışa aktarımı iş adlarını ve bağlantıları içermez; özel yedek/geri yükleme içerir, 0.2.25 yedekleri iş dosyası olmadan kullanılabilir. Demo işleri bellekte kalır.

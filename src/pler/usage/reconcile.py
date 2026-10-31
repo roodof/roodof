@@ -232,11 +232,11 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         if value is None:
             target.tokens_complete=False;target.issues.add('conflicting_usage');continue
         add_tokens(target.tokens,value)
-        if key[0]=='response' and key[1].strip(): record_response(target,value,candidates)
         model=rules.model_for([c['model'] for c in candidates])
         target.count(target.models,model)
         target.count(target.model_tokens,model,total(value))
-        pricing.charge(target,'codex',model,value)  # Codex logs no service tier; the standard tier is assumed
+        usd=pricing.charge(target,'codex',model,value)  # Codex logs no service tier; the standard tier is assumed
+        if key[0]=='response' and key[1].strip(): record_response(target,value,candidates,usd)
         if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
     residuals=defaultdict(list)
     for identity,values in checkpoints.items():

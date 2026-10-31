@@ -1,6 +1,6 @@
 # PLER — güncel kalan işler
 
-30 Ekim 2026; güncel uygulama 0.2.26 (Y01 iş bağlama), önceki uygulama commit'i `a78f0b6` (0.2.25). Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
+31 Ekim 2026; güncel uygulama 0.2.27 (plan kontrolü, Y04'ün bir kısmı); 0.2.26 Y01 iş bağlamadır. Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [Yedekleme çalışması](../../reports/backup-v1/REPORT.md), [0.2.24 raporu](../../reports/integrity-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
 
 Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Her başlığın tamamlanma durumu ayrıca yazılıdır; bir özelliğin uygulanması gerçek kullanıcı faydasının veya ödeme isteğinin kanıtı değildir.
 
@@ -36,7 +36,7 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y04 — Gerçek ödeme, API fiyat karşılığı ve kotanın karar bağlamı
 
-**Durum:** Planlandı; mevcut ayrımı geliştirme ve isteğe bağlı ödeme karşılaştırmasının kapsam kararı. Yeni bir fatura hatası saptanmadı.
+**Durum:** Kısmen; 0.2.27 plan kontrolü eklendi: ajan başına plan fiyatı, son 30 günün API liste fiyatı karşılığı, sınıra dayanılan pencere/hafta sayısı ve yalnız yayımlanmış oranlarla küçük Claude planı önerisi ([rapor](../../reports/plan-check-v1/REPORT.md)). Kullanıcının gerçek ödediği tutarı girmesi ve pilot doğrulaması açık. Yeni bir fatura hatası saptanmadı.
 
 - API karşılığı, tarih/fiyat kapsamı ve kota gözlemi zaten mevcut; bunları yokmuş gibi yeniden geliştirme.
 - Kullanıcının gerçek ödeme bilgisini ayrıca eklemek yararlı mı, pilotta sına. Gerekirse yalnız açıkça seçilen veriye dayalı ayrı karşılaştırma tasarla; kayıtlardaki API karşılığını gerçek abonelik giderine çevirmeye çalışma.

@@ -1,7 +1,7 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the actions are "read the logs again", metadata settings, your own verdict or work links,
+command; the actions are "read the logs again", metadata settings, your own verdict, Claude plan or work links,
 prepare/check a private metadata backup and "close". An uploaded backup is checked in memory only;
 recovery into a new folder is a CLI action. It opens no connection to an external service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
@@ -221,7 +221,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
-                         '/api/usage/verdict','/api/usage/work','/api/usage/backup','/api/usage/backup/check','/api/quit'):
+                         '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/backup','/api/usage/backup/check',
+                         '/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -243,7 +244,9 @@ class Handler(BaseHTTPRequestHandler):
                    if route=='/api/usage/retention' else
                    isinstance(body,dict) and set(body)=={'id','verdict'} and isinstance(body['id'],str)
                    and re.fullmatch('[a-f0-9]{24}',body['id']) is not None and body['verdict'] in ('useful','wasted',None)
-                   if route=='/api/usage/verdict' else body=={})
+                   if route=='/api/usage/verdict' else
+                   isinstance(body,dict) and set(body)=={'plan'} and body['plan'] in ('pro','max','ultra','api',None)
+                   if route=='/api/usage/plan' else body=={})
             if not valid:
                 raise ValueError(say(self._lang(), 'error.fields'))
         except ValueError as error:
@@ -265,6 +268,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(404,dict(error=say(self._lang(),'error.session_missing')))
             else:
                 self._send(500,dict(error=say(self._lang(),'error.verdict_'+('unreadable' if result.get('reason')=='unreadable' else 'save'))))
+        elif route == '/api/usage/plan':
+            result=self.server.dashboard.set_plan(body['plan'])
+            if result.get('ok'):
+                self._send(200,result)
+            else:
+                reason=result.get('reason')
+                self._send(409 if reason in ('unavailable','unreadable') else 500,
+                           dict(error=say(self._lang(),'error.plan_'+('unreadable' if reason=='unreadable' else 'save'))))
         elif route in ('/api/usage/retention','/api/usage/cache/reset'):
             result=(self.server.dashboard.set_retention(body['enabled']) if route.endswith('/retention')
                     else self.server.dashboard.reset_cache())

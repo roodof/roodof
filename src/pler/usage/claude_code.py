@@ -372,14 +372,14 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 target.tokens_complete=False;target.issues.add('conflicting_usage')
             else:
                 add_tokens(target.tokens,tokens)
-                if any(isinstance(value,str) and value.strip() for copy in copies
-                       for value in (copy['message'].get('id'),copy['row'].get('requestId'))):
-                    record_response(target,tokens,copies)
                 model=accounting.model_for([c['message'].get('model') for c in copies])
                 target.count(target.models,model);target.count(target.model_tokens,model,total(tokens))
                 witness=next((c['message'].get('usage') for c in copies if c['tokens']==tokens),None) or {}
-                pricing.charge(target,'claude-code',model,tokens,_int(witness.get('ephemeral_1h_input_tokens')),
-                               witness.get('speed') in (None,'standard') and witness.get('inference_geo')!='us')
+                usd=pricing.charge(target,'claude-code',model,tokens,_int(witness.get('ephemeral_1h_input_tokens')),
+                                   witness.get('speed') in (None,'standard') and witness.get('inference_geo')!='us')
+                if any(isinstance(value,str) and value.strip() for copy in copies
+                       for value in (copy['message'].get('id'),copy['row'].get('requestId'))):
+                    record_response(target,tokens,copies,usd)
                 if model=='unknown': target.models_complete=False;target.issues.add('unknown_model')
                 efforts={c['row'].get('effort') for c in copies if isinstance(c['row'].get('effort'),str)}
                 if len(efforts)==1: target.count(target.efforts,next(iter(efforts)))

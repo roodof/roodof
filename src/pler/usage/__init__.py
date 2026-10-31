@@ -21,6 +21,7 @@ from . import input_limits, cache as cache_rules
 from .insights import insights
 from .projects import assign, label, labels
 from .pricing import PRICES_AS_OF
+from . import plans as plan_rules
 from .records import total
 from .reedit import analyze as subsequent_edits, insight as edit_insight
 from .summary import summarize
@@ -137,6 +138,41 @@ def _local(iso, lang):
     return moment(datetime.fromisoformat(iso), lang)
 
 
+def _usd(value, lang):
+    text = '{:,.2f}'.format(value)
+    return text.replace(',', ' ').replace('.', ',').replace(' ', '.') if lang == 'tr' else text
+
+
+def _plan_lines(rows, lang):
+    """The plan check (plans.advise rows) as terminal lines."""
+    lines = [say(lang, 'report.plans', date=plan_rules.PRICES_AS_OF)]
+    for row in rows:
+        if row['plan'] == 'api':
+            plan = say(lang, 'report.plan_api_key')
+        elif row['plan']:
+            name = row['plan'].capitalize()
+            plan = say(lang, 'report.plan_named', name=name, price=row['price_usd']) if row['price_usd'] else name
+        else:
+            plan = say(lang, 'report.plan_unchosen' if row['agent'] == 'claude-code' else 'report.plan_unlogged')
+        lines.append(say(lang, 'report.plan_row', agent=AGENTS[row['agent']], plan=plan, usd=_usd(row['api_usd'], lang),
+                         partial=say(lang, 'report.plan_partial') if row['usage_partial'] else ''))
+        meter = {value['window_minutes']: value for value in row['meter']}
+        five, week = meter.get(plan_rules.FIVE_HOURS), meter.get(plan_rules.WEEK)
+        if five or week:
+            lines.append(say(lang, 'report.plan_meter', five=five['full'] if five else 0, five_total=five['periods'] if five else 0,
+                             week=week['full'] if week else 0, week_total=week['periods'] if week else 0))
+        smaller = row.get('smaller')
+        for finding in row['findings']:
+            if finding in ('smaller_fits', 'smaller_fits_weekly'):
+                lines.append(say(lang, 'report.' + finding, peak=_pct(smaller['peak'] / 100, lang), share=_pct(smaller['share'], lang),
+                                 smaller=smaller['plan'].capitalize(), smaller_price=smaller['usd']))
+            elif finding == 'api_cheaper':
+                lines.append(say(lang, 'report.api_cheaper', usd=_usd(row['api_usd'], lang), price=row['price_usd']))
+            elif finding != 'limits_reached':
+                lines.append(say(lang, 'report.' + finding))
+    return lines
+
+
 def _pct(share, lang):
     if share is None:
         return '—'
@@ -173,6 +209,8 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
         lines.append(say(lang,'report.verdicts',useful=count(lang,judged['useful']['sessions'],'session'),
                          useful_tokens=n(judged['useful']['total_tokens']),wasted=count(lang,judged['wasted']['sessions'],'session'),
                          wasted_tokens=n(judged['wasted']['total_tokens']),none=count(lang,judged['none']['sessions'],'session')))
+    if sources.get('_plans'):
+        lines.extend(_plan_lines(sources['_plans'], lang))
     dated=sources.get('_dated_usage')
     if dated is not None and dated['retained_usage_fully_dated']:  # same rule as the page
         lines.append(say(lang,'report.dated_usage',tokens=n(dated['total_tokens']),calls=dated['response_calls'],
@@ -295,6 +333,10 @@ def main(argv=None):
     except (OSError,ValueError,TypeError,UnicodeError): saved=None
     sources['_verdicts']=verdict_summary([dict(id=session_code(s),total_tokens=records.total(s.tokens),api_usd=s.api_usd)
                                           for s in rows],saved or {})
+    try: claude_plan=plan_rules.Choice().read()
+    except (OSError,ValueError,TypeError,UnicodeError): claude_plan=None
+    # A plan is the account's: every session, whatever --days selects.
+    sources['_plans']=plan_rules.advise(sessions,sources['claude_quota'],observed,claude_plan,sources.get('quota_source_groups'))
     if hasattr(sys.stdout, 'reconfigure'):
         # JSON is UTF-8 by definition; a redirected Windows console would otherwise use the ANSI code page.
         sys.stdout.reconfigure(encoding='utf-8')
@@ -311,6 +353,7 @@ def main(argv=None):
             row['project']=project_names.get(row['project'],label(row['project'],lang=lang) or say(lang,'unknown_project'))
         value = dict(summary,**provenance(archived=any(s.source_state!='live' for s in rows)),quality=trust,generated_at=now.isoformat(),api_prices=dict(as_of=PRICES_AS_OF,tier='standard'),outlook=windows,insights=notes,reedit=reedit,dated_usage=dated,
                      verdicts=dict(sources['_verdicts'],readable=saved is not None),checks=check_summary(rows),
+                     plans=dict(rows=sources['_plans'],prices_as_of=plan_rules.PRICES_AS_OF),
                      sources=dict(claude_files=sources['claude_files'],codex_files=sources['codex_files'],days=args.days,
                                   skipped=[dict(reason=r) for _, r in sources['skipped']],claude_quota=len(sources['claude_quota']),
                                   archive={key:value for key,value in sources.get('archive',{}).items() if key!='clear_generation'}))
