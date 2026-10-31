@@ -109,7 +109,7 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 
 ### E06 — Gerçek profesyonel pilot ve tekrar kullanım
 
-**Durum:** Kullanıcının isteğiyle ertelendi; 0.2.24 kiti iki kurulum yolunda doğrulanmış, gerçek katılımcı sonucu yok. **Tür:** Kullanıcı kanıtı. **Öncelik:** Kullanıcı ürünü hazır bulduktan sonra değer varsayımlarını sınama.
+**Durum:** Kullanıcı 31 Ekim'de küçük ücretsiz yayın ve 10 kişilik pilotu sıraya aldı; yayın, lisans ve davet kararları kullanıcıdadır. 0.2.28 kiti ([yayın paketi raporu](../../reports/release-kit-v1/REPORT.md)) iki kurulum yolunda doğrulandı; görevler ve ölçütler değişmedi, gerçek katılımcı sonucu yok. **Tür:** Kullanıcı kanıtı. **Öncelik:** Kullanıcı ürünü hazır bulduktan sonra değer varsayımlarını sınama.
 
 [PILOT.md](PILOT.md) ölçütleri değişmeden en az beş profesyonelle mevcut yönteme karşı görevleri karşılaştır; başarısız/yanlış yorumlanan durumları da kaydet. Sonraki hafta somut tekrar kullanım gerekçesini gözle. Kullanıcı ürünü hazır bulduğunu belirtmeden reklam ve katılımcı arama başlatılmaz. Katılımcı bulma, onay ve yürütme daha sonra kullanıcıyla koordine edilir; bu belge kişilere mesaj gönderme yetkisi değildir. **Kapanış:** Önceden belirlenen kritik anlama, bağımsız görev ve tekrar kullanım hedefleri gerçek sonuçlarla değerlendirilir. Başarısız sonuç da rapordur; ölçütler sonuç görüldükten sonra değiştirilmez. Y01–Y05'in tamamını önce yapmak pilot için otomatik ön koşul değildir; kullanıcı yönlendirmesi ve gerekli yayın/mahremiyet kabulü korunur.
 
