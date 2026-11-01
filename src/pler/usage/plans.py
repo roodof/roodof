@@ -14,7 +14,7 @@ from datetime import timedelta
 import json
 
 from ..paths import cache_file
-from .records import TOKEN_FIELDS, add_tokens, empty_tokens, percentage, total
+from .records import TOKEN_FIELDS, empty_tokens, percentage, total
 from .period_usage import event_time
 from .forecast import LARGE_DROP, SHORT_MAX_AGE, LONG_MAX_AGE
 
@@ -139,12 +139,15 @@ def _spent(sessions, since, now):
                 partial = True
                 continue
             counted += 1
-            add_tokens(allocated,event['tokens'])
+            values = event['tokens']
+            for key in TOKEN_FIELDS:  # add_tokens, inlined: this loop runs once per response
+                allocated[key] += values.get(key) or 0
             if since <= at <= now:
-                tokens += total(event['tokens'])
+                amount = total(values)
+                tokens += amount
                 if event.get('usd') is not None:
                     usd += event['usd']
-                    priced += total(event['tokens'])
+                    priced += amount
         if (counted != session.calls or any(allocated[key] != session.tokens[key] for key in TOKEN_FIELDS)):
             partial = True
     return usd, priced, tokens, partial

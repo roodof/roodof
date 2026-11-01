@@ -12,6 +12,7 @@ import heapq
 import os
 from pathlib import Path
 import stat
+import threading
 import zlib
 
 from .paths import local_path
@@ -23,6 +24,12 @@ MAX_REFS = 10000
 MAX_DEPTH = 64           # delta chain
 SLACK = 86400            # committer clocks and rebases can disagree with reflog times
 _CHUNK = 1 << 16
+# Walk answers by (repository, tips, targets, since). Commit objects are immutable, so the same tips always give
+# the same answer once every target is known; answers with an unknown target are never kept (an object or a
+# longer history may appear later).
+_WALKS = {}
+_WALKS_LOCK = threading.Lock()
+MAX_WALKS = 256
 
 
 def _safe(path):
@@ -362,6 +369,11 @@ def on_branch(directory, targets, since=None, starts=None):
     starts = tips(Path(directory), size) if starts is None else set(starts)
     if not starts:
         return result
+    key = (str(directory), size, frozenset(starts), frozenset(targets), since)
+    with _WALKS_LOCK:
+        known = _WALKS.get(key)
+    if known is not None:
+        return dict(known)
     store = Objects(Path(directory), size)
     try:
         if store.base is None or os.path.lexists(store.base / 'info' / 'alternates'):
@@ -390,6 +402,11 @@ def on_branch(directory, targets, since=None, starts=None):
         exhausted = not heap or cutoff is not None and -heap[0][0] < cutoff
         for commit in targets:
             result[commit] = True if commit in seen else (False if exhausted and complete else None)
+        if None not in result.values():
+            with _WALKS_LOCK:
+                while len(_WALKS) >= MAX_WALKS:
+                    _WALKS.pop(next(iter(_WALKS)))
+                _WALKS[key] = dict(result)
         return result
     except (OSError, ValueError):
         return result

@@ -50,6 +50,20 @@ class WorkItemTests(unittest.TestCase):
         self.assertEqual(result, dict(id=identity, items={}))
         self.assertEqual(work.Folder(self.base).read(), {})
 
+    def test_unchanged_bytes_are_validated_once_and_each_read_returns_a_private_copy(self):
+        identity = self.create(session=A)
+        first = self.store.read()
+        with patch.object(work, 'validate', side_effect=AssertionError('unchanged bytes validated again')):
+            again = self.store.read()
+            self.assertEqual(again, first)
+            again[identity]['sessions'].append(B)  # a caller's change must not reach the next read
+            self.assertEqual(self.store.read()[identity]['sessions'], [A])
+        self.store.mutate('link', identity=identity, session=B)
+        self.assertEqual(self.store.read()[identity]['sessions'], [A, B])
+        (self.base / work.FILENAME).write_bytes(b'{"format": 1, "items": {"bad": 1}}')
+        with self.assertRaises(ValueError):
+            self.store.read()
+
     def test_repeated_link_unlink_or_same_title_does_not_rewrite_file(self):
         identity = self.create(session=A)
         before = self.saved()

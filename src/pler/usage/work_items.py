@@ -5,6 +5,7 @@ Readers add no native source path, provider identity or conversation content to 
 A link names the same source-sensitive page session code as
 verdicts.py: a moved/unavailable session remains an unresolved link, never an automatic reassignment.
 """
+import copy
 import hashlib
 import json
 import math
@@ -184,7 +185,9 @@ def _signature(info):
     return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns
 
 
-def _read(path):
+def _read(path, memo=None):
+    """The validated items. `memo` (a dict) keeps the last bytes and their validated copy: the page reads the file
+    on every request, and validating up to 2 MiB of entries costs far more than reading and comparing them."""
     if path is None or cache_file(path.name, path.parent) != path:
         raise OSError('unsafe work items')
     try:
@@ -207,7 +210,13 @@ def _read(path):
             raise OSError('work items changed')
     except FileNotFoundError as error:
         raise OSError('work items changed') from error
-    return validate(data)
+    last = memo.get('last') if memo is not None else None
+    if last is not None and last[0] == data:
+        return copy.deepcopy(last[1])
+    items = validate(data)
+    if memo is not None:
+        memo['last'] = (data, copy.deepcopy(items))  # one assignment: a concurrent reader sees old or new
+    return items
 
 
 def _arguments(action, identity, title, session, details, expected_revision):
@@ -317,9 +326,10 @@ class Folder:
     """Named work in a fixed safe local file; every update re-reads under the archive writer lock."""
     def __init__(self, base=None):
         self.base = base
+        self._memo = {}
 
     def read(self):
-        return _read(cache_file(FILENAME, self.base))
+        return _read(cache_file(FILENAME, self.base), self._memo)
 
     def mutate(self, action, identity=None, title=None, session=None, details=None, expected_revision=None):
         title,details = _arguments(action, identity, title, session, details, expected_revision)

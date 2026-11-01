@@ -17,6 +17,7 @@ EXCLUSIONS=('archive_old_parser','archive_unverified','uncertain_history',
 
 def _utc(value):
     if not isinstance(value,datetime): return None
+    if value.tzinfo is timezone.utc: return value  # already UTC (readers store this); skip the conversion
     try:
         return value.astimezone(timezone.utc) if value.utcoffset() is not None else None
     except (OverflowError,TypeError,ValueError): return None
@@ -99,8 +100,8 @@ def analyze(sessions,since,cutoff):
             result['unallocated_sessions']+=1
             continue
         result['eligible_sessions']+=1
-        allocated=empty_tokens()
-        dated,contributed=0,False
+        allocated,inside=empty_tokens(),empty_tokens()
+        dated=calls=0
         unknown=False
         for event in getattr(session,'_usage_events',()):
             at=_utc(event['at'])
@@ -112,20 +113,23 @@ def analyze(sessions,since,cutoff):
             if at>cutoff:
                 result['future_response_calls']+=1;unknown=True
                 continue
-            result['dated_response_calls']+=1;dated+=1
-            add_tokens(allocated,event['tokens'])
+            dated+=1
+            values=event['tokens']
+            # add_tokens, inlined: these loops run once per response; the session's sums are added once below.
+            for key in TOKEN_FIELDS: allocated[key]+=values.get(key) or 0
             if since is not None and at<since:
                 result['outside_period_calls']+=1
                 continue
-            add_tokens(result['tokens'],event['tokens'])
-            result['response_calls']+=1;contributed=True
+            for key in TOKEN_FIELDS: inside[key]+=values.get(key) or 0
+            calls+=1
+        result['dated_response_calls']+=dated
+        if calls:
+            add_tokens(result['tokens'],inside)
+            result['response_calls']+=calls;result['contributing_sessions']+=1
             agent=session.agent if session.agent in ('claude-code','codex') else 'unknown'
             value=agents.setdefault(agent,dict(agent=agent,tokens=empty_tokens(),total_tokens=0,
                                                response_calls=0,contributing_sessions=0))
-            add_tokens(value['tokens'],event['tokens']);value['response_calls']+=1
-        if contributed:
-            result['contributing_sessions']+=1
-            agents[session.agent if session.agent in ('claude-code','codex') else 'unknown']['contributing_sessions']+=1
+            add_tokens(value['tokens'],inside);value['response_calls']+=calls;value['contributing_sessions']+=1
         if (unknown or any(allocated[key]!=session.tokens[key] for key in TOKEN_FIELDS)
                 or dated!=session.calls or not session.calls_complete):
             result['unallocated_sessions']+=1

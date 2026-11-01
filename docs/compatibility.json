@@ -23,8 +23,8 @@
       "usage/pricing.py",
       "usage/plans.py"
     ],
-    "code_sha256": "953fa793c3cf8b99eff97c9c1d0891e821e5341d9218abc78612d7a108430a50",
-    "note": "Price-confidence correction: unknown GPT-6 cache-write lifetimes and unlisted Codex dated IDs are unpriced. Invalid Claude lifetime/modifier evidence is retained as a safe boolean without clamping valid counts; selected copies must agree on price in either order. Token schema is unchanged; changed reader keys rebuild caches and keep older archives explicitly limited. Second review (real logs): Claude Code logged region 'not_available' for every response before regions were reported (until 2026-10-08 in real logs); only 'us' carries the published 1.1x price, so it is priced like an absent region. A contradictory quota episode removes only its own window period from plan period counts and still blocks lower-plan comparisons."
+    "code_sha256": "536e5e35e4134812b61215204f289fbeee8a97561576326acc08964949513004",
+    "note": "Price-confidence correction: unknown GPT-6 cache-write lifetimes and unlisted Codex dated IDs are unpriced. Invalid Claude lifetime/modifier evidence is retained as a safe boolean without clamping valid counts; selected copies must agree on price in either order. Token schema is unchanged; changed reader keys rebuild caches and keep older archives explicitly limited. Second review (real logs): Claude Code logged region 'not_available' for every response before regions were reported (until 2026-10-08 in real logs); only 'us' carries the published 1.1x price, so it is priced like an absent region. A contradictory quota episode removes only its own window period from plan period counts and still blocks lower-plan comparisons. Speed review: dated-usage and plan sums add each response's tokens in inlined loops and skip converting times already in UTC; outputs are unchanged."
   },
   "price_review": {
     "reviewed_at": "2026-11-01",

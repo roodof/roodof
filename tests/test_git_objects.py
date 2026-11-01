@@ -191,6 +191,29 @@ class OnBranchTests(unittest.TestCase):
         with patch.object(git_objects, 'local_path', lambda value: None if 'objects' in str(value) else Path(value)):
             self.assertEqual(set(self.answer().values()), {None})
 
+    def test_a_known_answer_is_reused_for_the_same_tips_and_an_unknown_one_is_walked_again(self):
+        self.store.loose(self.second, self.third, self.amended, self.side)   # first is missing
+        self.store.ref('heads/main', self.third)
+        original, calls = Objects.commit, []
+        def counted(store, key):
+            calls.append(key)
+            return original(store, key)
+        with patch.object(Objects, 'commit', counted):
+            self.assertEqual(self.answer(), self.expected(**{self.amended: None, self.side: None}))
+            once = len(calls)
+            self.answer()
+            self.assertEqual(len(calls), 2 * once)
+            self.store.loose(self.first)  # the missing object arrives
+            value = self.answer()
+            self.assertEqual(value, self.expected())
+            walked = len(calls)
+            value[self.third] = 'changed by the caller'
+            self.assertEqual(self.answer(), self.expected())
+            self.assertEqual(len(calls), walked)
+            self.store.ref('heads/main', self.side)   # a moved tip is a new walk
+            self.assertEqual(self.answer(), self.expected(**{self.third: False, self.side: True}))
+            self.assertGreater(len(calls), walked)
+
     def test_walk_bound_leaves_unmet_targets_unknown(self):
         self.store.loose(*self.everything)
         self.store.ref('heads/main', self.third)
