@@ -268,6 +268,9 @@ def render(summary, sources, notes=(), windows=(), lang='en'):
                 continue
             key = 'report.reset' if state == 'reset' else 'report.stale' if state == 'stale' else 'report.quota_line'
             lines.append(say(lang, key, window=window(row['window_minutes'], lang), used=decimal(row['used_percent'], lang)))
+        changed = next((item['plan_changed_at'] for item in windows if item.get('agent') == 'codex' and item.get('plan_changed_at')), None)
+        if changed:
+            lines.append(say(lang, 'report.quota_plan_changed', at=_local(changed, lang)))
     claude = [row for row in windows if row.get('agent') == 'claude-code']
     if claude:
         lines.append('')

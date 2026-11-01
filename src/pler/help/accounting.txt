@@ -127,6 +127,19 @@ These rules are fixed before measuring new real-data results. The existing activ
 
 Quota history from more than one contributing selected local source group is withheld even when its samples appear compatible. Conventional Codex `sessions` and `archived_sessions` folders under one home count as one source group; Claude `projects` is grouped by its configuration home. Only live or replayed source paths already selected by the reader contribute. Empty selected roots do not count. WSL host aliases are normalized lexically while Linux path case is retained. The exported count/reason contains no local root or provider account identity. A single source group does not prove a single account; account switches inside one group remain outside verified account coverage.
 
+### Account scope without account identity (E02)
+
+PLER reads no account identity, so it can only use evidence that the logs already carry. What is and is not supported:
+
+- **Several local source groups** (for example Windows and WSL homes): quota history is withheld and the plan check does not compare their usage with one subscription (see above).
+- **A logged plan change in one source group** (Codex logs its plan with every meter sample): an upgrade, a downgrade or a switch to an account on another plan. Forecasts and the plan check's limit counts use only samples since the latest change; the page, the terminal report and JSON give the change time (`plan_changed_at`), and the plan check keeps the `plan_changed` limitation. Plans that alternate never mix their rises: only samples after the last change are used.
+- **Two accounts used at the same time in one source group**: detected only when their readings contradict each other (different values at the same instant, a reset moving earlier, a fall of more than 25 points inside a window). Then the current percentage and forecast are withheld. Compatible readings are not detected.
+- **A switch to another account on the same plan in one source group**: not detectable. If the new account's reset is later, the change looks like the provider restarting a window early, which a single real meter also does, and PLER shows the new window. If it is earlier, it is a conflict. Either way PLER never states that the records come from one account.
+- **Claude Code**: its plan is what the user chose and its status line samples carry no plan, so plan changes are not seen; choose the plan again after changing it. Conflicting readings are withheld as above.
+- **Usage totals** count the retained agent records of every account that wrote to the selected folders. They are not a per-account or per-invoice total.
+
+Bringing in account identity, a provider account link or account data would be a separate, explicit choice with its own data scope.
+
 ### Preregistered subsequent-edit observation (0.2.12)
 
 These rules are fixed before inspecting any real subsequent-edit result. They describe logged edit intentions, not successful changes, waste, savings, causality or code quality.

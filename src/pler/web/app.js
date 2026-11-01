@@ -316,6 +316,7 @@ const I18N=/*I18N*/{
 "out_fills": "Warning: {pace} it fills around {full}; it resets {reset}.",
 "out_lasts": "{pace} it does not fill before it resets ({reset}).",
 "out_nopace": "Resets {reset}. Not enough records yet to estimate the pace.",
+"out_plan_changed": " The logged plan changed {at}; only later records are used.",
 "out_stale": "The last sample was {used} used. It is too old for a current level or forecast; read the logs again after the agent runs.",
 "out_historical": "The log recorded {used} used. Its reset time is missing, so the current level is unknown.",
 "quota_eyebrow": "Account quota",
@@ -351,7 +352,7 @@ const I18N=/*I18N*/{
 "plan_limit_usage_incomplete": "Some retained usage cannot be fully reconciled to dated responses; the recorded amount may be low.",
 "plan_limit_unpriced_usage": "Some recorded tokens have no API price. They are unknown, not free; no lower-price conclusion is drawn.",
 "plan_limit_multiple_source_groups": "Multiple local source groups do not prove one account. Their usage is not compared to one subscription.",
-"plan_limit_plan_changed": "More than one plan appears in the retained logs. A single plan price cannot represent the whole period.",
+"plan_limit_plan_changed": "More than one plan appears in the retained logs. A single plan price cannot represent the whole period; limit counts start at the latest change.",
 "plan_limit_meter_conflicting": "Conflicting quota history is withheld from period counts and lower-plan comparisons.",
 "plan_limit_meter_incomplete": "Some quota samples lack usable dates or reset times. They cannot support a lower-plan comparison.",
 "plan_limit_meter_stale": "The latest required quota sample is old or its reset has passed. Read again; no current lower-plan comparison is made.",
@@ -905,6 +906,7 @@ const I18N=/*I18N*/{
 "out_fills": "Uyarı: {pace} {full} civarı dolar; sıfırlanma {reset}.",
 "out_lasts": "{pace} sıfırlanmadan ({reset}) dolmaz.",
 "out_nopace": "Sıfırlanma: {reset}. Hız tahmini için henüz yeterli kayıt yok.",
+"out_plan_changed": " Kayıtlı plan {at} tarihinde değişti; yalnız sonraki kayıtlar kullanılıyor.",
 "out_stale": "Son ölçümde {used} kullanılmıştı. Ölçüm, güncel doluluk veya tahmin için eski; ajan çalıştıktan sonra kayıtları yeniden oku.",
 "out_historical": "Kayıtta {used} kullanılmıştı. Sıfırlanma zamanı eksik olduğu için güncel doluluk bilinmiyor.",
 "quota_eyebrow": "Hesap kotası",
@@ -940,7 +942,7 @@ const I18N=/*I18N*/{
 "plan_limit_usage_incomplete": "Saklanan kullanımın bir kısmı tarihli yanıtlarla tam uzlaştırılamıyor; kayıtlı tutar düşük olabilir.",
 "plan_limit_unpriced_usage": "Bazı kayıtlı tokenların API fiyatı yok. Ücretsiz değil, bilinmiyor; daha düşük fiyat sonucu çıkarılmıyor.",
 "plan_limit_multiple_source_groups": "Birden fazla yerel kaynak grubu tek hesabı kanıtlamaz. Kullanımları tek abonelikle karşılaştırılmıyor.",
-"plan_limit_plan_changed": "Saklanan kayıtlarda birden fazla plan var. Tek bir plan fiyatı bütün dönemi temsil edemez.",
+"plan_limit_plan_changed": "Saklanan kayıtlarda birden fazla plan var. Tek bir plan fiyatı bütün dönemi temsil edemez; sınır sayımları son değişimden başlar.",
 "plan_limit_meter_conflicting": "Çelişen kota geçmişi dönem sayımlarından ve küçük plan karşılaştırmasından çıkarıldı.",
 "plan_limit_meter_incomplete": "Bazı kota örneklerinin tarihi veya sıfırlama zamanı kullanılamıyor. Küçük plan karşılaştırmasını destekleyemez.",
 "plan_limit_meter_stale": "Gerekli son kota örneği eski veya sıfırlama zamanı geçti. Yeniden oku; güncel küçük plan karşılaştırması yapılmıyor.",
@@ -1395,6 +1397,10 @@ async function toggleQuotaNotifications(){
   if(liveState.notify)renderQuotaAlerts();
 }
 function usageOutlookText(window){
+  // A logged plan change bounds the history: say so, whatever the state.
+  return usageOutlookState(window)+(window.plan_changed_at?t('out_plan_changed',{at:usageDate(window.plan_changed_at)}):'');
+}
+function usageOutlookState(window){
   if(window.state==='ambiguous')return t(window.reason==='multiple_source_groups'?'quota_multiple_sources':'quota_ambiguous');
   const reset=usageDate(window.resets_at);
   if(window.state==='reset')return t('out_reset',{used:usagePct(window.used_percent/100),reset});

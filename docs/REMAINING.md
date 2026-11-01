@@ -100,7 +100,7 @@ Keyfi fork/ebeveyn–çocuk/compaction geçmişleri, birikimli sayaçlar ve sabi
 
 ### E02 — Hesap değişimi ve çoklu hesap kapsamı
 
-**Durum:** Çoklu yerel kaynak grubu koruması var; aynı kaynakta hesap değişimi doğrulanmış değil. **Tür:** Veri kapsamı/kapsam kararı.
+**Durum:** 2 Kasım'da hesap kimliği okunmadan kapanış ölçütüne getirildi; destek tablosu ACCOUNTING.md "Account scope without account identity (E02)". Birden fazla kaynak grubu: kota gizli (önceden vardı). Aynı kaynakta kayıtlı plan değişimi (Codex her örnekte planı yazar): tahmin ve plan kontrolü sınır sayımları son değişimden başlar, değişim zamanı sayfa/terminal/JSON'da. Eşzamanlı iki hesap: yalnız okumalar çelişirse yakalanır. Aynı planda başka hesaba geçiş: kayıtlardan anlaşılamaz, tek hesap iddiası da yok. Sentetik regresyonlar `test_account_scope.py`; bu bilgisayarda plan değişimi yok, çıktılar aynı. Hesap kimliği/harici bağlantı ayrı kullanıcı kararı. **Tür:** Veri kapsamı/kapsam kararı.
 
 Uyumlu kota örnekleri tek hesabı kanıtlamaz. Hesap kimliği toplamadan doğrulanabilecek kapsamı ve ayrıştırma yöntemini belirle; doğrulanamayan metreleri tek hesap gibi tahmin etme. Yeni hesap verisi veya harici hesap bağlantısı ayrı seçim ve veri kapsamı gerektirir. **Kapanış:** Aynı klasörde hesap değişimi ve birden fazla kaynak senaryolarının hangi kısmının desteklendiği açık; belirsiz örnekler güvenilir tek hesap/fatura sonucuna dönüşmez. Kanıt yokluğu yalnız kodla giderilmiş sayılmaz.
 
@@ -149,7 +149,7 @@ Claude/Codex alan/olay–örnek eşlemesi ve resmi fiyat kaydı her yayında yen
 ## Önerilen yürütme sırası ve kapanış disiplini
 
 1. Y06 belirtilen yerel kurtarma kapsamıyla, Y01 iş bağlama 0.2.26'da yerel kapsamla tamamlandı. Bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
-2. Y05 → Y04 → Y03 → Y02 kaynakta yapay verilerle doğrulandı; gerçek kullanıcı yararı/anlama pilotta açık. E05'in ilk bakım/yayın kontrolü tamamlandı. E04'ün hedef aşan sürelerinin nedeni (pil + tekrar işler) ayrıldı ve tek pil koşusu eşikleri geçti (prizde 3×3 tekrar ertelendi). E01'in ilk örüntüsü (sıkıştırılmış/çatallanmış Codex) eklendi; kalan E01 örüntüleri ve E02 aynı kaynakta hesap değişimini somut karşı örneklerle sına. Kanıtlanamayan kapsam kesin sonuca dönüşmez. Y07'nin kullanıcı gerektirmeyen kabul hazırlıkları sürdürülür; hesap/lisans/imza/katılımcı işleri ve otomatik güncelleme sona kalır. Yeni paket çıkarmak bu incelemelerin ön koşulu değil.
+2. Y05 → Y04 → Y03 → Y02 kaynakta yapay verilerle doğrulandı; gerçek kullanıcı yararı/anlama pilotta açık. E05'in ilk bakım/yayın kontrolü tamamlandı. E04'ün hedef aşan sürelerinin nedeni (pil + tekrar işler) ayrıldı ve tek pil koşusu eşikleri geçti (prizde 3×3 tekrar ertelendi). E01'in ilk örüntüsü (sıkıştırılmış/çatallanmış Codex) eklendi; E02 kimliksiz kapsamla kapandı; kalan E01 örüntülerini somut karşı örneklerle sına. Kanıtlanamayan kapsam kesin sonuca dönüşmez. Y07'nin kullanıcı gerektirmeyen kabul hazırlıkları sürdürülür; hesap/lisans/imza/katılımcı işleri ve otomatik güncelleme sona kalır. Yeni paket çıkarmak bu incelemelerin ön koşulu değil.
 3. Kullanıcının ürünü hazır bulmasına kadar reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur ve sonraki gerçek kanıt önceliği değiştirebilir.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.
 

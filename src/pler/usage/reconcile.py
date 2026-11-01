@@ -226,12 +226,14 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                     checkpoints[session.session_id].append(dict(tokens=rules.tokens(info['total_token_usage'],'codex'),
                                                                  path=str(path),index=index,at=moment))
                 limits=payload.get('rate_limits') or {}
-                if isinstance(limits.get('plan_type'),str): session.quota_plan=limits['plan_type']
+                plan=limits['plan_type'] if isinstance(limits.get('plan_type'),str) and limits['plan_type'] else None
+                if plan: session.quota_plan=plan
                 for name in ('primary','secondary'):
                     window=limits.get(name) if isinstance(limits.get(name),dict) else {}
                     used,minutes=percentage(window.get('used_percent')),window.get('window_minutes')
                     if moment and used is not None and type(minutes) is int and minutes>0:
-                        sample=(moment,minutes,used,timestamp(window.get('resets_at')))
+                        # The logged plan travels with each sample: a change bounds which samples describe one limit.
+                        sample=(moment,minutes,used,timestamp(window.get('resets_at')),plan)
                         if sample not in session.quota: session.quota.append(sample)
     for candidates in responses.values():
         ids=sorted({c['session'].session_id for c in candidates})

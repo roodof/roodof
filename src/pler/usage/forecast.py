@@ -11,6 +11,8 @@ The meter is account-wide and moves only while agents work, so the pace depends 
 A forecast assumes that pace continues.
 Contradictory meter histories are withheld. This detects inconsistent evidence,
 not provider account identity; compatible samples alone cannot prove one account.
+Codex logs its plan with every sample: after a plan change (another plan or another
+account) only the samples since the latest change describe the current limit.
 """
 from datetime import datetime, timedelta
 
@@ -59,6 +61,18 @@ def _consistent_history(samples):
     return samples[first:], uncertain_until is not None
 
 
+def plan_boundary(samples):
+    """When the logged plan last changed among these samples (a fifth item, as Codex logs it), or None.
+    Percentages from before it measure a different limit: another plan or another account."""
+    boundary, previous = None, None
+    for sample in sorted((s for s in samples if len(s) > 4 and isinstance(s[4], str) and s[4]
+                          and isinstance(s[0], datetime) and s[0].tzinfo is not None), key=lambda s: (s[0], s[4])):
+        if previous is not None and sample[4] != previous:
+            boundary = sample[0]
+        previous = sample[4]
+    return boundary
+
+
 def outlook(sessions, now, claude=(), scopes=None):
     """One row per agent and window length: last used percent, reset time, pace and state. `claude` holds the
     status line samples (time, window minutes, used percent, resets_at).
@@ -66,14 +80,22 @@ def outlook(sessions, now, claude=(), scopes=None):
     States: full, fills_before_reset (with full_at), lasts_until_reset, no_pace (too little history or no
     rise), reset (the window ended after the last record), ambiguous (conflicting
     meter histories; neither a current level nor a forecast can be established)."""
-    windows = {}
+    windows, cut = {}, set()
     sources = [(session.agent, session.quota) for session in sessions] + [('claude-code', claude)]
+    boundaries = {}
+    for agent, quota in sources:
+        boundaries.setdefault(agent, []).extend(sample for sample in quota if len(sample) > 4 and isinstance(sample[0], datetime)
+                                                and sample[0].tzinfo is not None and sample[0] <= now)
+    boundaries = {agent: plan_boundary(samples) for agent, samples in boundaries.items()}
     for agent, quota in sources:
         for sample in quota:
             if (len(sample) > 3 and isinstance(sample[0], datetime) and sample[0].tzinfo is not None
                     and isinstance(sample[3], datetime) and sample[3].tzinfo is not None
                     and type(sample[1]) is int and sample[1] > 0 and percentage(sample[2]) is not None
                     and sample[0] <= now):
+                if boundaries.get(agent) and sample[0] < boundaries[agent]:
+                    cut.add((agent, sample[1]))
+                    continue
                 # Different files and copied sessions often repeat one account
                 # sample. They supply no additional rise or ordering evidence.
                 windows.setdefault((agent, sample[1]), set()).add(
@@ -88,6 +110,8 @@ def outlook(sessions, now, claude=(), scopes=None):
         max_age = SHORT_MAX_AGE if minutes < 24 * 60 else LONG_MAX_AGE
         row = dict(agent=agent, window_minutes=minutes, used_percent=used, at=at.isoformat(), resets_at=resets.isoformat(),
                    max_age_seconds=max_age.total_seconds())
+        if (agent, minutes) in cut:
+            row['plan_changed_at'] = boundaries[agent].isoformat()
         if (scopes or {}).get(agent,0)>1:
             row.update(state='ambiguous',used_percent=None,resets_at=None,reason='multiple_source_groups')
             rows.append(row)

@@ -14,3 +14,14 @@ test('reset takes precedence over an old full sample',()=>{assert.equal(read({..
 test('legacy percentage without a reset time is only historical',()=>{const {resets_at,...legacy}=base;assert.equal(read(legacy).state,'historical');});
 test('past deadlines are never displayed as future forecasts',()=>{assert.equal(read({...base,state:'fills_before_reset',full_at:'2026-10-26T11:55:00Z'}).state,'stale');});
 test('weekly samples have a separate age policy',()=>{const row={...base,window_minutes:10080,max_age_seconds:86400,resets_at:'2026-11-01T12:00:00Z'};assert.equal(read(row,now+23*3600000).state,'no_pace');assert.equal(read(row,now+25*3600000).state,'stale');});
+test('a logged plan change is stated after every outlook text, ambiguous ones included',()=>{
+  const from=source.indexOf('function usageOutlookText('),to=source.indexOf('const planNames=',from);
+  const table=JSON.parse(source.split('/*I18N*/')[1].split('/*END*/')[0]);
+  const page=vm.createContext({t:(key,values={})=>table.en[key].replace(/\{(\w+)\}/g,(m,name)=>name in values?values[name]:m),
+    usageDate:value=>'DATE('+value+')',usagePct:value=>Math.round(value*100)+'%'});
+  vm.runInContext(source.slice(from,to),page);
+  const changed='2026-10-26T09:00:00Z';
+  assert.ok(page.usageOutlookText({...base,plan_changed_at:changed}).endsWith(' The logged plan changed DATE('+changed+'); only later records are used.'));
+  assert.ok(page.usageOutlookText({...base,state:'ambiguous',plan_changed_at:changed}).includes('DATE('+changed+')'));
+  assert.ok(!page.usageOutlookText(base).includes('plan changed'));
+});

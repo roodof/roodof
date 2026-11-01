@@ -16,7 +16,7 @@ import json
 from ..paths import cache_file
 from .records import TOKEN_FIELDS, empty_tokens, percentage, total
 from .period_usage import event_time
-from .forecast import LARGE_DROP, SHORT_MAX_AGE, LONG_MAX_AGE
+from .forecast import LARGE_DROP, SHORT_MAX_AGE, LONG_MAX_AGE, plan_boundary
 
 PRICES_AS_OF = '2026-11-01'
 PERIOD = timedelta(days=30)
@@ -214,12 +214,19 @@ def advise(sessions, claude_samples, now, claude_plan=None, scopes=None, sources
             continue
         if agent == 'codex':
             recent = sorted((s for s in own if s.quota_plan and s.ended and since <= s.ended <= now), key=lambda s: s.ended)
-            plan = recent[-1].quota_plan if recent else None
-            plans_seen = sorted({s.quota_plan for s in recent})
-            source = 'log' if plan else None
             samples = [sample for s in own for sample in s.quota]
+            # Each sample carries its logged plan: the newest one names the plan, and the meter counts only the
+            # samples since the latest change (earlier ones measured another plan's or account's limit).
+            logged = sorted((s for s in samples if len(s) > 4 and isinstance(s[4], str) and s[4]
+                             and event_time(s[0]) is not None and since <= event_time(s[0]) <= now), key=lambda s: s[0])
+            plan = logged[-1][4] if logged else recent[-1].quota_plan if recent else None
+            plans_seen = sorted({s.quota_plan for s in recent} | {s[4] for s in logged})
+            source = 'log' if plan else None
+            boundary = plan_boundary([s for s in samples if event_time(s[0]) is not None and event_time(s[0]) <= now])
+            if boundary is not None:
+                samples = [s for s in samples if event_time(s[0]) is None or event_time(s[0]) >= boundary]
         else:
-            plan, plans_seen = claude_plan, []
+            plan, plans_seen, boundary = claude_plan, [], None
             source = 'user' if plan else None
             samples = list(claude_samples)
         known = PLANS[agent].get(plan)
@@ -234,6 +241,8 @@ def advise(sessions, claude_samples, now, claude_plan=None, scopes=None, sources
                    usage_partial=partial, actual_payment_usd=None, history_complete=False,
                    scope='retained_agent_records_all_projects', since=since.isoformat(), until=now.isoformat(),
                    limit_hits=sum(1 for s in own for hit in s.limit_hits if hit and since <= hit <= now))
+        if boundary is not None and boundary >= since:
+            row['plan_changed_at'] = boundary.isoformat()
         meter, limits = _meter(samples, since, now)
         if (scopes or {}).get(agent, 0) > 1:
             meter={}; limits.add('multiple_source_groups')
