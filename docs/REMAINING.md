@@ -1,6 +1,6 @@
 # PLER — güncel kalan işler
 
-1 Kasım 2026; güncel uygulama 0.2.29 (ilk kullanım, çevrimdışı yardım/destek ve Windows paket yönlendirmeleri). 0.2.28 kota uyarısını, 0.2.27 plan kontrolünü, 0.2.26 Y01 iş bağlamayı ekledi. Parser `accounting-2026-10-30.3` ve şema 2 değişmedi. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [İlk kullanım/paket kanıtı](../../reports/first-use-v1/REPORT.md), [yedekleme çalışması](../../reports/backup-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
+1 Kasım 2026; güncel uygulama 0.2.29 (ilk kullanım, çevrimdışı yardım/destek ve Windows paket yönlendirmeleri). 0.2.28 kota uyarısını, 0.2.27 plan kontrolünü, 0.2.26 Y01 iş bağlamayı ekledi. Son yayımlanan paket .29'dur; Y02/Y03/Y04/Y05/E05 değişiklikleri yerel kaynakta, yeni paket/yayın yok. E05 ile kaynak parser'ı `accounting-2026-11-01.1` oldu; kullanım şeması 2, iş bileşeni 3. Bu kayıt aktif iş listesidir. [QUALITY.md](../QUALITY.md) tarihsel bulguları ve kapanan kusurların kanıtlarını korur; eski bir notta “açık” yazması, sonraki sürümde kapanmış kusuru yeniden açmaz. [İlk kullanım/paket kanıtı](../../reports/first-use-v1/REPORT.md), [yedekleme çalışması](../../reports/backup-v1/REPORT.md), [sayım sözleşmesi](../ACCOUNTING.md), [yayın koşulları](RELEASE.md), [kabul adımları](ACCEPTANCE.md) ve [pilot protokolü](PILOT.md) dayanaklardır.
 
 Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Her başlığın tamamlanma durumu ayrıca yazılıdır; bir özelliğin uygulanması gerçek kullanıcı faydasının veya ödeme isteğinin kanıtı değildir.
 
@@ -19,7 +19,11 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y02 — Gözlemden karara ve haftalık takibe geçiş
 
-**Durum:** Planlandı; ürün geliştirmesi ve kullanıcı doğrulaması. **Bağımlılık:** Y01 ve kullanılabilir veri kapsamı.
+**Durum:** 1 Kasım'da kaynakta uygulandı; yeni paket/yayın yok. [Y02 çalışma kanıtı](../../reports/followups-v1/REPORT.md). Kaynak ve arayüz doğrulamaları üretilmiş veriler/simüle hafta ile yapıldı; gerçek bir haftalık kullanıcı kararı, fayda ve tekrar kullanım pilotta açık. **Bağımlılık:** Y01 ve kullanılabilir veri kapsamı.
+
+- **Uygulanan:** Kullanıcı kota/yoğunlaşma/oturum örüntüsü/diğer gerekçesini, gözlemini ve deneyeceği değişikliği bir işe kaydeder. Kaynak okuma zamanı sabit başlangıçtır; önceki ve sonraki dönemler eşit, çakışmayan yedi gündür. Yalnızca tarihli ve uzlaştırılmış yanıtlar ölçülür. Yeni model/provider çağrısı veya zamanlanmış inceleme yok; bölüm açılınca yüklenir. Bir hafta sonrası güncel kaynak okuması ve açık kullanıcı incelemesi gerektirir.
+- **Karşılaştırma sınırı:** Her aynı araç/proje/model grubunda iki dönemde de en az üç oturum, yeniden üretilebilen başlangıç ve kullanıcının benzer görev/koşul değerlendirmesi gerekir. Medyan, oturumların yanıt başına token ortalamalarından hesaplanır. Eksik kaynak, değişmiş geçmiş, ayrıştırıcı/model değişimi, dönem sınırını aşan yanıt veya bilinmeyen koşulda sayısal fark üretilmez; gerekçe gösterilir. Nedensellik, kalite, hesap kotası veya para tasarrufu iddiası yok.
+- **Saklama/güvenlik:** İş başına 10, toplam 100, aynı işte bir açık takip; iş dosyası 2 MiB sınırı korunur. Özel takipler aynı atomik iş kaydında, normal JSON dışında ve özel yedekte tutulur. İptal başlangıcı korur; takip veya işi silme eski yedekleri silmez. Yeni bileşen biçimi 3 eski 1/2'yi düzenlemeden okur; gerçek yazma 3 kullanır. Eski uygulamalar 3 okuyamaz. İlk açılışa ölçüm eklenmez; ayrı yetkili okuma ve 16 KiB eylem yolu, içerik/kapsam revizyonları ve kaybolmayan taslaklar kullanılır.
 
 - Mevcut kota, yoğunlaşma ve oturum karşılaştırmalarını temel alarak incelenecek durumun dayanağını ve sınırını birlikte sun.
 - Kullanıcı bir çalışma değişikliği kaydedebilsin; sonraki dönemde gözlenen değişimi inceleyebilsin. Karşılaştırma aynı dönem/oturum tanımı, sabit gözlem zamanı ve uyumlu model/proje kapsamını kullansın.
@@ -28,7 +32,10 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y03 — İşin hedefi ve tamamlanma sonucunu ilişkilendirme
 
-**Durum:** Planlandı; ürün geliştirmesi. **Bağımlılık:** Y01.
+**Durum:** 1 Kasım'da kaynakta uygulandı; yeni paket/yayın yok. [Y03 çalışma kanıtı](../../reports/work-outcomes-v1/REPORT.md). Kullanıcının hedefi, kendi sonuç durumu ve kalan iş notu, mevcut oturum değerlendirmelerinden ayrı kaydedilir. Gerçek kullanıcı yararı/anlama pilotta açık. **Bağımlılık:** Y01.
+
+- **Uygulanan:** Hedef ve sonuç notu ayrı ayrı en fazla 1.000 karakter; değerlendirilmedi/kısmen tamamlandı/tamamlandı/tamamlanmadı kullanıcı seçimi ve kayıt zamanı. İşin tamamına ait bu girdiler filtreler veya kayıp oturumlarla değişmez. Seçili oturumların son görünür test/derleme sonuçları ve zamansal Git gözlemleri ayrı gösterilir; otomatik tamamlanma/kalite puanı yok.
+- **Saklama/güvenlik:** Eski iş biçimi 1 değişmeden okunur; Y03 aşaması biçim 2 ekledi; güncel gerçek düzenleme Y02 ile iş bileşeni biçimi 3 yazar. Uygulama sürümü, kullanım şeması ve parser değişmedi. Hedef/notlar normal JSON'dan çıkarılır, özel yedekte korunur. Çakışan düzenlemede taslak ve son kayıtlı sürüm ayrılır; açık inceleme ve sonraki kayıt olmadan üzerine yazılmaz. Filtre/dil değişimi taslağı kaybettirmez. Eski uygulamalar güncel biçim 3'ü okuyamayacağından geri dönüşte uyumlu yedek gerekir.
 
 - İşin hedefi ile kullanıcının “tamamlandı/kısmen tamamlandı” sonucunu mevcut oturum değerlendirmelerinden ayrı tut.
 - Mevcut test/derleme ve Git gözlemleri dayanak olarak birleşsin; bunlar kullanıcı sonucunun yerine geçmesin. İsteğe bağlı görev/PR referansı tasarlanabilir; harici hesap bağlama veya otomatik sorgulama bu kayıtla yetkilendirilmiş sayılmaz.
@@ -36,7 +43,10 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y04 — Gerçek ödeme, API fiyat karşılığı ve kotanın karar bağlamı
 
-**Durum:** Kısmen; 0.2.27 plan kontrolü eklendi: ajan başına plan fiyatı, son 30 günün API liste fiyatı karşılığı, sınıra dayanılan pencere/hafta sayısı ve yalnız yayımlanmış oranlarla küçük Claude planı önerisi ([rapor](../../reports/plan-check-v1/REPORT.md)). Kullanıcının gerçek ödediği tutarı girmesi ve pilot doğrulaması açık. Yeni bir fatura hatası saptanmadı.
+**Durum:** 0.2.27'deki plan kontrolünün güvenilirlik sınırları 1 Kasım'da kaynakta düzeltildi; yeni paket/yayın yok. [Y04 çalışma kanıtı](../../reports/plan-safety-v1/REPORT.md). Önceki [0.2.27 raporu](../../reports/plan-check-v1/REPORT.md) tarihsel uygulamayı anlatır; eski “API daha ucuz / küçük plan yeterdi” sonuçları artık üretilmez. Gerçek ödeme girişi yararlılığı ve profesyonel kullanıcı anlama doğrulaması pilotta açık.
+
+- **Kapanan somut açıklar:** Fiyatlanamayan yanıta rağmen ucuzluk sonucu; seyrek veya eski ölçerden küçük plan sonucu; birden fazla kaynak grubunun tek abonelikle kıyaslanması; kaynak okuma/arşiv hatalarının plan kararından düşmesi. Tarihi/yanıt toplamı uzlaşmayan kullanım, plan değişimi ve çelişen ölçer de sınırlanır.
+- **Yeni sınır:** Yalnız kayıtlı tutarın liste fiyatından düşük olduğu sayısal gözlem ile varsayılan plana bağlı gözlenen eşik karşılaştırması kalır. Ödenen tutar `null`, eksiksiz hesap geçmişi `false`; küçük plan yeterliliği veya geçişte tasarruf iddiası yok. En az 14 güne yayılan 14 ayrı UTC gününde örnek, en fazla iki günlük aralık ve güncellik gerekir; bunlar PLER'in gözlem kurallarıdır. Açık sayfada eskiyen eşik karşılaştırması kendiliğinden yeniden okuma mesajına döner.
 
 - API karşılığı, tarih/fiyat kapsamı ve kota gözlemi zaten mevcut; bunları yokmuş gibi yeniden geliştirme.
 - Kullanıcının gerçek ödeme bilgisini ayrıca eklemek yararlı mı, pilotta sına. Gerekirse yalnız açıkça seçilen veriye dayalı ayrı karşılaştırma tasarla; kayıtlardaki API karşılığını gerçek abonelik giderine çevirmeye çalışma.
@@ -44,7 +54,10 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### Y05 — Eksik kapsamı kullanılabilir karara ve giderme adımına bağlama
 
-**Durum:** Planlandı; mevcut kalite açıklamalarını geliştirme. **Bağlantı:** E01/E02 hesap motoru ve kaynak kapsamı çalışmalarıdır; bu başlık kullanıcının açıklamayı kullanabilmesidir.
+**Durum:** 1 Kasım'da kaynakta uygulandı ve yapay verilerle doğrulandı; henüz yeni paket veya canlı site yayını yapılmadı. Gerçek kullanıcıların açıklamaları doğru yorumlaması pilotta açık. [Y05 çalışma kanıtı](../../reports/coverage-v1/REPORT.md). **Bağlantı:** E01/E02 hesap motoru ve kaynak kapsamı çalışmalarıdır; bu başlık o sınırları açıklamayı geliştirir, motorun bütün belirsizliklerini çözmez.
+
+- **Uygulanan:** 13 sabit neden için karar etkisi ve güvenli sonraki adım; seçili klasörlerin kaynak uyarıları ile ana filtrelere uyan oturum/fiyat sınırlarının ayrımı. Mevcut kalite nedenleri ve etkilenen oturum filtresi korunur. Türkçe/İngilizce çevrimdışı kurtarma yardımı eklendi; erişim hatalı boş okuma artık “kayıt bulunamadı” başlığı kullanmaz. Codex kota eksikliği Claude durum satırına yönlendirilmez.
+- **Sınır:** Hiç okunmadan silinen kaydın varlığı/sayısı tespit edilemez; geri getirme sözü verilmez. Önbelleği yeniden kurma, arşivi silme veya tekrar okuma kayıp asılları onaramaz. Y04 öneri kuralları bu çalışmada değiştirilmedi; açıklamalar mevcut önerinin güvenli olduğunun kanıtı değildir.
 
 - Mevcut kalite işaretleri, etkilenen oturumlar ve kaynak uyarıları korunur. Hangi kararın mevcut kapsamla yapılabileceğini, hangi karşılaştırmanın beklemesi gerektiğini anlaşılır kıl.
 - Yeniden okunabilir/geçici hata ile artık geri getirilemeyen kaynağı ayır. Güvenli yeniden okuma veya yalnız yeniden kurulabilir önbelleği sıfırlama yönlendirmesi, arşivi yanlışlıkla sildirmesin.
@@ -99,15 +112,25 @@ Onaylanmış, güvenilir masaüstü veri kaynağıyla gerçek destek doğrulanma
 
 ### E04 — Güncel adayın ölçek ve performans kabulü
 
-**Durum:** Artımlı okuma/önbellek optimizasyonları ve sentetik hız korumaları var; genel kullanıcı hız garantisi yok. **Tür:** Ölçüm ve gerekirse optimizasyon.
+**Durum:** Önceki kaynak hash'i 1 Kasım'da tanımlı Windows iş yükünü geçti. E05 sonrası güncel adayın tek ek koşusunda hız hedefleri aşıldı; güncel performans kabulü yeniden açık. [Önceki E04 kanıtı](../../reports/scale-v1/REPORT.md), [güncel E05 kontrolü ve ham sonuçlar](../../reports/compatibility-v1/REPORT.md). **Tür:** Ölçüm ve gerekirse optimizasyon.
+
+- **Yeni öncelikli karşı örnek:** Güncel 3.14 native tek koşusunda ilk JSON 20,02 sn; değişmeyen yenileme 5,64 sn > 3 sn, ilk Git toplamı 5,52 sn > 5 sn, üç HTTP ölçümü 2,05–2,08 sn > 2 sn. Sayım/tarihli kanıt önbelleksiz okumayla eşit, arşiv ve fixture bütünlüğü korundu; tepe çalışma kümesi 212,57 MiB. Bu, hız kabulü veya değişikliğin nedeninin kanıtı değildir. Önce kontrollü tekrar/profil ile neden ayrılır; aynı eşikler korunur, sayım ve kapsam azaltılarak hedef geçirilmez.
+
+- **Doğrulanan:** Sonuç görülmeden sabitlenen eşiklerle 102,61 MiB açılmış veri, 385 dosya/oturum, 36.992 yanıt, 16 Git deposu/1.024 commit, 200 iş/20.000 bağlantı/100 takip. Üçer koşuda Windows Python 3.14 native, 3.12 ve 3.9 saf-Python yolları bütün eşikleri karşıladı. İlk kullanılabilir JSON raporu ortancası 8,85 / 20,09 / 27,50 sn; değişmeyen yenileme 2,32 / 2,23 / 2,62 sn. Bütün yeni süreç ayrıca ölçüldü; Git/arşiv/rapor maliyeti dahil, görsel ilk boyama dahil değil. Tepe süreç çalışma kümesi en fazla 239,08 MiB.
+- **Doğruluk/kapanış kanıtı:** Bağımsız önbelleksiz referansla metadata, kullanım, tarihli yanıt ve kalite eşitliği; büyüyen dosyada bütün eski öneğin doğrulanması ve önceki bölüm değişiminde yeniden okuma. Dokuz ek tüm-kaynak-kaybı koşusunda son saklanan 386 oturum aynı sayılarla ve arşiv olarak korundu. Üç çözücüde gerçek ilerlemeden sonra iptal yarım snapshot yayımlamadı. Kaynak/fixture/plan hash'leri, ham koşular ve yeniden çalıştırılabilir araçlar raporda. Python 3.12 kaynak takımı 786/5-atlama/0-hata, 3.14 795/4-atlama/0-hata. Gerçek ekranda sınırlı liste çizimi ve 390 px görünüm doğrulandı.
+- **Açık sınır:** Bir geliştirici Windows makinesi ve tanımlı corpus. İşletim sistemi soğuk disk önbelleği, en büyük izinli tek dosya, başka iş yükleri veya fiziksel macOS/Linux/WSL ölçümü yapılmadı. Y07 temiz makine/platform kabulü ve bu kapsamlar açık. Bu tur ürün hızlandırması veya yeni paket yok; önceki geliştirmeler için tekrar üretilebilir kabul kanıtı eklendi.
 
 İlk okuma, değişmeyen yenileme, eklenen kaynak, tam önek doğrulaması, Git ve arşiv maliyetini bütün hat üzerinde ölç. Büyük uydurma geçmiş, eski Python/fallback çözücü ve desteklenen çalışma ortamları için süre/bellek/iptal kanıtı tut; kabul eşiklerini ölçüm sonuçlarını görmeden seç. Eski parser-only oranını toplam açılış süresi diye sunma. Yeni gerçek veri ölçümü ancak uygun kullanıcı yetkisiyle yapılır. **Kapanış:** Tam aday ve fixture hash'leriyle tekrar üretilebilir ölçüm, önceden belirlenen hedefler ve sayım/kalite eşitliği; karşılanmayan ortam ya iyileştirilir ya belgelenmiş kapsam kararı alır.
 
 ### E05 — Kayıt biçimi ve fiyat tablosu uyumluluğunun bakımı
 
-**Durum:** Desteklenen okuyucular ve tarihli sabit fiyatlar var; sürekli bakım işi. **Tür:** Uyumluluk ve sürümleme.
+**Durum:** 1–2 Kasım'da ilk bakım/yayın kontrolü kaynakta tamamlandı; sonraki sürümlerde tekrarlanır. Yeni paket/yayın yok. [E05 çalışma kanıtı](../../reports/compatibility-v1/REPORT.md), [bakım sözleşmesi](COMPATIBILITY.md) ve [sürümlü inceleme kaydı](compatibility.json). **Tür:** Uyumluluk ve sürümleme.
 
-Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve yeni/bozuk olay davranışını sürdür. Fiyat tablosunun tarih/kaynak/model kapsamını kontrol eden yayın adımı oluştur; bilinmeyen model sıfır fiyat sayılmasın. Parser değişikliği önbellek/arşiv ve eski JSON yorumuna bağlansın. Kaynak değişimi otomatik dış ağ sorgusu veya model çağrısı gerektirmez. **Kapanış:** Yayın başına destek matrisi, uydurma/izinli anonim fixture regresyonları, fiyat/sürüm kaydı ve bilinmeyeni güvenli sunan davranış; bundan sonraki sürümlerde bakım tekrar edilir. Bu, şu an yeni bir yanlış fiyat veya kayıt hatası bulunduğu iddiası değildir.
+- **Uygulanan:** 22 uydurma kayıt örneğinin bağımsız sayım/fiyat beklentileri ilk okuma, önbellek ve doğrulanmış arşivde sınanır. 26 model kimliği, fiyat/kota varsayımları, resmi kaynak/tarih, okuyucu kodu ve örnek sağlama toplamı çevrimdışı yayın kontrolüne bağlı. Yeni model/fiyat, incelenmemiş yorum değişimi, 30 günden eski fiyat veya 90 günden eski okuyucu incelemesi yayın kontrolünü durdurur. Bu süreler PLER bakım politikasıdır; aradaki fiyatın değişmediğinin kanıtı değildir. CI tüm arayüz test dosyalarını keşfeder; hesap engelli CI tetiklenmedi.
+- **Kapanan kusurlar:** Codex'in saklama süresi bilinmeyen GPT-6 önbellek yazıları normal girdi fiyatına çevrilmez; incelenmemiş tarihli Codex kimlikleri fiyat devralmaz. Claude'un bozuk süre/hız/bölge/servis bilgisi geçerli sayıma zarar vermeden fiyatı belirsiz bırakır; aynı kullanımın kopyaları sıra bağımsız biçimde fiyat üzerinde anlaşmalıdır. Ekran/yardım EN/TR açıklamaları fiyatlanamayanı ücretsiz göstermez.
+- **Geçiş sınırı:** Parser `accounting-2026-11-01.1`; değişen okuyucu anahtarları ilgili önbelleği yeniden kurar. Eski arşiv kanıtı yeni okuyucuda doğrulanmış sayılmaz; eski dışa aktarımlar sürüm bilgisini taşır, farklı parser başlangıçları haftalık karşılaştırmada çözümsüz kalır. Şema 2, iş bileşeni 3 ve yedek zarfı değişmedi. Gerçek istemci sürümlerinin bütün olaylarına veya tüm hesap geçmişine destek sözü yok.
+
+Claude/Codex alan/olay–örnek eşlemesi ve resmi fiyat kaydı her yayında yeniden incelenir. Kaynak değişimi otomatik dış ağ sorgusu veya model çağrısı gerektirmez. **Kapanış:** İlk kontrol/regresyon/versiyonlama kapsamı tamamlandı; sürekli bakım ve yeni kayıt örüntülerinin incelenmesi devam eder.
 
 ### E06 — Gerçek profesyonel pilot ve tekrar kullanım
 
@@ -125,7 +148,7 @@ Claude/Codex kayıt sürümü–desteklenen olay/alan–fixture eşlemesini ve y
 ## Önerilen yürütme sırası ve kapanış disiplini
 
 1. Y06 belirtilen yerel kurtarma kapsamıyla, Y01 iş bağlama 0.2.26'da yerel kapsamla tamamlandı. Bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
-2. Y01'den sonra Y03 hedef/sonuç ve Y02 karar takibi; Y04/Y05 kullanıcı yanlış anlamalarını kapatacak kapsamda ilerler. Y07'nin tamamlanabilir yerel kabul hazırlığı sürdürülür; dış engel/kararlar ayrı görünür.
+2. Y05 → Y04 → Y03 → Y02 kaynakta yapay verilerle doğrulandı; gerçek kullanıcı yararı/anlama pilotta açık. E05'in ilk bakım/yayın kontrolü tamamlandı. Önce E04'ün yeni adayda hedef aşan sürelerinin nedenini kontrollü tekrar/profille ayır ve sabit eşiklerle doğrula; ardından E01 zor geçmişleri ve E02 aynı kaynakta hesap değişimini somut karşı örneklerle sına. Kanıtlanamayan kapsam kesin sonuca dönüşmez. Y07'nin kullanıcı gerektirmeyen kabul hazırlıkları sürdürülür; hesap/lisans/imza/katılımcı işleri ve otomatik güncelleme sona kalır. Yeni paket çıkarmak bu incelemelerin ön koşulu değil.
 3. Kullanıcının ürünü hazır bulmasına kadar reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur ve sonraki gerçek kanıt önceliği değiştirebilir.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.
 

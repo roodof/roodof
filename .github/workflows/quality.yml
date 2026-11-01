@@ -41,8 +41,15 @@ jobs:
           sys.path.insert(0, "src")
           result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
           sys.exit(not result.wasSuccessful())
+      - name: Reviewed reader and price compatibility gate (offline)
+        run: python tools/check_compatibility.py
       - name: Browser logic
-        run: node --test tests/test_access.cjs tests/test_quota_view.cjs tests/test_usage_actions.cjs tests/test_reedit_view.cjs tests/test_lowlevel_view.cjs tests/test_verdict_view.cjs tests/test_backup_view.cjs tests/test_work_items_view.cjs tests/test_plans_view.cjs tests/test_live_quota_view.cjs
+        shell: python
+        run: |
+          import pathlib, subprocess
+          suites = sorted(str(path) for path in pathlib.Path('tests').glob('test_*.cjs'))
+          assert suites, "No browser logic tests found"
+          subprocess.run(['node', '--test', *suites], check=True)
       - name: Require the Python 3.14 decoder path
         if: matrix.python == '3.14'
         shell: python

@@ -10,6 +10,7 @@ from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
+import secrets
 import threading
 import time
 
@@ -28,10 +29,11 @@ from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
 from .usage import work_items as work_rules
 from .usage import plans as plan_rules
+from .usage import followups as followup_rules
 from .usage.checks import summary as check_summary
 from .usage.insights import tests as test_insight
 from .usage.summary import summarize, quota_burn
-from .reporting import provenance,quality,affected
+from .reporting import PARSER_VERSION,provenance,quality,affected,coverage_guidance
 
 PERIODS = (0, 7, 30, 90)
 
@@ -216,7 +218,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     windows = quota_outlook(sessions, now, sources.get('claude_quota', ()),sources.get('quota_source_groups'))
     # A plan is the account's: every session and every project, whatever the filters.
     plans = dict(rows=plan_rules.advise(sessions, sources.get('claude_quota', ()), now, sources.get('claude_plan'),
-                                        sources.get('quota_source_groups')),
+                                        sources.get('quota_source_groups'),sources=sources),
                  prices_as_of=plan_rules.PRICES_AS_OF, choices=list(plan_rules.CHOICES),
                  readable=not sources.get('claude_plan_error'))
     # Older logs lack reset timestamps, but their last meter sample is still account-wide.
@@ -258,7 +260,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     work=work_rules.project(sources.get('work_items') or {},work_rows,
                             all_session_ids={session_code(session) for session in sessions})
     work['readable']=not sources.get('work_items_error',False)
-    return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
+    return dict(**provenance(archived=bool(archive_public['sessions'])),quality=trust,coverage=coverage_guidance(rows,sources),mode='local_agent_usage', new_model_calls=0, filters=dict(days=days, agent=agent, project=project),
                 period=dict(since=_iso(since), mode='active_sessions_full_totals',
                             cross_period_sessions=sum(bool(s.started and since and s.started < since) for s in rows)),
                 api_prices=dict(as_of=PRICES_AS_OF, tier='standard'),
@@ -456,7 +458,7 @@ class UsageDashboard:
         except (OSError,ValueError,TypeError,UnicodeError):
             return dict(work_items={},work_items_error=True)
 
-    def mutate_work_item(self,action,identity=None,title=None,session=None):
+    def mutate_work_item(self,action,identity=None,title=None,session=None,details=None,expected_revision=None):
         """Change only explicit user work annotations; never rescan logs or infer an assignment."""
         with self.lock:
             if self._closed or self.scanned_at is None:
@@ -468,13 +470,91 @@ class UsageDashboard:
                 if not any(session_code(row)==session for row in self.sessions):
                     return dict(ok=False,reason='missing_session')
             try:
-                value=self._work_items_store().mutate(action,identity=identity,title=title,session=session)
+                extra=dict(details=details,expected_revision=expected_revision) if action=='describe' else {}
+                value=self._work_items_store().mutate(action,identity=identity,title=title,session=session,**extra)
             except work_rules.WorkError as error:
-                return dict(ok=False,reason=error.code if error.code in ('missing','limit') else 'invalid')
+                return dict(ok=False,reason=error.code if error.code in ('missing','limit','conflict') else 'invalid')
             except (OSError,ValueError,TypeError,UnicodeError,KeyError):
                 return dict(ok=False,reason='unsaved')
             self.sources.update(work_items=value['items'],work_items_error=False)
             return dict(ok=True,id=value['id'])
+
+    def _followup_view(self,identity,now):
+        self._check_archive_generation()
+        if self._closed or self.scanned_at is None or self.state=='scanning': return dict(ok=False,reason='unavailable')
+        self.sources.update(self._read_work_items())
+        if self.sources.get('work_items_error'): return dict(ok=False,reason='unreadable')
+        item=self.sources['work_items'].get(identity)
+        if item is None: return dict(ok=False,reason='missing')
+        observed=timestamp(self.sources.get('observed_at')) or timestamp(self.scanned_at)
+        if observed is None: return dict(ok=False,reason='unavailable')
+        fresh=timedelta(0)<=now-observed<=followup_rules.MAX_AGE
+        members=item['sessions'];scope=work_rules.membership_revision(item)
+        preview=followup_rules.measure(self.sessions,members,observed-followup_rules.WINDOW,observed,observed,self.sources)
+        preview_revision=followup_rules.digest([observed.isoformat(),scope,preview['fingerprint'],PARSER_VERSION])
+        records=[]
+        for record in item['followups']:
+            entry=dict(record,revision=followup_rules.digest(record),comparison=followup_rules.comparison(record))
+            anchor=followup_rules.date(record['baseline']['until']);end=anchor+followup_rules.WINDOW
+            entry.update(due_at=end.isoformat(),ready=fresh and observed>=end,after_preview=None,review_revision=None)
+            if record['status']=='open' and observed>=end:
+                after=followup_rules.measure(self.sessions,members,anchor,end,observed,self.sources)
+                prior=followup_rules.measure(self.sessions,members,anchor-followup_rules.WINDOW,anchor,observed,self.sources)
+                entry['after_preview']=after
+                entry['review_revision']=followup_rules.digest([entry['revision'],scope,observed.isoformat(),after['fingerprint'],prior['fingerprint'],PARSER_VERSION])
+            records.append(entry)
+        return dict(ok=True,fresh=fresh,preview=preview,preview_revision=preview_revision,items=records,
+                    scope_revision=scope,observed_at=observed.isoformat(),new_model_calls=0)
+
+    def followup_view(self,identity,now=None):
+        with self.lock:
+            try: return self._followup_view(identity,now or datetime.now(timezone.utc))
+            except (ValueError,TypeError,OverflowError): return dict(ok=False,reason='unavailable')
+
+    def mutate_followup(self,action,identity,expected_revision,change='',observation='',trigger='other',
+                        record_id=None,context='unknown',note='',now=None):
+        """Freeze source observations only on an explicit user action, never a model or provider call."""
+        now=now or datetime.now(timezone.utc)
+        with self.lock:
+            view=self.followup_view(identity,now)
+            if not view.get('ok'): return view
+            item=self.sources['work_items'][identity]
+            scope=view['scope_revision']
+            try:
+                if action=='start_followup':
+                    if not view['fresh']: return dict(ok=False,reason='stale')
+                    if expected_revision!=view['preview_revision']: return dict(ok=False,reason='conflict')
+                    if trigger not in followup_rules.TRIGGERS: return dict(ok=False,reason='invalid')
+                    payload=dict(id=secrets.token_hex(12),method=followup_rules.METHOD,parser_version=PARSER_VERSION,
+                        created_at=int(now.timestamp()),trigger=trigger,observation=followup_rules.text(observation),
+                        change=followup_rules.text(change,True),baseline=view['preview'],status='open',
+                        review=None,cancelled_at=None,cancel_note='')
+                    expected=scope
+                else:
+                    record=next((r for r in view['items'] if r['id']==record_id),None)
+                    if record is None: return dict(ok=False,reason='missing')
+                    if action=='review_followup':
+                        if record['status']!='open': return dict(ok=False,reason='closed')
+                        if not view['fresh']: return dict(ok=False,reason='stale')
+                        if not record['ready']: return dict(ok=False,reason='early')
+                        if expected_revision!=record['review_revision']: return dict(ok=False,reason='conflict')
+                        if context not in followup_rules.CONTEXTS: return dict(ok=False,reason='invalid')
+                        baseline=record['baseline'];anchor=followup_rules.date(baseline['until'])
+                        current=followup_rules.measure(self.sessions,item['sessions'],anchor-followup_rules.WINDOW,anchor,
+                                                       followup_rules.date(view['observed_at']),self.sources)
+                        payload=dict(after=record['after_preview'],baseline_match=current['fingerprint']==baseline['fingerprint'],
+                                     parser_match=record['parser_version']==PARSER_VERSION,context=context,note=followup_rules.text(note))
+                        expected=record['revision']
+                    elif action in ('cancel_followup','delete_followup'):
+                        payload=followup_rules.text(note);expected=expected_revision
+                    else: return dict(ok=False,reason='invalid')
+                saved=self._work_items_store().followup(identity,action,record_id,payload,expected,scope)
+            except work_rules.WorkError as error:
+                return dict(ok=False,reason=error.code if error.code in ('missing','limit','conflict','active','closed') else 'invalid')
+            except (ValueError,TypeError,OverflowError): return dict(ok=False,reason='invalid')
+            except (OSError,UnicodeError): return dict(ok=False,reason='unsaved')
+            self.sources.update(work_items=saved['items'],work_items_error=False)
+            return dict(ok=True,id=identity,followup=saved['followup'])
 
     def set_verdict(self, identity, verdict):
         """Save the user's verdict for a session of the current snapshot; never one PLER has not shown."""

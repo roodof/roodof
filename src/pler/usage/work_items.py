@@ -1,9 +1,11 @@
-"""Your own named work and its opaque session links, stored only on this computer.
+"""User-named work, goals, outcomes and opaque session links, stored only on this computer.
 
-Titles are explicit user input, never inferred from a transcript. The file contains no source path,
-provider identity or conversation text. A link names the same source-sensitive page session code as
+Text is explicit private user input, never inferred or copied from an agent transcript.
+Readers add no native source path, provider identity or conversation content to these annotations.
+A link names the same source-sensitive page session code as
 verdicts.py: a moved/unavailable session remains an unresolved link, never an automatic reassignment.
 """
+import hashlib
 import json
 import math
 import os
@@ -16,15 +18,22 @@ import unicodedata
 
 from ..paths import cache_file
 from . import archive
+from . import followups as followup_rules
 from .records import _too_deep
 
 FILENAME = 'work-items.json'
-FORMAT = 1
+FORMAT = 3
+LEGACY_FORMAT = 1
+DETAILS_FORMAT = 2
 MAX_ITEMS = 200
 MAX_SESSIONS = 2000
 MAX_MEMBERSHIPS = 20000
 MAX_BYTES = 2 * 1024 * 1024
 MAX_TITLE = 120
+MAX_DETAIL = 1000
+MAX_DETAILS_REQUEST = 16384
+OUTCOMES = ('not_recorded', 'partial', 'completed', 'not_completed')
+DETAIL_FIELDS = {'goal', 'outcome', 'result_note', 'outcome_at'}
 MAX_TIME = (1 << 53) - 1
 CODE = re.compile('[a-f0-9]{24}')
 _FLAGS = ('tokens_complete', 'calls_complete', 'attribution_complete', 'models_complete')
@@ -51,6 +60,34 @@ def _title(value):
     return value
 
 
+def _detail_text(value):
+    if not isinstance(value,str): raise WorkError()
+    value=value.replace('\r\n','\n').replace('\r','\n').strip()
+    if len(value)>MAX_DETAIL or any(unicodedata.category(c) in ('Cc','Cs','Zl','Zp') and c!='\n' for c in value):
+        raise WorkError()
+    return value
+
+
+def validate_details(value):
+    """Only explicit user fields; no test, Git, usage or completion inference."""
+    if not isinstance(value,dict) or set(value)!={'goal','outcome','result_note'}:
+        raise WorkError()
+    if not isinstance(value['outcome'],str) or value['outcome'] not in OUTCOMES: raise WorkError()
+    return dict(goal=_detail_text(value['goal']),outcome=value['outcome'],result_note=_detail_text(value['result_note']))
+
+
+def details_revision(item):
+    """Content revision, independent of link/title updates and second-resolution clocks."""
+    fields=dict(goal=item.get('goal',''),outcome=item.get('outcome','not_recorded'),
+                result_note=item.get('result_note',''),outcome_at=item.get('outcome_at'))
+    raw=json.dumps(fields,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode('utf-8')
+    return hashlib.sha256(raw).hexdigest()[:24]
+
+
+def membership_revision(item):
+    return followup_rules.digest(sorted(item['sessions']))
+
+
 def _pairs(pairs):
     value = {}
     for key, item in pairs:
@@ -64,17 +101,19 @@ def validate_document(value):
     """Validate the exact format envelope; return a detached items mapping for backup/readers."""
     if not isinstance(value, dict) or set(value) != {'format', 'items'}:
         raise WorkError()
-    if type(value['format']) is not int or value['format'] != FORMAT:
+    if type(value['format']) is not int or value['format'] not in (LEGACY_FORMAT,DETAILS_FORMAT,FORMAT):
         raise WorkError('unsupported')
     items = value['items']
     if not isinstance(items, dict):
         raise WorkError()
     if len(items) > MAX_ITEMS:
         raise WorkError('limit')
-    clean, memberships = {}, 0
+    clean, memberships, followup_count = {}, 0, 0
     for identity, item in items.items():
-        if (not _code(identity) or not isinstance(item, dict)
-                or set(item) != {'title', 'created_at', 'updated_at', 'sessions'}):
+        base={'title', 'created_at', 'updated_at', 'sessions'}
+        extra=(DETAIL_FIELDS if value['format'] in (DETAILS_FORMAT,FORMAT) else set())|({'followups'} if value['format']==FORMAT else set())
+        if (not _code(identity) or not isinstance(item, dict) or not base<=set(item)
+                or set(item)-base-extra):
             raise WorkError()
         title = _title(item['title'])
         if title != item['title']:
@@ -89,7 +128,20 @@ def validate_document(value):
         memberships += len(sessions)
         if memberships > MAX_MEMBERSHIPS:
             raise WorkError('limit')
-        clean[identity] = dict(title=title, created_at=created, updated_at=updated, sessions=list(sessions))
+        details=validate_details(dict(goal=item.get('goal',''),outcome=item.get('outcome','not_recorded'),
+                                      result_note=item.get('result_note','')))
+        if any(item.get(key,details[key])!=details[key] for key in details): raise WorkError()
+        outcome_at=item.get('outcome_at')
+        if details['outcome']=='not_recorded':
+            if outcome_at is not None: raise WorkError()
+        elif type(outcome_at) is not int or not created<=outcome_at<=updated:
+            raise WorkError()
+        try: records=followup_rules.validate(item.get('followups',[]))
+        except (ValueError,TypeError,OverflowError): raise WorkError()
+        followup_count+=len(records)
+        if followup_count>followup_rules.MAX_TOTAL: raise WorkError('limit')
+        clean[identity] = dict(title=title, created_at=created, updated_at=updated, sessions=list(sessions),
+                               **details,outcome_at=outcome_at,followups=records)
     return clean
 
 
@@ -158,27 +210,32 @@ def _read(path):
     return validate(data)
 
 
-def _arguments(action, identity, title, session):
+def _arguments(action, identity, title, session, details, expected_revision):
+    if action=='describe':
+        if not _code(identity) or not _code(expected_revision) or title is not None or session is not None:
+            raise WorkError()
+        return None,validate_details(details)
+    if details is not None or expected_revision is not None: raise WorkError()
     if not isinstance(action, str) or action not in ('create', 'rename', 'link', 'unlink', 'delete'):
         raise WorkError()
     if action == 'create':
         if identity is not None or session is not None and not _code(session):
             raise WorkError()
-        return _title(title)
+        return _title(title),None
     if not _code(identity):
         raise WorkError()
     if action == 'rename':
         if session is not None:
             raise WorkError()
-        return _title(title)
+        return _title(title),None
     if title is not None or (action == 'delete' and session is not None):
         raise WorkError()
     if action in ('link', 'unlink') and not _code(session):
         raise WorkError()
-    return None
+    return None,None
 
 
-def _mutate(items, action, identity, title, session):
+def _mutate(items, action, identity, title, session, details=None, expected_revision=None):
     result = validate_document(dict(format=FORMAT, items=items))
     try:
         now = int(time.time())
@@ -196,7 +253,8 @@ def _mutate(items, action, identity, title, session):
         else:
             raise WorkError('limit')
         result[identity] = dict(title=title, created_at=now, updated_at=now,
-                                sessions=[session] if session is not None else [])
+                                sessions=[session] if session is not None else [],
+                                goal='',outcome='not_recorded',result_note='',outcome_at=None,followups=[])
     else:
         if identity not in result:
             raise WorkError('missing')
@@ -207,6 +265,12 @@ def _mutate(items, action, identity, title, session):
             before = dict(item, sessions=list(item['sessions']))
             if action == 'rename':
                 item['title'] = title
+            elif action == 'describe':
+                if details_revision(item)!=expected_revision: raise WorkError('conflict')
+                outcome_changed=any(item[key]!=details[key] for key in ('outcome','result_note'))
+                item.update(details)
+                if outcome_changed:
+                    item['outcome_at']=(max(item['updated_at'],now) if item['outcome']!='not_recorded' else None)
             elif action == 'link' and session not in item['sessions']:
                 item['sessions'] = sorted([*item['sessions'], session])
             elif action == 'unlink' and session in item['sessions']:
@@ -217,6 +281,38 @@ def _mutate(items, action, identity, title, session):
     return dict(id=identity, items=result)
 
 
+def _followup_mutate(items,identity,action,record_id,payload,expected_revision,expected_membership):
+    result=validate_document(dict(format=FORMAT,items=items))
+    if not _code(identity) or not _code(expected_revision): raise WorkError()
+    if identity not in result: raise WorkError('missing')
+    item=result[identity];records=item['followups']
+    if expected_membership is not None and membership_revision(item)!=expected_membership: raise WorkError('conflict')
+    if action=='start_followup':
+        if membership_revision(item)!=expected_revision: raise WorkError('conflict')
+        if any(r['status']=='open' for r in records): raise WorkError('active')
+        if len(records)>=followup_rules.MAX_PER_WORK or sum(len(i['followups']) for i in result.values())>=followup_rules.MAX_TOTAL:
+            raise WorkError('limit')
+        try: record=followup_rules.validate([payload])[0]
+        except (ValueError,TypeError,OverflowError): raise WorkError()
+        if record['status']!='open' or any(r['id']==record['id'] for r in records): raise WorkError()
+        record_id=record['id'];records.append(record)
+    elif action in ('review_followup','cancel_followup','delete_followup'):
+        record=next((r for r in records if r['id']==record_id),None)
+        if record is None: raise WorkError('missing')
+        if followup_rules.digest(record)!=expected_revision: raise WorkError('conflict')
+        if action=='delete_followup': records.remove(record)
+        else:
+            if record['status']!='open': raise WorkError('closed')
+            if action=='review_followup': record.update(status='reviewed',review=payload)
+            else: record.update(status='cancelled',cancel_note=followup_rules.text(payload),cancelled_at=max(int(time.time()),record['created_at']))
+            try: followup_rules.validate(records)
+            except (ValueError,TypeError,OverflowError): raise WorkError()
+    else: raise WorkError()
+    item['updated_at']=max(item['updated_at'],int(time.time()))
+    _encoded(result)
+    return dict(id=identity,followup=record_id,items=result)
+
+
 class Folder:
     """Named work in a fixed safe local file; every update re-reads under the archive writer lock."""
     def __init__(self, base=None):
@@ -225,16 +321,25 @@ class Folder:
     def read(self):
         return _read(cache_file(FILENAME, self.base))
 
-    def mutate(self, action, identity=None, title=None, session=None):
-        title = _arguments(action, identity, title, session)
+    def mutate(self, action, identity=None, title=None, session=None, details=None, expected_revision=None):
+        title,details = _arguments(action, identity, title, session, details, expected_revision)
         path = cache_file(FILENAME, self.base)
         if path is None:
             raise OSError('unsafe work items')
         with archive._locked(path.parent):
             before = _read(path)
-            result = _mutate(before, action, identity, title, session)
+            result = _mutate(before, action, identity, title, session, details, expected_revision)
             if result['items'] != before:
                 archive._write(path, document(result['items']))
+            return result
+
+    def followup(self,identity,action,record_id,payload,expected_revision,expected_membership=None):
+        path=cache_file(FILENAME,self.base)
+        if path is None: raise OSError('unsafe work items')
+        with archive._locked(path.parent):
+            before=_read(path)
+            result=_followup_mutate(before,identity,action,record_id,payload,expected_revision,expected_membership)
+            archive._write(path,document(result['items']))
             return result
 
 
@@ -248,11 +353,17 @@ class Memory:
         with self.lock:
             return validate_document(dict(format=FORMAT, items=self.items))
 
-    def mutate(self, action, identity=None, title=None, session=None):
-        title = _arguments(action, identity, title, session)
+    def mutate(self, action, identity=None, title=None, session=None, details=None, expected_revision=None):
+        title,details = _arguments(action, identity, title, session, details, expected_revision)
         with self.lock:
-            result = _mutate(self.items, action, identity, title, session)
+            result = _mutate(self.items, action, identity, title, session, details, expected_revision)
             self.items = validate_document(dict(format=FORMAT, items=result['items']))
+            return result
+
+    def followup(self,identity,action,record_id,payload,expected_revision,expected_membership=None):
+        with self.lock:
+            result=_followup_mutate(self.items,identity,action,record_id,payload,expected_revision,expected_membership)
+            self.items=result['items']
             return result
 
 
@@ -268,6 +379,23 @@ def _totals(rows, missing=False):
         result[flag] = all(row.get('quality', {}).get(flag, False) is True for row in values)
         if not values and missing:
             result[flag] = False
+    return result
+
+
+def _observations(rows):
+    """Selected whole-session evidence, separate from the user's work-level outcome.
+
+    Count sessions, not commits or test cases: overlapping sessions may observe
+    the same Git event/check. No extra source or Git read is performed here.
+    """
+    result={}
+    for kind in ('test','build'):
+        last=[row['checks'][kind].get('last') for row in rows if (row.get('checks') or {}).get(kind,{}).get('runs',0)>0]
+        result[kind]=dict(sessions=len(last),passed=last.count('passed'),failed=last.count('failed'),
+                           unknown=sum(value not in ('passed','failed') for value in last))
+    ready=[row['git_activity'] for row in rows if (row.get('git_activity') or {}).get('state')=='ready']
+    result['git']=dict(available_sessions=len(ready),activity_sessions=sum(value.get('matched_events',0)>0 for value in ready),
+                       limited_sessions=sum(bool(value.get('coverage_limited')) for value in ready))
     return result
 
 
@@ -312,11 +440,14 @@ def project(items, rows, all_session_ids=None):
     for identity, item in sorted(items.items(), key=lambda pair: (-pair[1]['updated_at'], pair[0])):
         members = set(item['sessions'])
         chosen, outside, missing = members & selected_ids, (members & known) - selected_ids, members - known
+        selected_rows=[selected[code] for code in sorted(chosen)]
         projected.append(dict(id=identity, title=item['title'], created_at=item['created_at'], updated_at=item['updated_at'],
+            **{key:item[key] for key in DETAIL_FIELDS}, details_revision=details_revision(item),observations=_observations(selected_rows),
+            followup_count=len(item['followups']),followup_revision=followup_rules.digest(item['followups']),
             session_ids=sorted(members), selected_session_ids=sorted(chosen), outside_session_ids=sorted(outside),
             missing_session_ids=sorted(missing), linked_sessions=len(members), selected_sessions=len(chosen),
             outside_selection=len(outside), missing_sessions=len(missing), overlapping_sessions=len(chosen & overlapping),
-            **_totals((selected[code] for code in sorted(chosen)), bool(missing))))
+            **_totals(selected_rows, bool(missing))))
     chosen = linked & selected_ids
     summary = dict(items=len(items), linked_sessions=len(linked), selected_sessions=len(chosen),
                    unassigned_sessions=len(selected_ids - chosen), outside_selection=len((linked & known) - selected_ids),

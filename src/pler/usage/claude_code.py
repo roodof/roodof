@@ -6,6 +6,7 @@ id and request id, across all files; when copies differ, the largest usage is ke
 """
 import os
 import math
+import re
 from pathlib import Path
 
 from .records import Session, add_tokens, json_row, note_file_issue, timestamp, total
@@ -140,11 +141,18 @@ def _slim(row, asked=None):
             # Price inputs only: 1-hour cache writes cost more than 5-minute ones; speed/region change the rate.
             written = usage.get('cache_creation')
             if isinstance(written, dict):
-                slim_usage['ephemeral_1h_input_tokens'] = min(_int(written.get('ephemeral_1h_input_tokens')),
-                                                              slim_usage['cache_creation_input_tokens'])
+                try:
+                    hour=accounting.count(written.get('ephemeral_1h_input_tokens',0))
+                    five=accounting.count(written.get('ephemeral_5m_input_tokens',slim_usage['cache_creation_input_tokens']-hour))
+                    if hour+five!=slim_usage['cache_creation_input_tokens']:raise ValueError('inconsistent write split')
+                    slim_usage['ephemeral_1h_input_tokens']=hour
+                except ValueError:slim_usage['price_inputs_complete']=False
+            elif written is not None:slim_usage['price_inputs_complete']=False
             for name in ('speed', 'inference_geo'):
-                if isinstance(usage.get(name), str) and 0 < len(usage[name]) <= 32:
-                    slim_usage[name] = usage[name]
+                value=usage.get(name)
+                if isinstance(value,str) and re.fullmatch('[A-Za-z0-9_-]{1,32}',value):slim_usage[name]=value
+                elif value is not None:slim_usage['price_inputs_complete']=False
+            if usage.get('service_tier') not in (None,'standard'):slim_usage['price_inputs_complete']=False
         blocks = []
         for item in message.get('content') if isinstance(message.get('content'), list) else []:
             if not isinstance(item, dict) or item.get('type') != 'tool_use' or not isinstance(item.get('name'), str):
@@ -374,9 +382,15 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 add_tokens(target.tokens,tokens)
                 model=accounting.model_for([c['message'].get('model') for c in copies])
                 target.count(target.models,model);target.count(target.model_tokens,model,total(tokens))
-                witness=next((c['message'].get('usage') for c in copies if c['tokens']==tokens),None) or {}
-                usd=pricing.charge(target,'claude-code',model,tokens,_int(witness.get('ephemeral_1h_input_tokens')),
-                                   witness.get('speed') in (None,'standard') and witness.get('inference_geo')!='us')
+                witnesses=[c['message'].get('usage') or {} for c in copies if c['tokens']==tokens]
+                # Only US-only inference ('us') costs more. Claude Code logged 'not_available' for every response
+                # before the region was reported (seen until 2026-10-08), the same evidence as an absent field.
+                args=[(_int(w.get('ephemeral_1h_input_tokens')),w.get('price_inputs_complete',True) and
+                       w.get('speed') in (None,'standard') and w.get('inference_geo') in (None,'global','not_available'))
+                      for w in witnesses]
+                quotes={pricing.response_cost('claude-code',model,tokens,*a) for a in args}
+                # Content-block copies must agree on pricing evidence, regardless of file/row order.
+                usd=pricing.charge(target,'claude-code',model,tokens,*args[0]) if len(quotes)==1 and None not in quotes else None
                 if any(isinstance(value,str) and value.strip() for copy in copies
                        for value in (copy['message'].get('id'),copy['row'].get('requestId'))):
                     record_response(target,tokens,copies,usd)

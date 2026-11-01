@@ -1,5 +1,29 @@
 # Changes
 
+## Unreleased — local Y02 follow-ups, Y03 outcomes, Y05 coverage and Y04 comparisons
+
+- Add an offline reader/price release review gate, independently expected cold/cache/archive record cases, official price-source review dates and automatic discovery of all browser test suites. No provider fetch or workflow dispatch.
+- Correct price confidence: GPT-6 writes without a lifetime split and unlisted Codex dated IDs stay unpriced; invalid Claude split/modifier metadata preserves counts without being clamped or sanitized into a standard price. Copies carrying the selected usage must agree on price in either order. Parser provenance becomes `accounting-2026-11-01.1`; API/plan review date is 2026-11-01; usage schema and work/backup formats stay unchanged.
+- Real-data review: Claude Code logged region `not_available` for every response before it reported regions (until 8 October 2026 on this computer). Only US-only `us` has a published higher price, so such responses are priced like an absent region again; otherwise 37% of this computer's Claude tokens would have become unpriced. A contradictory quota episode now leaves only its own window period out of the plan's period counts instead of the whole 30-day window, which had hidden Codex's 5-hour count here; any contradiction still blocks a lower-plan comparison.
+
+- Validate the current source against a predeclared Windows scale workload: 102.61 MiB expanded invented logs, 385 sessions, Git, 200 work items and 20,000 memberships. Three rounds per runtime pass fixed latency/memory budgets on CPython 3.14 native and 3.9/3.12 fallback, with uncached accounting equality, archive-only recovery and cooperative cancellation evidence. This is source acceptance on one machine, not a new package or a general speed guarantee; physical platform acceptance remains open.
+
+- Add private work follow-ups: frozen equal seven-day response windows, explicit review, cancellation/deletion and guarded agent/project/model comparisons. Unknown context, small samples, changed history or incomplete evidence produce reasons rather than a numeric gain. No scheduled action, provider query or causal savings claim.
+- Follow-ups load only on opening their section. Preserve drafts across selection/language changes and failed/conflicting saves; confirm individual deletion. Atomic component format 3 reads legacy 1/2 without a no-op migration, remains in private backup/recovery and is omitted from ordinary reports.
+- Add optional work goals, user-declared outcomes and result/remaining-work notes. Keep the whole-work entry separate from filter-scoped test/build/Git observations, session verdicts and usage. No automatic completion, quality score or task-cost inference.
+- Read legacy work format 1 without rewriting it; real edits now use component format 3 (format 2 introduced the goal fields). New details remain local, omitted from normal reports and included in private backup/recovery. Earlier builds cannot read the new component format; keep a compatible backup for rollback.
+- Guard goal/outcome edits with content revisions under the existing writer lock. Stale windows preserve their draft and review the latest saved entry before a later explicit save. Drafts survive work/filter/language changes; cancelling writes nothing. Existing work routes keep their 1 KiB bound; the authenticated details route has a 16 KiB UTF-8 bound.
+
+- Withhold unsupported plan conclusions for unpriced responses, source/archive losses, unreconciled or unchecked usage, conflicting/unusable quota history, plan changes and multiple source groups. Unknown API equivalents no longer display as zero dollars.
+- Replace switching-savings and "smaller plan fits" findings with bounded recorded-price observations and conditional observed-threshold comparisons. Actual payment remains unknown; retained history never proves a complete billing month. The plan interval is explicit and independent of page/report filters.
+- Require fresh, consistent lower-plan evidence on 14 distinct UTC dates spanning 14 days, without gaps over two days. Comparisons expire with required sample freshness/reset deadlines; the page ages the message without rebuilding the selector. These are observation thresholds, not provider guarantees.
+- Align terminal output, public JSON fields, English/Turkish UI, offline Help and the accounting contract. No new billing data store, price-table update, provider-account access, package or publication.
+
+- Explain missing records with separate effects and safe next steps for source access, stopped WSL, malformed records, reading/path limits, old or unchecked archives, retained/deleted originals, incomplete counts, uncertain attribution and unpriced usage. File warnings cover selected source folders; session explanations follow the main filters.
+- Link the English/Turkish panel to offline recovery help. Preserve the existing affected-session filter and technical reasons. Explain that successful reading cannot establish full account history and a cache rebuild cannot recreate missing originals; archive deletion is not a repair action.
+- An empty failed read no longer uses the "no logs found" heading. Missing Codex quota samples no longer suggest installing the Claude Code status line; terminal and desktop Claude support are distinguished.
+- Source changes only: no new package, release, update mechanism, price table, accounting, reader identity or schema change. Financial recommendation rules remain a separate Y04 audit.
+
 ## 0.2.29 — 2026-11-01 (early beta)
 
 - Add a practical English/Turkish first-use walkthrough to offline Help: try the demo, close it, open your own selected records, identify a session and link it to named work. Include empty-record guidance, removal/data retention and the public support address.

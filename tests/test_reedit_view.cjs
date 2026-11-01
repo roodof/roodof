@@ -52,7 +52,7 @@ test('snapshot clock preserves open investigations until a quota observation cha
   const context=vm.createContext({document:{hidden:false},usageState:{stopped:false,insightQuotaStates:'fills_before_reset',
     data:{has_snapshot:true,insights:[{kind:'quota',evidence:{}}]}},
     quotaWindowNow:()=>({state}),renderUsageQuota:()=>quotaRenders++,renderUsageInsights:()=>insightRenders++,
-    renderQuotaAlerts:()=>alertRenders++});
+    renderQuotaAlerts:()=>alertRenders++,agePlanComparisons:()=>{}});
   vm.runInContext(source.slice(source.indexOf('function quotaInsightStates('),source.indexOf('usageState.clock=')),context);
   context.updateSnapshotClock();context.updateSnapshotClock();
   assert.equal(quotaRenders,2);assert.equal(insightRenders,0);

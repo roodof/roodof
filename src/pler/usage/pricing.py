@@ -8,18 +8,21 @@ Cumulative totals without per-response usage are never priced. No network is use
 """
 import re
 
-PRICES_AS_OF = '2026-10-30'
+PRICES_AS_OF = '2026-11-01'
 SOURCES = ('https://platform.claude.com/docs/en/about-claude/pricing',
-           'https://developers.openai.com/api/docs/pricing')
+           'https://developers.openai.com/api/docs/pricing',
+           'https://developers.openai.com/api/docs/guides/prompt-caching')
 
 
 def _claude(base, write_5m, write_1h, read, output, up_to=None):
     return (up_to, dict(input=base, write_5m=write_5m, write_1h=write_1h, cache_read=read, output=output))
 
 
-def _openai(base, cached, output, up_to=None):
-    # The OpenAI table has no separate cache-write price; written tokens are input tokens there.
-    return (up_to, dict(input=base, write_5m=base, write_1h=base, cache_read=cached, output=output))
+def _openai(base, cached, output, up_to=None, legacy_writes=False):
+    # GPT-5.6+ writes use 30m/12h rates, not Claude's 5m/1h categories.
+    # Codex's retained counts have no lifetime split: withhold that response's price.
+    written=base if legacy_writes else None
+    return (up_to, dict(input=base, write_5m=written, write_1h=written, cache_read=cached, output=output))
 
 
 # USD per million tokens. Each model lists (largest prompt covered, prices) tiers in ascending order;
@@ -52,7 +55,7 @@ PRICES = {
         'gpt-6.1-terra': [_openai(1, 0.05, 5, up_to=272_000), _openai(2, 0.10, 7.50)],
         'gpt-6-luna': [_openai(0.10, 0.01, 0.50, up_to=272_000), _openai(0.20, 0.02, 0.75)],
         'gpt-6-sol': [_openai(2, 0.20, 10, up_to=272_000), _openai(4, 0.40, 15)],
-        'gpt-5.3-codex': [_openai(1.75, 0.175, 14, up_to=272_000)],  # no published long-context price
+        'gpt-5.3-codex': [_openai(1.75, 0.175, 14, up_to=272_000, legacy_writes=True)],  # no published long-context price
     },
 }
 _DATED = re.compile(r'-\d{8}$')  # claude-sonnet-4-5-20250929 is claude-sonnet-4-5
@@ -62,7 +65,7 @@ def _tiers(agent, model):
     table = PRICES.get(agent, {})
     if not isinstance(model, str):
         return None
-    return table.get(model) or table.get(_DATED.sub('', model))
+    return table.get(model) or (table.get(_DATED.sub('', model)) if agent=='claude-code' else None)
 
 
 def response_cost(agent, model, tokens, write_1h=0, standard=True):
@@ -77,9 +80,10 @@ def response_cost(agent, model, tokens, write_1h=0, standard=True):
     prices = next((value for limit, value in tiers if limit is None or prompt <= limit), None)
     if prices is None:
         return None
-    return (tokens['input'] * prices['input'] + tokens['cache_read'] * prices['cache_read']
-            + (written - write_1h) * prices['write_5m'] + write_1h * prices['write_1h']
-            + tokens['output'] * prices['output']) / 1e6
+    components=((tokens['input'],prices['input']),(tokens['cache_read'],prices['cache_read']),
+                (written-write_1h,prices['write_5m']),(write_1h,prices['write_1h']),(tokens['output'],prices['output']))
+    if any(count and rate is None for count,rate in components):return None
+    return sum(count*rate for count,rate in components if count)/1e6
 
 
 def charge(session, agent, model, tokens, write_1h=0, standard=True):

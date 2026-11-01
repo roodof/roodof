@@ -72,11 +72,17 @@ def _numbers(value,agent):
         result['output_tokens_details']={'thinking_tokens':accounting.count(value['output_tokens_details'].get('thinking_tokens',0))}
     if agent=='claude-code':
         # Price inputs (pricing.py): the 1-hour share of cache writes, and the speed/region words.
+        if 'price_inputs_complete' in value:
+            if type(value['price_inputs_complete']) is not bool:raise ValueError('invalid price evidence flag')
+            result['price_inputs_complete']=value['price_inputs_complete']
         if 'ephemeral_1h_input_tokens' in value:
             written=accounting.count(value['ephemeral_1h_input_tokens'])
             if written>value.get('cache_creation_input_tokens',0): raise ValueError('inconsistent cache write split')
             result['ephemeral_1h_input_tokens']=written
-        result.update(_fields(value,('speed','inference_geo'),words=True))
+        for name in ('speed','inference_geo'):
+            if _word(value.get(name)):result[name]=value[name]
+            elif value.get(name) is not None:result['price_inputs_complete']=False
+        if value.get('service_tier') not in (None,'standard'):result['price_inputs_complete']=False
     return result
 
 

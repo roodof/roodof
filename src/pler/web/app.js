@@ -19,6 +19,51 @@ const I18N=/*I18N*/{
 "mask_projects": "Hide project names in JSON",
 "mask_projects_note": "Times, models and session codes remain; the file is not anonymous.",
 "quality_show": "Show affected sessions ({n})",
+"coverage_title": "Before comparing these records",
+"coverage_scope": "File access warnings cover all selected log folders. Session and pricing limits follow the main filters.",
+"coverage_boundary": "PLER cannot tell whether logs were deleted before its first read. It cannot recover records it never read. A successful read does not prove complete account history.",
+"coverage_help": "How to check or recover records",
+"coverage_details": "Recorded quality reasons",
+"coverage_next": "Next step: ",
+"coverage_wsl_unavailable_title": "WSL records are unavailable",
+"coverage_wsl_unavailable_impact": "Usage from the unavailable distribution may be missing. A smaller total does not show reduced usage.",
+"coverage_wsl_unavailable_next": "Open the selected distribution yourself, check that its log folder is accessible, then choose Read logs again. PLER does not start WSL.",
+"coverage_read_limits_title": "The read stopped at a safety limit",
+"coverage_read_limits_impact": "Some records were excluded. Totals and comparisons do not cover the full selected source.",
+"coverage_read_limits_next": "See Help for selecting fewer source folders or handling oversized records. Changing the page filters or rebuilding the cache does not remove reading limits.",
+"coverage_unsafe_path_title": "A source path was excluded",
+"coverage_unsafe_path_impact": "Blocked network paths or links inside a log folder may leave records out of the totals.",
+"coverage_unsafe_path_next": "Use a supported local source folder or an explicitly selected WSL folder. Check source selection in Help; do not disable path protections.",
+"coverage_source_missing_title": "A source disappeared during reading",
+"coverage_source_missing_impact": "Available records remain visible, but this read may be incomplete.",
+"coverage_source_missing_next": "Check whether the agent moved or removed the file, then read the logs again. Missing originals require an existing copy or a checked PLER backup; retrying cannot recreate them.",
+"coverage_invalid_records_title": "Some records could not be interpreted",
+"coverage_invalid_records_impact": "Verified usage is included; damaged, unfinished or inconsistent records may leave totals low.",
+"coverage_invalid_records_next": "After the agent finishes writing, read the logs again. If the warning remains, preserve the original files and see Help. Do not edit logs or clear the archive to remove the warning.",
+"coverage_source_access_title": "Some source files or folders could not be read",
+"coverage_source_access_impact": "The visible totals may omit records. This does not prove that those records were deleted.",
+"coverage_source_access_next": "Check the selected folders and your read access, then read the logs again. A cache rebuild cannot fix folder access. Keep existing history while investigating.",
+"coverage_archive_old_parser_title": "Some history was read by an older reader",
+"coverage_archive_old_parser_impact": "The saved interpretation cannot be verified with the current reader while the original source is unavailable. It is not a confirmed current measurement.",
+"coverage_archive_old_parser_next": "If the original logs still exist, make them accessible at the selected source and read again. Otherwise preserve the archive; rebuilding the cache cannot upgrade or recreate missing originals.",
+"coverage_archive_unverified_title": "Saved history is standing in for unchecked sources",
+"coverage_archive_unverified_impact": "PLER is showing earlier metadata. The source's current contents and whether it was deleted are unverified.",
+"coverage_archive_unverified_next": "Restore access to the selected source and read again. If access cannot be restored, keep this history as unverified; do not clear the archive.",
+"coverage_archive_loss_title": "Some retained history may be missing",
+"coverage_archive_loss_impact": "Archive limits or an archive read/write error may leave historical coverage incomplete. A lower total does not show a saving.",
+"coverage_archive_loss_next": "Keep the current data. Re-read accessible originals or check an earlier private backup and recover it into a new folder using Help. Clearing the archive does not repair lost history.",
+"coverage_retained_history_title": "Some originals are gone; saved metadata remains",
+"coverage_retained_history_impact": "Previously retained values are included with their original dates and quality limits. They do not prove complete account history or fresh quota.",
+"coverage_retained_history_next": "Back up this history before removing local data. Re-reading or rebuilding the cache cannot recreate deleted originals. Preserve the PLER archive.",
+"coverage_incomplete_usage_title": "Some session counts are incomplete",
+"coverage_incomplete_usage_impact": "Known values can be inspected, but missing or unreconciled usage prevents a complete comparison. A smaller total alone does not prove improved efficiency.",
+"coverage_incomplete_usage_next": "Open the affected sessions and their recorded quality reasons. Re-reading may help unfinished logs; older formats or uncertain histories can remain unknown.",
+"coverage_uncertain_attribution_title": "Some usage cannot be assigned reliably",
+"coverage_uncertain_attribution_impact": "Session, project or model splits may be uncertain. Do not use those splits to rank work or assign its cost.",
+"coverage_uncertain_attribution_next": "Inspect the affected sessions. Naming or linking a work item does not repair missing source attribution; leave unsupported comparisons open.",
+"coverage_unpriced_usage_title": "Part of the usage has no API price",
+"coverage_unpriced_usage_impact": "The API equivalent covers priced records only. Unpriced usage is unknown, not free, and the amount is not your subscription bill.",
+"coverage_unpriced_usage_next": "Check the priced share and model names before comparing amounts. Missing model or price evidence cannot be filled in by rebuilding the cache.",
 "quality_only": "Only sessions with data-quality limits",
 "quality_clear": "Show all selected sessions",
 "quality_filter_note": "This list filter does not change totals or JSON scope.",
@@ -30,8 +75,8 @@ const I18N=/*I18N*/{
 "quota_multiple_sources": "Several local source groups contribute history. A common account cannot be verified, so the current percentage and forecast are unknown. Select one source group.",
 "metadata_settings": "Local history and reader cache",
 "backup_title": "Back up and recover history",
-"backup_scope": "Backs up all retained history, verdicts, work titles and links, retention preference and Claude quota samples. Main filters and project-name masking do not apply. Source logs and rebuildable caches are not included.",
-"backup_privacy": "The file includes private paths, identifiers and the work titles you entered. It is unencrypted and is not an anonymous report. Keep it safe.",
+"backup_scope": "Backs up all retained history, verdicts, work titles, goals, outcome notes and links, retention preference and Claude quota samples. Main filters and project-name masking do not apply. Source logs and rebuildable caches are not included.",
+"backup_privacy": "The file includes private paths, identifiers and the work details you entered. It is unencrypted and is not an anonymous report. Keep it safe.",
 "backup_download": "Download private backup",
 "backup_preparing": "Preparing backup…",
 "backup_prepared": "Backup prepared. Check your browser downloads; if it did not start,",
@@ -44,6 +89,42 @@ const I18N=/*I18N*/{
 "backup_checked": "Backup checked: PLER {version}, {date}; {files} archived sources, {verdicts} verdicts, {works} work titles, {links} work links and {quota} quota samples. Saved retention: {retention}. History has not been restored or changed.",
 "work_eyebrow": "Across sessions and agents",
 "work_title": "My work",
+"work_outcome_title": "Goal and outcome",
+"work_outcome_scope": "Your entry applies to the whole work, independently of filters. PLER does not infer completion or quality from tests, Git or usage.",
+"work_goal_label": "Intended result",
+"work_outcome_label": "Your outcome",
+"work_result_label": "Result or remaining work",
+"work_goal_empty": "No goal recorded.",
+"work_goal_view": "Goal: {text}",
+"work_result_view": "Result / remaining work: {text}",
+"work_outcome_view": "Your outcome: {outcome}",
+"work_outcome_not_recorded": "Not assessed",
+"work_outcome_partial": "Partly completed",
+"work_outcome_completed": "Completed",
+"work_outcome_not_completed": "Not completed",
+"work_outcome_time": "Outcome last recorded: {at}. This is the entry time, not measured completion time.",
+"work_details_edit": "Edit goal and outcome",
+"work_details_help": "Goal and result notes are optional, up to 1,000 characters each. They are private user entries; normal JSON reports omit them, private backups include them. Drafts stay in this browser tab during language changes.",
+"work_details_save": "Save goal and outcome",
+"work_details_saved": "Goal and outcome saved.",
+"work_details_unsaved": "Unsaved goal or outcome changes.",
+"work_details_current": "No unsaved changes.",
+"work_details_invalid": "Use up to 1,000 characters per text field, with line breaks and no control characters.",
+"work_details_conflict": "Saved details changed in another window. Your draft is kept; review the latest saved version before saving.",
+"work_details_latest": "Latest saved version",
+"work_details_review": "Your draft stays in the form. Review the saved values below before keeping your draft for the next save or using the saved version. Neither choice writes a change.",
+"work_details_keep": "Keep my draft for next save",
+"work_details_discard": "Discard draft and use saved",
+"work_observations_title": "Recorded observations",
+"work_observations_scope": "These follow the main filters and cover whole linked sessions. Test/build counts describe each session's latest visible result; Git activity is a time association. They do not prove that the work met its goal.",
+"work_obs_none": "No linked sessions are in the main filters. Widen the selection to inspect observations.",
+"work_obs_unavailable": "Observation summary unavailable. Open linked session details to inspect the available evidence.",
+"work_obs_test": "Tests",
+"work_obs_build": "Builds",
+"work_obs_checks": "{kind}: latest visible result passed in {passed} sessions, failed in {failed}, unknown in {unknown}.",
+"work_obs_no_checks": "{kind}: no check was recorded in these selected sessions.",
+"work_obs_git": "Git history readable in {available} selected sessions; coincident activity in {active}. Limited coverage in {limited}.",
+"work_obs_git_unknown": "No readable Git observations for these selected sessions; activity is unknown.",
 "work_intro": "Give one job a name, then link its Claude and Codex sessions from session details.",
 "work_unreadable": "Saved work could not be read. Editing is disabled to protect it. Use a checked private backup to recover it in a new folder; see Help.",
 "work_empty": "No work groups yet. Create one to collect the sessions for a job.",
@@ -64,13 +145,13 @@ const I18N=/*I18N*/{
 "work_no_members": "Open a session below and link it to this work.",
 "work_scope": "Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.",
 "work_api_note": "API equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.",
-"work_privacy": "Titles and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.",
+"work_privacy": "Titles, goals, outcome notes and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.",
 "work_outside": "Outside the main filters",
 "work_missing": "Session unavailable",
 "work_unlink": "Unlink",
 "work_unlink_label": "Unlink session #{code} from {title}",
 "work_delete_heading": "Delete this work?",
-"work_delete_help": "Deletes only this work title and its session links. Session logs, recorded usage and verdicts stay unchanged.",
+"work_delete_help": "Deletes this work's title, goal, outcome notes and session links. Session logs, recorded usage, verdicts and older backups stay unchanged.",
 "work_cancel": "Keep work",
 "work_delete_confirm": "Delete work and links",
 "work_link": "Link to work",
@@ -172,6 +253,7 @@ const I18N=/*I18N*/{
 "empty_no_logs_text": "PLER reads Claude Code and Codex records on this computer. Use one of these agents, then read the logs again. Ordinary Claude desktop chats are not included.",
 "empty_text": "Widen the filters, or read the logs again after using your agent.",
 "empty_unreadable": "Some agent logs could not be fully read. Check the records and folder access, then read the logs again. The available data is incomplete.",
+"empty_unreadable_title": "The selected records could not be fully read.",
 "filter_clear": "Show all sessions",
 "footer_privacy": "Prompts, replies, commands and tool output never reach this page.",
 "footer_local": "No model calls · Nothing is sent anywhere",
@@ -197,7 +279,7 @@ const I18N=/*I18N*/{
 "last_read": "Last read: {at} · found {claude} and {codex}.",
 "demo_banner": "Demo: every log, project and commit here is invented. Your own agent logs are not read. To use your own records, close this demo and open PLER normally. Demo work groups are temporary; Help explains the first steps.",
 "unreadable_coverage": "{files} could not be fully read. Verified records are included; totals may be incomplete. ",
-"all_read": "Every readable record of the sources found was used.",
+"all_read": "Every readable record of the sources found was used. This does not prove complete account history.",
 "cross_period": " {sessions} started before the selected period; their whole totals are included.",
 "status_unreadable": " · {files} not fully read; totals may be incomplete",
 "unknown_calls": " {sessions} have no complete per-call split; call counts cover known records only.",
@@ -209,7 +291,7 @@ const I18N=/*I18N*/{
 "stat_calls": "Logged model calls",
 "stat_api": "At API list prices",
 "stat_api_note": "Recorded responses at standard prices of {date}. Not your bill: a subscription is a flat fee.",
-"stat_api_partial": "Covers {share} of tokens; the rest has no published price. Standard prices of {date}; not your bill.",
+"stat_api_partial": "Covers {share} of tokens; the rest could not be priced. Standard prices of {date}; not your bill.",
 "field_api": "At API list prices",
 "tokens": "{n} tokens",
 "agent_note": "{sessions} · {calls} · {share} of input from cache · {errors} · {aborted}",
@@ -239,30 +321,44 @@ const I18N=/*I18N*/{
 "quota_eyebrow": "Account quota",
 "quota_title": "Where is the quota, and where is it heading?",
 "plans_eyebrow": "Subscription",
-"plans_title": "Does your plan fit how you work?",
+"plans_title": "Recorded usage and plan prices",
 "plan_choose_label": "Your Claude plan",
 "plan_choice_none": "Not chosen",
 "plan_choice_pro": "Pro ($20 a month)",
 "plan_choice_max": "Max ($100 a month)",
 "plan_choice_ultra": "Ultra ($200 a month)",
 "plan_choice_api": "API key, no plan",
-"plan_named": "{name}, ${price} a month",
+"plan_named": "{name}, list price ${price} a month",
 "plan_api_key": "API key, no plan",
 "plan_unchosen": "plan not chosen",
 "plan_unlogged": "plan not logged",
-"plan_api_line": "The same agent work with an API key at list prices: {usd} ({share} of its tokens priced).",
-"plan_partial": " Some usage has no date, so the sum may be low.",
-"plan_meter_line": "Limit reached in {five} of {five_total} 5-hour windows and {week} of {week_total} weeks seen.",
+"plan_api_line": "Recorded dated responses at API list prices: {usd} ({share} of their tokens priced).",
+"plan_api_unknown": "An API equivalent cannot be calculated from priced responses in this period. Missing or unpriced records are unknown, not free.",
+"plan_partial": " Retained usage could not be fully dated or verified; the sum may be low.",
+"plan_meter_line": "Observed at 100% in {five} of {five_total} sampled 5-hour reset periods and {week} of {week_total} sampled weekly reset periods. Unobserved peaks are unknown.",
 "plan_choose_plan": "Choose your Claude plan to compare it with this usage. It is saved only on this computer.",
-"plan_no_meter": "No quota samples: Claude Code writes none. Turn on PLER's status line in a terminal (pler statusline --install) to see its limits.",
-"plan_larger_ratio_unpublished": "OpenAI publishes no limit ratio between Plus and its Pro plans, so PLER cannot say which would be enough. Options: credits, Pro ($100, $200 or $500 a month, no 5-hour limit) or an API key.",
-"plan_larger_need_unseen": "A larger plan has higher limits (Max 5x Pro, Ultra 10x Pro weekly), but use above a limit is not recorded, so whether it would be enough is unknown.",
-"plan_api_cheaper": "For this agent work an API key would have cost less than the plan ({usd} against {price}). The plan also covers chat, which PLER does not see.",
-"plan_smaller_fits": "Your highest use was {peak} of each limit. {smaller} ({price} a month) has {share} of these limits, so it would have fitted with room to spare.",
-"plan_smaller_fits_weekly": "Your highest weekly use was {peak} of the limit. {smaller} ({price} a month) has {share} of it. Ultra has no 5-hour limit, so Max's 5-hour limit cannot be checked from this meter.",
+"plan_no_meter": "No usable Claude Code quota samples were found. For terminal Claude Code, the optional PLER status line can record samples (pler statusline --install). This does not provide desktop quota support.",
+"plan_no_meter_codex": "No usable Codex quota samples were found. Read logs again after using Codex; if its logs contain no supported meter, remaining quota stays unknown.",
+"plan_larger_ratio_unpublished": "PLER has no verified limit ratio for these plans, so it cannot name a sufficient tier. Review current provider limits, credits and API options.",
+"plan_larger_need_unseen": "Observed limit pressure does not establish how much capacity you need. A larger plan is not proven sufficient; model-specific limits and paid extra usage need separate review.",
+"plan_api_below_list_price": "Recorded API equivalent {usd} is below the monthly list price {price}. This does not establish a switching saving or subscription value.",
+"plan_lower_observed": "Assuming these samples used {current}, their observed peak was {peak}; {smaller} (list price {price}/month) provides {share} of those published limits. This does not establish that the smaller plan would be enough.",
+"plan_lower_weekly_observed": "Assuming these samples used {current}, the observed weekly peak was {peak}; {smaller} (list price {price}/month) provides {share} of that published limit. A 5-hour comparison and overall plan fit are unverified.",
+"plan_comparison_expired": "The quota evidence for this comparison has aged or its reset has passed. Read logs again before comparing current plan thresholds.",
+"plan_payment_unknown": "Actual payment is not recorded. Plan labels and list prices do not verify billing, credits, discounts, add-ons or historical plan changes.",
+"plan_interval": "Dated responses from {since} through {until} (UTC).",
+"plan_limit_source_incomplete": "Some sources or retained history could not be read or preserved; price and lower-plan conclusions are withheld.",
+"plan_limit_usage_incomplete": "Some retained usage cannot be fully reconciled to dated responses; the recorded amount may be low.",
+"plan_limit_unpriced_usage": "Some recorded tokens have no API price. They are unknown, not free; no lower-price conclusion is drawn.",
+"plan_limit_multiple_source_groups": "Multiple local source groups do not prove one account. Their usage is not compared to one subscription.",
+"plan_limit_plan_changed": "More than one plan appears in the retained logs. A single plan price cannot represent the whole period.",
+"plan_limit_meter_conflicting": "Conflicting quota history is withheld from period counts and lower-plan comparisons.",
+"plan_limit_meter_incomplete": "Some quota samples lack usable dates or reset times. They cannot support a lower-plan comparison.",
+"plan_limit_meter_stale": "The latest required quota sample is old or its reset has passed. Read again; no current lower-plan comparison is made.",
+"plan_limit_meter_sparse": "A lower-plan comparison needs 14 observed UTC dates spanning at least 14 days, with no sample gap over two days. Sparse samples do not prove low usage.",
 "plan_unreadable": "The saved plan choice could not be read (damaged, or from a newer PLER), so it was not overwritten.",
 "plan_period": "Last 30 days, all projects. List prices of {date} in US dollars before tax; your bill can differ by region, tax and billing period. Only published limit ratios are used.",
-"plan_note": "PLER sees only the coding agents. A plan also covers chat, so the API equivalent compares agent work, not your bill; OpenAI notes that API prices do not estimate what a plan includes. The quota meter is the whole account.",
+"plan_note": "All selected source folders and all projects are included, independently of page filters. Complete account history is not established. PLER sees recorded coding-agent work; API prices do not establish subscription value. Quota observations cover the account, including use outside these agents.",
 "window_300": "5-hour",
 "window_10080": "Weekly",
 "window_other": "{n}-minute",
@@ -369,12 +465,12 @@ const I18N=/*I18N*/{
 "metadata_note": "Session metadata is shown. Prompt and reply text never reach this page.",
 "export_file": "pler-usage-summary.json",
 "noun_run": [
-  "run",
-  "runs"
+"run",
+"runs"
 ],
 "noun_commit": [
-  "commit",
-  "commits"
+"commit",
+"commits"
 ],
 "noun_session": [
 "session",
@@ -433,7 +529,66 @@ const I18N=/*I18N*/{
 "export_retry": "Download again",
 "export_preparing": "Preparing summary…",
 "export_started": "Summary prepared. Check your browser downloads; if it did not start,",
-"table_scroll_help": "Scroll sideways for more columns. With a keyboard, focus the table area and use the left and right arrows."
+"table_scroll_help": "Scroll sideways for more columns. With a keyboard, focus the table area and use the left and right arrows.",
+"follow_title": "Changes to try · weekly follow-up",
+"follow_scope": "Record a change to this work, then review two seven-day windows. Uses dated responses in all linked sessions, independently of the main filters. No new model calls.",
+"follow_reload": "Reload follow-ups",
+"follow_reload_hint": "Open or reload this section to read saved follow-ups.",
+"follow_loading": "Reading saved follow-ups…",
+"follow_failed": "Follow-ups could not be read. Reload this section.",
+"follow_stale": "The source reading is older than five minutes. Read logs again with “Read logs again”, then reload this section before starting or reviewing. Drafts are kept.",
+"follow_new": "Try a change",
+"follow_trigger": "What prompted this?",
+"follow_trigger_quota": "Quota pressure",
+"follow_trigger_concentration": "Usage concentration",
+"follow_trigger_session_pattern": "Session pattern",
+"follow_trigger_other": "Other observation",
+"follow_observation": "Your observation (optional)",
+"follow_change": "What will you change?",
+"follow_private": "Up to 1,000 characters per note. Private local records, included in private backups and excluded from normal reports. Deleting this work also deletes its follow-ups.",
+"follow_start": "Save baseline and start",
+"follow_caution": "A lower token count does not prove better results, saved money or reduced account quota. Logs may cover only part of a week. Compare the work's outcome separately.",
+"follow_empty": "No changes tracked yet. Link the relevant sessions to this work, then record what you want to try.",
+"follow_reading": "{since} → {until} (end excluded) · {sessions} sessions · {responses} responses · {tokens} tokens · {excluded} excluded · {missing} missing links",
+"follow_before": "Before · saved baseline",
+"follow_after": "After · saved review",
+"follow_after_preview": "After · not saved yet",
+"follow_status_open": "Change in progress",
+"follow_status_reviewed": "Review recorded",
+"follow_status_cancelled": "Follow-up cancelled",
+"follow_reason": "Your reason: {reason}",
+"follow_due": "Review from {date}. Link any new sessions belonging to this work before reviewing.",
+"follow_wait": "The after window must finish and a fresh source reading must be available before reviewing. PLER records no automatic review.",
+"follow_context": "Were the tasks and conditions comparable?",
+"follow_context_unknown": "Not assessed",
+"follow_context_similar": "Similar tasks and conditions",
+"follow_context_different": "Different tasks or conditions",
+"follow_context_saved": "Your context assessment: {context}",
+"follow_review_note": "Review note (optional, up to 1,000 characters)",
+"follow_review": "Save weekly review",
+"follow_cancel": "Cancel follow-up, keep baseline",
+"follow_delete": "Delete this follow-up",
+"follow_delete_confirm": "Permanently delete this follow-up",
+"follow_delete_warning": "This removes the baseline, review and notes from the local work record. Existing backup files keep their copies.",
+"follow_keep": "Keep follow-up",
+"follow_no_comparison": "No numeric comparison:",
+"follow_metric": "Observed median of per-session tokens per response, within each agent/project/model group (minimum three sessions in each window). This is a descriptive difference, not a causal result.",
+"follow_delta": "{agent} · project #{project} · {model}: {before} → {after} tokens/response ({percent})",
+"follow_limit_missing_sessions": "Some linked sessions are missing from the source reading.",
+"follow_limit_source_incomplete": "The source reading reports skipped files or archive loss.",
+"follow_limit_incomplete_usage": "Some responses could not be dated and reconciled with complete session usage.",
+"follow_limit_unknown_scope": "Some sessions have unknown project/model scope or use multiple models.",
+"follow_limit_boundary_response": "Some response evidence crosses a window boundary.",
+"follow_limit_measurement_limit": "The local measurement bound was reached.",
+"follow_limit_baseline_changed": "The original baseline can no longer be reproduced from the current linked sources.",
+"follow_limit_parser_changed": "The measurement parser changed after the baseline.",
+"follow_limit_context_unknown": "Comparable tasks and conditions have not been confirmed by you.",
+"follow_limit_context_different": "You marked the tasks or conditions as different.",
+"follow_limit_cohort_changed": "The agent/project/model groups differ between the windows.",
+"follow_limit_small_sample": "Each group needs at least three sessions in both windows.",
+"follow_limit_zero_baseline": "A baseline group has zero tokens per response.",
+"follow_limit_duplicate_sessions": "Duplicate session identities make the source reading ambiguous.",
+"follow_minimum": "For a numeric review, each identical agent/project/model group needs at least three sessions in both windows and your assessment of similar tasks. You can still record an unresolved review."
 },
 "tr": {
 "title": "PLER · Kullanımım",
@@ -453,6 +608,51 @@ const I18N=/*I18N*/{
 "mask_projects": "JSON içinde proje adlarını gizle",
 "mask_projects_note": "Zamanlar, modeller ve oturum kodları kalır; dosya anonim değildir.",
 "quality_show": "Etkilenen oturumları göster ({n})",
+"coverage_title": "Bu kayıtları karşılaştırmadan önce",
+"coverage_scope": "Dosya erişimi uyarıları seçili kayıt klasörlerinin tamamını kapsar. Oturum ve fiyat kapsamı ana filtrelere uyar.",
+"coverage_boundary": "PLER, ilk okumasından önce kayıt silinip silinmediğini bilemez. Hiç okumadığı kayıtları geri getiremez. Başarılı okuma, hesap geçmişinin eksiksiz olduğunu kanıtlamaz.",
+"coverage_help": "Kayıtları kontrol etme ve kurtarma rehberi",
+"coverage_details": "Kayıtlı veri kalitesi nedenleri",
+"coverage_next": "Sonraki adım: ",
+"coverage_wsl_unavailable_title": "WSL kayıtlarına erişilemiyor",
+"coverage_wsl_unavailable_impact": "Erişilemeyen dağıtımın kullanımı eksik olabilir. Daha küçük toplam, kullanımın azaldığını göstermez.",
+"coverage_wsl_unavailable_next": "Seçili dağıtımı kendin aç, kayıt klasörünün erişilebilir olduğunu kontrol et ve Kayıtları yenile'yi seç. PLER, WSL'yi başlatmaz.",
+"coverage_read_limits_title": "Okuma bir güvenlik sınırında durdu",
+"coverage_read_limits_impact": "Bazı kayıtlar dışarıda kaldı. Toplamlar ve karşılaştırmalar seçili kaynağın tamamını kapsamaz.",
+"coverage_read_limits_next": "Daha az kaynak klasörü seçmek veya aşırı büyük kayıtları ele almak için Yardım'a bak. Sayfa filtrelerini değiştirmek veya önbelleği yeniden kurmak okuma sınırlarını kaldırmaz.",
+"coverage_unsafe_path_title": "Bir kaynak yolu dışarıda bırakıldı",
+"coverage_unsafe_path_impact": "Engellenen ağ yolları veya kayıt klasörü içindeki bağlantılar, bazı kayıtları toplamların dışında bırakabilir.",
+"coverage_unsafe_path_next": "Desteklenen yerel kaynak klasörünü veya açıkça seçilmiş WSL klasörünü kullan. Yardım'daki kaynak seçimini kontrol et; yol korumalarını kapatma.",
+"coverage_source_missing_title": "Bir kaynak okuma sırasında kayboldu",
+"coverage_source_missing_impact": "Erişilebilen kayıtlar gösteriliyor; ancak bu okuma eksik olabilir.",
+"coverage_source_missing_next": "Ajanın dosyayı taşıyıp taşımadığını veya silip silmediğini kontrol et ve kayıtları yenile. Kayıp asıllar için mevcut bir kopya veya denetlenmiş PLER yedeği gerekir; tekrar denemek onları yeniden oluşturmaz.",
+"coverage_invalid_records_title": "Bazı kayıtlar yorumlanamadı",
+"coverage_invalid_records_impact": "Doğrulanan kullanım dahil edildi; bozuk, yarım veya tutarsız kayıtlar toplamları eksik bırakabilir.",
+"coverage_invalid_records_next": "Ajanın yazması bittikten sonra kayıtları yenile. Uyarı sürerse asıl dosyaları koru ve Yardım'a bak. Uyarıyı kaldırmak için kayıtları düzenleme veya arşivi temizleme.",
+"coverage_source_access_title": "Bazı kaynak dosyalar veya klasörler okunamadı",
+"coverage_source_access_impact": "Görünen toplamların dışında kalan kayıtlar olabilir. Bu, o kayıtların silindiğini kanıtlamaz.",
+"coverage_source_access_next": "Seçili klasörleri ve okuma iznini kontrol et, ardından kayıtları yenile. Önbelleği yeniden kurmak klasör erişimini düzeltmez. Sorunu araştırırken mevcut geçmişi koru.",
+"coverage_archive_old_parser_title": "Bazı geçmiş kayıtlar eski okuyucuyla okunmuş",
+"coverage_archive_old_parser_impact": "Asıl kaynak erişilemezken saklanan yorum güncel okuyucuyla doğrulanamaz. Bu, doğrulanmış güncel bir ölçüm değildir.",
+"coverage_archive_old_parser_next": "Asıl kayıtlar duruyorsa seçili kaynakta erişilebilir hale getir ve yeniden oku. Yoksa arşivi koru; önbelleği yeniden kurmak eksik asılları getiremez veya yorumlarını güncelleyemez.",
+"coverage_archive_unverified_title": "Kontrol edilemeyen kaynakların yerine saklanan geçmiş gösteriliyor",
+"coverage_archive_unverified_impact": "PLER önceki üst veriyi gösteriyor. Kaynağın güncel içeriği ve silinip silinmediği doğrulanmadı.",
+"coverage_archive_unverified_next": "Seçili kaynağa erişimi düzelt ve kayıtları yenile. Erişim sağlanamıyorsa bu geçmişi doğrulanmamış olarak koru; arşivi temizleme.",
+"coverage_archive_loss_title": "Saklanan geçmişin bir kısmı eksik olabilir",
+"coverage_archive_loss_impact": "Arşiv sınırları veya arşiv okuma/yazma hatası geçmiş kapsamını eksik bırakabilir. Daha küçük toplam, tasarruf göstermez.",
+"coverage_archive_loss_next": "Mevcut veriyi koru. Erişilebilen asılları yeniden oku veya eski özel yedeği denetleyip Yardım'daki adımlarla yeni klasöre kurtar. Arşivi temizlemek kayıp geçmişi onarmaz.",
+"coverage_retained_history_title": "Bazı asıllar silinmiş; saklanan üst veri duruyor",
+"coverage_retained_history_impact": "Önceden saklanan değerler özgün tarihleri ve kalite sınırlarıyla dahil edildi. Bunlar eksiksiz hesap geçmişini veya güncel kotayı kanıtlamaz.",
+"coverage_retained_history_next": "Yerel veriyi kaldırmadan önce bu geçmişi yedekle. Yeniden okuma veya önbelleği yeniden kurma silinen asılları oluşturamaz. PLER arşivini koru.",
+"coverage_incomplete_usage_title": "Bazı oturum sayımları eksik",
+"coverage_incomplete_usage_impact": "Bilinen değerler incelenebilir; eksik veya uzlaştırılamayan kullanım tam karşılaştırmayı engeller. Tek başına daha küçük toplam, verimliliğin arttığını kanıtlamaz.",
+"coverage_incomplete_usage_next": "Etkilenen oturumları ve kayıtlı veri kalitesi nedenlerini aç. Yeniden okuma yarım kayıtlara yardımcı olabilir; eski biçimler veya belirsiz geçmişler bilinmiyor olarak kalabilir.",
+"coverage_uncertain_attribution_title": "Bazı kullanımın dağılımı güvenilir değil",
+"coverage_uncertain_attribution_impact": "Oturum, proje veya model dağılımı belirsiz olabilir. Bu dağılımlarla işleri sıralama veya maliyetlerini belirleme.",
+"coverage_uncertain_attribution_next": "Etkilenen oturumları incele. Bir işe ad vermek veya oturum bağlamak eksik kaynak eşleştirmesini düzeltmez; dayanağı olmayan karşılaştırmayı açık bırak.",
+"coverage_unpriced_usage_title": "Kullanımın bir kısmının API fiyatı yok",
+"coverage_unpriced_usage_impact": "API karşılığı yalnız fiyatlanabilen kayıtları kapsar. Fiyatlanamayan kullanım ücretsiz değil, bilinmiyor; gösterilen tutar abonelik faturası değildir.",
+"coverage_unpriced_usage_next": "Tutarları karşılaştırmadan önce fiyatlanan payı ve model adlarını kontrol et. Eksik model veya fiyat bilgisi önbelleği yeniden kurarak tamamlanamaz.",
 "quality_only": "Yalnız veri kalitesi sınırlı oturumlar",
 "quality_clear": "Seçili oturumların tümünü göster",
 "quality_filter_note": "Bu liste filtresi toplamları ve JSON kapsamını değiştirmez.",
@@ -464,8 +664,8 @@ const I18N=/*I18N*/{
 "quota_multiple_sources": "Birden fazla yerel kaynak grubu geçmiş sağlıyor. Ortak hesap doğrulanamadığı için güncel yüzde ve tahmin bilinmiyor. Tek kaynak grubu seçin.",
 "metadata_settings": "Yerel geçmiş ve okuma önbelleği",
 "backup_title": "Geçmişi yedekle ve kurtar",
-"backup_scope": "Saklanan tüm geçmişi, değerlendirmeleri, iş başlıklarını ve bağlantılarını, saklama tercihini ve Claude kota örneklerini yedekler. Ana filtreler ve proje adlarını gizleme seçeneği uygulanmaz. Kaynak kayıtlar ve yeniden kurulabilir önbellekler dahil değildir.",
-"backup_privacy": "Dosya özel yollar, kimlikler ve girdiğiniz iş başlıklarını içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
+"backup_scope": "Saklanan tüm geçmişi, değerlendirmeleri, iş başlıklarını, hedefleri, sonuç notlarını ve bağlantılarını, saklama tercihini ve Claude kota örneklerini yedekler. Ana filtreler ve proje adlarını gizleme seçeneği uygulanmaz. Kaynak kayıtlar ve yeniden kurulabilir önbellekler dahil değildir.",
+"backup_privacy": "Dosya özel yollar, kimlikler ve girdiğiniz iş ayrıntılarını içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
 "backup_download": "Özel yedek indir",
 "backup_preparing": "Yedek hazırlanıyor…",
 "backup_prepared": "Yedek hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
@@ -478,6 +678,42 @@ const I18N=/*I18N*/{
 "backup_checked": "Yedek doğrulandı: PLER {version}, {date}; {files} arşiv kaynağı, {verdicts} değerlendirme, {works} iş başlığı, {links} iş bağlantısı ve {quota} kota örneği. Kayıtlı tercih: {retention}. Geçmiş geri yüklenmedi veya değiştirilmedi.",
 "work_eyebrow": "Oturumlar ve ajanlar arasında",
 "work_title": "İşlerim",
+"work_outcome_title": "Hedef ve sonuç",
+"work_outcome_scope": "Girdin, filtrelerden bağımsız olarak işin tamamına aittir. PLER test, Git veya kullanımdan tamamlanma ya da kalite sonucu çıkarmaz.",
+"work_goal_label": "Hedeflenen sonuç",
+"work_outcome_label": "Senin sonucun",
+"work_result_label": "Sonuç veya kalan iş",
+"work_goal_empty": "Hedef kaydedilmedi.",
+"work_goal_view": "Hedef: {text}",
+"work_result_view": "Sonuç / kalan iş: {text}",
+"work_outcome_view": "Senin sonucun: {outcome}",
+"work_outcome_not_recorded": "Değerlendirilmedi",
+"work_outcome_partial": "Kısmen tamamlandı",
+"work_outcome_completed": "Tamamlandı",
+"work_outcome_not_completed": "Tamamlanmadı",
+"work_outcome_time": "Sonuç son kaydedildi: {at}. Bu, giriş zamanıdır; ölçülmüş bitiş zamanı değildir.",
+"work_details_edit": "Hedefi ve sonucu düzenle",
+"work_details_help": "Hedef ve sonuç notları isteğe bağlıdır; her biri en fazla 1.000 karakter olabilir. Bunlar özel kullanıcı girdileridir; normal JSON raporuna girmez, özel yedeğe dahildir. Dil değiştirirken taslaklar bu tarayıcı sekmesinde korunur.",
+"work_details_save": "Hedefi ve sonucu kaydet",
+"work_details_saved": "Hedef ve sonuç kaydedildi.",
+"work_details_unsaved": "Kaydedilmemiş hedef veya sonuç değişikliği var.",
+"work_details_current": "Kaydedilmemiş değişiklik yok.",
+"work_details_invalid": "Her metin alanında en fazla 1.000 karakter kullan; satır sonu dışında kontrol karakteri kullanma.",
+"work_details_conflict": "Kayıtlı bilgiler başka pencerede değişti. Taslağın korundu; kaydetmeden önce son kayıtlı sürümü incele.",
+"work_details_latest": "Son kayıtlı sürüm",
+"work_details_review": "Taslağın formda duruyor. Sonraki kayıt için taslağını korumadan veya kayıtlı sürümü kullanmadan önce aşağıdaki bilgileri incele. İki seçim de değişiklik kaydetmez.",
+"work_details_keep": "Sonraki kayıt için taslağımı koru",
+"work_details_discard": "Taslağı bırak, kayıtlı sürümü kullan",
+"work_observations_title": "Kayıtlı gözlemler",
+"work_observations_scope": "Ana filtreleri izler ve bağlı oturumların tamamını kapsar. Test/derleme sayıları her oturumun görünen son sonucudur; Git etkinliği zaman eşleşmesidir. İşin hedefe ulaştığını kanıtlamaz.",
+"work_obs_none": "Ana filtrelerde bağlı oturum yok. Gözlemleri incelemek için seçimi genişlet.",
+"work_obs_unavailable": "Gözlem özeti kullanılamıyor. Mevcut dayanakları incelemek için bağlı oturum ayrıntılarını aç.",
+"work_obs_test": "Testler",
+"work_obs_build": "Derlemeler",
+"work_obs_checks": "{kind}: görünen son sonuç {passed} oturumda geçti, {failed} oturumda başarısız, {unknown} oturumda bilinmiyor.",
+"work_obs_no_checks": "{kind}: seçili oturumlarda kontrol kaydı yok.",
+"work_obs_git": "Git geçmişi {available} seçili oturumda okunabilir; {active} oturumda aynı zamana denk gelen etkinlik var. {limited} oturumda kapsam sınırlı.",
+"work_obs_git_unknown": "Seçili oturumlar için okunabilir Git gözlemi yok; etkinlik bilinmiyor.",
 "work_intro": "Bir işe ad verin; ardından oturum ayrıntılarından o işe ait Claude ve Codex oturumlarını bağlayın.",
 "work_unreadable": "Kayıtlı işler okunamadı. Onları korumak için düzenleme kapatıldı. Doğrulanmış özel bir yedeği yeni klasöre geri yükleyin; Yardım bölümüne bakın.",
 "work_empty": "Henüz iş grubu yok. Bir işe ait oturumları toplamak için iş oluşturun.",
@@ -498,13 +734,13 @@ const I18N=/*I18N*/{
 "work_no_members": "Aşağıdan bir oturum açıp bu işe bağlayın.",
 "work_scope": "Kullanım ana filtreleri izler ve tek bir değişikliğin maliyetini değil, oturumların tamamını kapsar. Arama ve veri kalitesi liste filtreleri bu kapsamı değiştirmez. Bir oturum birden fazla işe bağlanabilir; iş toplamları birbiriyle toplanamaz. Özet, her bağlı oturumu bir kez sayar.",
 "work_api_note": "API karşılıkları mevcut fiyatları kullanır; fiyatı bilinmeyen kullanım dahil edilmeyebilir. Bunlar abonelik faturanız değildir.",
-"work_privacy": "Başlıklar ve bağlantılar bu bilgisayarda kalır, normal JSON özetlerine eklenmez. Özel yedeklere dahildir. Erişilemeyen oturumlar kayıtlı kodlarıyla bağlı kalır; PLER otomatik olarak başka bir oturuma bağlamaz.",
+"work_privacy": "Başlıklar, hedefler, sonuç notları ve bağlantılar bu bilgisayarda kalır; normal JSON özetlerine eklenmez. Özel yedeklere dahildir. Erişilemeyen oturumlar kayıtlı kodlarıyla bağlı kalır; PLER otomatik olarak başka bir oturuma bağlamaz.",
 "work_outside": "Ana filtrelerin dışında",
 "work_missing": "Oturuma erişilemiyor",
 "work_unlink": "Bağlantıyı kaldır",
 "work_unlink_label": "{title} işinden #{code} oturumunun bağlantısını kaldır",
 "work_delete_heading": "Bu iş silinsin mi?",
-"work_delete_help": "Yalnızca bu işin başlığı ve oturum bağlantıları silinir. Oturum kayıtları, kullanım değerleri ve değerlendirmeler korunur.",
+"work_delete_help": "Bu işin başlığı, hedefi, sonuç notları ve oturum bağlantıları silinir. Oturum kayıtları, kullanım değerleri, değerlendirmeler ve eski yedekler korunur.",
 "work_cancel": "İşi koru",
 "work_delete_confirm": "İşi ve bağlantılarını sil",
 "work_link": "İşe bağla",
@@ -606,6 +842,7 @@ const I18N=/*I18N*/{
 "empty_no_logs_text": "PLER bu bilgisayardaki Claude Code ve Codex kayıtlarını okur. Bu ajanlardan birini kullandıktan sonra kayıtları yeniden oku. Claude masaüstündeki normal sohbetler dahil değildir.",
 "empty_text": "Filtreleri genişlet veya ajanını kullandıktan sonra kayıtları yeniden oku.",
 "empty_unreadable": "Bazı ajan kayıtları tamamen okunamadı. Kayıtları ve klasör erişimini kontrol edip yeniden oku. Gösterilebilen veri eksik.",
+"empty_unreadable_title": "Seçili kayıtlar tam okunamadı.",
 "filter_clear": "Tüm oturumları göster",
 "footer_privacy": "İstek, yanıt, komut ve araç çıktısı bu ekrana alınmaz.",
 "footer_local": "Model çağrısı yok · Dışarı veri gönderilmez",
@@ -631,7 +868,7 @@ const I18N=/*I18N*/{
 "last_read": "Son okuma: {at} · {claude}, {codex} bulundu.",
 "demo_banner": "Deneme: buradaki bütün kayıtlar, projeler ve commit'ler uydurmadır. Kendi ajan kayıtların okunmuyor. Kendi kayıtların için demoyu kapatıp PLER'i normal aç. Denemedeki iş grupları geçicidir; Yardım ilk adımları anlatır.",
 "unreadable_coverage": "{files} tamamen okunamadı. Doğrulanabilen kayıtlar dahil; toplamlar eksik olabilir. ",
-"all_read": "Bulunan kaynakların okunabilen kayıtları kullanıldı.",
+"all_read": "Bulunan kaynakların okunabilen kayıtları kullanıldı. Bu, hesap geçmişinin eksiksiz olduğunu kanıtlamaz.",
 "cross_period": " {sessions} seçilen dönemden önce başlamış; tüm oturum toplamı dahil.",
 "status_unreadable": " · {files} tam okunamadı; toplamlar eksik olabilir",
 "unknown_calls": " {sessions} için çağrı ayrımı tam değil; çağrı sayısı yalnız bilinen kayıtlardır.",
@@ -643,7 +880,7 @@ const I18N=/*I18N*/{
 "stat_calls": "Kayıtlı model çağrısı",
 "stat_api": "API liste fiyatıyla",
 "stat_api_note": "Kayıtlı yanıtlar, {date} standart fiyatlarıyla. Faturan değildir: abonelik sabit ücretlidir.",
-"stat_api_partial": "Tokenların {share} kadarını kapsar; kalanının yayımlanmış fiyatı yok. {date} standart fiyatları; faturan değildir.",
+"stat_api_partial": "Tokenların {share} kadarını kapsar; kalanı fiyatlanamadı. {date} standart fiyatları; faturan değildir.",
 "field_api": "API liste fiyatıyla",
 "tokens": "{n} token",
 "agent_note": "{sessions} · {calls} · girdinin {share} kadarı önbellekten · {errors} · {aborted}",
@@ -673,30 +910,44 @@ const I18N=/*I18N*/{
 "quota_eyebrow": "Hesap kotası",
 "quota_title": "Kota nerede, nereye gidiyor?",
 "plans_eyebrow": "Abonelik",
-"plans_title": "Planın çalışma biçimine uyuyor mu?",
+"plans_title": "Kayıtlı kullanım ve plan fiyatları",
 "plan_choose_label": "Claude planın",
 "plan_choice_none": "Seçilmedi",
 "plan_choice_pro": "Pro (ayda 20 $)",
 "plan_choice_max": "Max (ayda 100 $)",
 "plan_choice_ultra": "Ultra (ayda 200 $)",
 "plan_choice_api": "API anahtarı, plan yok",
-"plan_named": "{name}, ayda {price} $",
+"plan_named": "{name}, liste fiyatı ayda {price} $",
 "plan_api_key": "API anahtarı, plan yok",
 "plan_unchosen": "plan seçilmedi",
 "plan_unlogged": "plan kayıtlarda yok",
-"plan_api_line": "Aynı ajan işi API anahtarıyla liste fiyatından: {usd} (tokenlarının {share} kadarı fiyatlandı).",
-"plan_partial": " Kullanımın bir kısmının tarihi yok; toplam düşük olabilir.",
-"plan_meter_line": "Sınıra dayanılan: görülen {five_total} beş saatlik pencerenin {five} tanesi, {week_total} haftanın {week} tanesi.",
+"plan_api_line": "Kayıtlı tarihli yanıtların API liste fiyatı karşılığı: {usd} (tokenlarının {share} kadarı fiyatlandı).",
+"plan_api_unknown": "Bu dönemde fiyatlanabilen yanıtlardan API karşılığı hesaplanamıyor. Eksik veya fiyatlanamayan kayıtlar ücretsiz değil, bilinmiyor.",
+"plan_partial": " Saklanan kullanımın tamamı tarihlenemedi veya doğrulanamadı; toplam düşük olabilir.",
+"plan_meter_line": "Yüzde 100 gözlenen: örnek alınan {five_total} beş saatlik sıfırlama döneminin {five} tanesi, {week_total} haftalık dönemin {week} tanesi. Gözlenmeyen tepe değerler bilinmiyor.",
 "plan_choose_plan": "Bu kullanımla karşılaştırmak için Claude planını seç. Seçim yalnız bu bilgisayarda saklanır.",
-"plan_no_meter": "Kota örneği yok: Claude Code kota yazmıyor. Sınırları görmek için terminalde PLER'in durum satırını aç (pler statusline --install).",
-"plan_larger_ratio_unpublished": "OpenAI, Plus ile Pro planları arasındaki sınır oranını yayımlamıyor; hangisinin yeteceğini PLER söyleyemez. Seçenekler: kredi, Pro (ayda 100, 200 ya da 500 $, 5 saatlik sınır yok) ya da API anahtarı.",
-"plan_larger_need_unseen": "Büyük planın sınırı daha yüksek (Max, Pro'nun 5 katı; Ultra haftalık 10 katı), ama sınırın üstündeki kullanım kaydedilmediği için yetip yetmeyeceği bilinmez.",
-"plan_api_cheaper": "Bu ajan işi için API anahtarı plandan ucuz olurdu ({usd}, plan {price}). Plan, PLER'in görmediği sohbet kullanımını da kapsar.",
-"plan_smaller_fits": "En yoğun anında her sınırın en çok {peak} kadarını kullandın. {smaller} (ayda {price}) bu sınırların {share} kadarını verir; yani payla yeterdi.",
-"plan_smaller_fits_weekly": "En yoğun haftanda sınırın en çok {peak} kadarını kullandın. {smaller} (ayda {price}) bunun {share} kadarını verir. Ultra'da 5 saatlik sınır olmadığı için Max'in 5 saatlik sınırı bu ölçerden denetlenemez.",
+"plan_no_meter": "Kullanılabilir Claude Code kota örneği bulunamadı. Terminal Claude Code için isteğe bağlı PLER durum satırı örnek kaydedebilir (pler statusline --install). Bu, masaüstü kota desteği sağlamaz.",
+"plan_no_meter_codex": "Kullanılabilir Codex kota örneği bulunamadı. Codex'i kullandıktan sonra kayıtları yenile; kayıtlarında desteklenen ölçer yoksa kalan kota bilinmiyor olarak kalır.",
+"plan_larger_ratio_unpublished": "PLER'de bu planlar için doğrulanmış sınır oranı yok; yeterli olacak planı belirleyemez. Sağlayıcının güncel sınırlarını, kredileri ve API seçeneklerini incele.",
+"plan_larger_need_unseen": "Gözlenen sınıra dayanma, gereken kapasiteyi belirlemez. Büyük planın yeteceği kanıtlanmıyor; modele özel sınırlar ve ücretli ek kullanım ayrıca incelenmeli.",
+"plan_api_below_list_price": "Kayıtlı API karşılığı {usd}, aylık liste fiyatı {price} altında. Bu, geçişte tasarrufu veya aboneliğin değerini kanıtlamaz.",
+"plan_lower_observed": "Bu örneklerin {current} planında alındığı varsayımıyla gözlenen tepe {peak}; {smaller} (liste fiyatı ayda {price}) yayımlanmış sınırların {share} kadarını sağlar. Bu, küçük planın yeteceğini kanıtlamaz.",
+"plan_lower_weekly_observed": "Bu örneklerin {current} planında alındığı varsayımıyla haftalık gözlenen tepe {peak}; {smaller} (liste fiyatı ayda {price}) yayımlanmış haftalık sınırın {share} kadarını sağlar. Beş saatlik karşılaştırma ve genel plan yeterliliği doğrulanmadı.",
+"plan_comparison_expired": "Bu karşılaştırmanın kota kanıtı eskidi veya sıfırlama zamanı geçti. Güncel plan sınırlarını karşılaştırmadan önce kayıtları yenile.",
+"plan_payment_unknown": "Gerçek ödeme kayıtlı değil. Plan adları ve liste fiyatları faturayı, kredileri, indirimleri, ek kullanımı veya geçmiş plan değişimlerini doğrulamaz.",
+"plan_interval": "{since} ile {until} arasındaki tarihli yanıtlar (UTC).",
+"plan_limit_source_incomplete": "Bazı kaynaklar veya saklanan geçmiş okunamadı ya da korunamadı; fiyat ve küçük plan sonuçları gösterilmiyor.",
+"plan_limit_usage_incomplete": "Saklanan kullanımın bir kısmı tarihli yanıtlarla tam uzlaştırılamıyor; kayıtlı tutar düşük olabilir.",
+"plan_limit_unpriced_usage": "Bazı kayıtlı tokenların API fiyatı yok. Ücretsiz değil, bilinmiyor; daha düşük fiyat sonucu çıkarılmıyor.",
+"plan_limit_multiple_source_groups": "Birden fazla yerel kaynak grubu tek hesabı kanıtlamaz. Kullanımları tek abonelikle karşılaştırılmıyor.",
+"plan_limit_plan_changed": "Saklanan kayıtlarda birden fazla plan var. Tek bir plan fiyatı bütün dönemi temsil edemez.",
+"plan_limit_meter_conflicting": "Çelişen kota geçmişi dönem sayımlarından ve küçük plan karşılaştırmasından çıkarıldı.",
+"plan_limit_meter_incomplete": "Bazı kota örneklerinin tarihi veya sıfırlama zamanı kullanılamıyor. Küçük plan karşılaştırmasını destekleyemez.",
+"plan_limit_meter_stale": "Gerekli son kota örneği eski veya sıfırlama zamanı geçti. Yeniden oku; güncel küçük plan karşılaştırması yapılmıyor.",
+"plan_limit_meter_sparse": "Küçük plan karşılaştırması için en az 14 güne yayılan 14 ayrı UTC gününde gözlem ve en fazla iki günlük örnek aralığı gerekir. Seyrek örnekler düşük kullanımı kanıtlamaz.",
 "plan_unreadable": "Kayıtlı plan seçimi okunamadı (bozuk ya da daha yeni bir PLER sürümünden); bu yüzden üzerine yazılmadı.",
 "plan_period": "Son 30 gün, bütün projeler. {date} liste fiyatları, vergi hariç ABD doları; faturan bölgeye, vergiye ve ödeme dönemine göre değişebilir. Yalnız yayımlanmış sınır oranları kullanılır.",
-"plan_note": "PLER yalnız kodlama ajanlarını görür. Plan sohbeti de kapsadığı için API karşılığı faturayı değil ajan işini karşılaştırır; OpenAI da API fiyatlarının plana dahil olanı tahmin etmediğini belirtir. Kota ölçeri hesabın tamamıdır.",
+"plan_note": "Sayfa filtrelerinden bağımsız olarak seçili kaynak klasörlerinin ve projelerin tamamı dahil. Eksiksiz hesap geçmişi kanıtlanmıyor. PLER kayıtlı kodlama ajanı işini görür; API fiyatları aboneliğin değerini belirlemez. Kota gözlemleri bu ajanlar dışındaki kullanımla birlikte hesap genelini kapsar.",
 "window_300": "5 saatlik",
 "window_10080": "Haftalık",
 "window_other": "{n} dakikalık",
@@ -816,7 +1067,66 @@ const I18N=/*I18N*/{
 "export_retry": "Yeniden indir",
 "export_preparing": "Özet hazırlanıyor…",
 "export_started": "Özet hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
-"table_scroll_help": "Diğer sütunlar için yana kaydırın. Klavyede tablo alanına gelip sol ve sağ oklarını kullanın."
+"table_scroll_help": "Diğer sütunlar için yana kaydırın. Klavyede tablo alanına gelip sol ve sağ oklarını kullanın.",
+"follow_title": "Dene ve takip et · haftalık inceleme",
+"follow_scope": "Bu iş için bir değişiklik kaydet, sonra iki yedi günlük dönemi incele. Ana filtrelerden bağımsız olarak tüm bağlı oturumların tarihli yanıtlarını kullanır. Yeni model çağrısı yapmaz.",
+"follow_reload": "Takipleri yeniden yükle",
+"follow_reload_hint": "Kayıtlı takipleri okumak için bölümü aç veya yeniden yükle.",
+"follow_loading": "Kayıtlı takipler okunuyor…",
+"follow_failed": "Takipler okunamadı. Bu bölümü yeniden yükle.",
+"follow_stale": "Kaynak okuması beş dakikadan eski. Başlatmadan veya incelemeden önce “Kayıtları yenile” ile kayıtları oku, sonra bu bölümü yeniden yükle. Taslakların korunur.",
+"follow_new": "Bir değişiklik dene",
+"follow_trigger": "Bu kararı ne tetikledi?",
+"follow_trigger_quota": "Kota baskısı",
+"follow_trigger_concentration": "Kullanım yoğunlaşması",
+"follow_trigger_session_pattern": "Oturum örüntüsü",
+"follow_trigger_other": "Diğer gözlem",
+"follow_observation": "Gözlemin (isteğe bağlı)",
+"follow_change": "Neyi değiştireceksin?",
+"follow_private": "Not başına en fazla 1.000 karakter. Özel yerel kayıtlar; özel yedeğe dahil edilir, normal raporlara eklenmez. Bu işi silmek takiplerini de siler.",
+"follow_start": "Başlangıcı kaydet ve başlat",
+"follow_caution": "Daha düşük token sayısı daha iyi sonuç, para tasarrufu veya hesap kotasında azalma kanıtlamaz. Kayıtlar haftanın yalnızca bir bölümünü kapsayabilir. İşin sonucunu ayrıca değerlendir.",
+"follow_empty": "Henüz takip edilen değişiklik yok. İlgili oturumları bu işe bağla, sonra denemek istediğin değişikliği kaydet.",
+"follow_reading": "{since} → {until} (bitiş hariç) · {sessions} oturum · {responses} yanıt · {tokens} token · {excluded} dışlanan · {missing} eksik bağlantı",
+"follow_before": "Önce · kayıtlı başlangıç",
+"follow_after": "Sonra · kayıtlı inceleme",
+"follow_after_preview": "Sonra · henüz kaydedilmedi",
+"follow_status_open": "Değişiklik takip ediliyor",
+"follow_status_reviewed": "İnceleme kaydedildi",
+"follow_status_cancelled": "Takip iptal edildi",
+"follow_reason": "Senin gerekçen: {reason}",
+"follow_due": "{date} itibarıyla incele. İncelemeden önce bu işe ait yeni oturumları bağla.",
+"follow_wait": "İnceleme için sonraki dönem bitmeli ve güncel kaynak okuması bulunmalı. PLER otomatik inceleme kaydetmez.",
+"follow_context": "Görevler ve koşullar karşılaştırılabilir miydi?",
+"follow_context_unknown": "Değerlendirilmedi",
+"follow_context_similar": "Benzer görev ve koşullar",
+"follow_context_different": "Farklı görev veya koşullar",
+"follow_context_saved": "Koşullara ilişkin değerlendirmen: {context}",
+"follow_review_note": "İnceleme notu (isteğe bağlı, en fazla 1.000 karakter)",
+"follow_review": "Haftalık incelemeyi kaydet",
+"follow_cancel": "Takibi iptal et, başlangıcı koru",
+"follow_delete": "Bu takibi sil",
+"follow_delete_confirm": "Bu takibi kalıcı olarak sil",
+"follow_delete_warning": "Bu işlem başlangıcı, incelemeyi ve notları yerel iş kaydından kaldırır. Mevcut yedek dosyalarındaki kopyalar kalır.",
+"follow_keep": "Takibi koru",
+"follow_no_comparison": "Sayısal karşılaştırma yapılamadı:",
+"follow_metric": "Her araç/proje/model grubunda oturum başına yanıt token ortalamalarının gözlenen medyanı (iki dönemde de en az üç oturum). Bu betimsel bir farktır, nedensellik kanıtı değildir.",
+"follow_delta": "{agent} · proje #{project} · {model}: {before} → {after} token/yanıt ({percent})",
+"follow_limit_missing_sessions": "Bağlı oturumlardan bazıları kaynak okumasında bulunmuyor.",
+"follow_limit_source_incomplete": "Kaynak okumasında atlanan dosya veya arşiv kaybı var.",
+"follow_limit_incomplete_usage": "Bazı yanıtların tarihi ve tam oturum kullanımı doğrulanamadı.",
+"follow_limit_unknown_scope": "Bazı oturumlarda proje/model kapsamı bilinmiyor veya birden fazla model kullanılmış.",
+"follow_limit_boundary_response": "Bazı yanıt kayıtları dönem sınırını aşıyor.",
+"follow_limit_measurement_limit": "Yerel ölçüm sınırına ulaşıldı.",
+"follow_limit_baseline_changed": "İlk başlangıç ölçümü güncel bağlı kaynaklardan yeniden üretilemiyor.",
+"follow_limit_parser_changed": "Başlangıçtan sonra ölçüm ayrıştırıcısı değişmiş.",
+"follow_limit_context_unknown": "Görev ve koşulların benzerliğini henüz değerlendirmedin.",
+"follow_limit_context_different": "Görev veya koşulları farklı olarak işaretledin.",
+"follow_limit_cohort_changed": "İki dönemin araç/proje/model grupları farklı.",
+"follow_limit_small_sample": "Her grupta iki dönemde de en az üç oturum gerekir.",
+"follow_limit_zero_baseline": "Başlangıç gruplarından birinde yanıt başına token sıfır.",
+"follow_limit_duplicate_sessions": "Yinelenen oturum kimlikleri kaynak okumasını belirsizleştiriyor.",
+"follow_minimum": "Sayısal inceleme için aynı araç/proje/model grubunda iki dönemde de en az üç oturum ve benzer görev değerlendirmen gerekir. Sonucu açık kalan bir incelemeyi de kaydedebilirsin."
 }
 }/*END*/;
 // Language: ?lang=, then the saved choice, then the browser; every other word comes from I18N above.
@@ -854,7 +1164,7 @@ async function api(path,options={}){
 }
 async function post(path,body){return api(path+'?lang='+LANG,{method:'POST',headers:{'Content-Type':'application/json','X-PLER-Token':token},body:JSON.stringify(body)});}
 async function closeApp(){
-  try{await post('/api/quit',{});usageState.stopped=true;usageState.revision++;clearTimeout(usageState.timer);clearInterval(usageState.clock);clearUsageBackupDownload();document.querySelectorAll('button,select,input').forEach(item=>item.disabled=true);notice(t('closed'));}
+  try{await post('/api/quit',{});usageState.stopped=true;usageState.revision++;clearTimeout(usageState.timer);clearInterval(usageState.clock);clearUsageBackupDownload();document.querySelectorAll('button,select,input,textarea').forEach(item=>item.disabled=true);notice(t('closed'));}
   catch(error){notice(error.message);}
 }
 const usageState={data:null,revision:0,pageSize:20,timer:null,clock:null,stopped:false,loading:false,exporting:false,downloadUrl:null};
@@ -908,15 +1218,11 @@ function renderUsage(data){
   $('usage-content').hidden=!data.has_snapshot;$('usage-empty').hidden=!data.has_snapshot||Boolean(data.totals.sessions);
   for(const id of ['usage-totals','usage-mix','usage-columns','usage-session-section'])$(id).hidden=!data.totals.sessions;
   const noFiles=!data.sources.claude_files&&!data.sources.codex_files;
-  $('usage-empty').querySelector('h2').textContent=t(noFiles?'empty_no_logs_title':'empty_title');
+  $('usage-empty').querySelector('h2').textContent=t(noFiles&&data.sources.unreadable?'empty_unreadable_title':noFiles?'empty_no_logs_title':'empty_title');
   $('usage-empty').querySelector('p').textContent=t(data.sources.unreadable?'empty_unreadable':noFiles?'empty_no_logs_text':'empty_text');
   $('usage-filter-clear').hidden=!data.project_options.length;$('usage-coverage').hidden=noFiles;
   if(!data.has_snapshot)return;
-  const qualityIssues=data.quality?.issues||[];
-  $('usage-quality').hidden=!qualityIssues.length;
-  $('usage-quality').textContent=qualityIssues.length?t('quality_header')+' '+qualityIssues.map(item=>item.detail).join(' '):'';
-  const affected=data.quality_affected_sessions??data.sessions.filter(sessionHasQualityLimits).length;
-  $('usage-quality-show').hidden=!affected;$('usage-quality-show').textContent=t('quality_show',{n:number(affected)});
+  renderCoverageGuidance(data);
   renderDatedUsage(data.dated_usage);
   $('usage-coverage').textContent=(data.sources.unreadable?t('unreadable_coverage',{files:count(data.sources.unreadable,'file')})+data.sources.issues.map(i=>i.reason+': '+i.files).join(' · '):t('all_read'))+(data.period.cross_period_sessions?t('cross_period',{sessions:count(data.period.cross_period_sessions,'session')}):'');
   if(data.sources.unreadable)$('usage-status').textContent+=t('status_unreadable',{files:count(data.sources.unreadable,'file')});
@@ -933,6 +1239,26 @@ function renderUsage(data){
   $('usage-projects').replaceChildren(...data.projects.slice(0,8).map(project=>{const row=node('div','usage-rank');const button=node('button','text-button',project.name);button.addEventListener('click',()=>{$('usage-project').value=project.id;$('usage-project').focus();usageState.pageSize=20;loadUsage();});row.append(button,node('strong','',usageShort(project.total_tokens)),node('small','',count(project.sessions,'session')));return row;}));
   $('usage-models').replaceChildren(...data.models.slice(0,8).map(model=>{const row=node('div','usage-rank');row.append(node('span','model-name',model.model==='unknown'?t('unknown'):model.model),node('strong','',usageShort(model.total_tokens)),node('small','',(usageAgents[model.agent]||model.agent)+' · '+count(model.calls,'call')));return row;}));
   renderUsageSessions();
+}
+function renderCoverageGuidance(data){
+  const box=$('usage-data-guidance'),list=$('usage-data-guidance-items');
+  const issues=data.quality?.issues||[],notices=data.coverage?.notices||[];
+  box.hidden=!data.has_snapshot||(!notices.length&&!issues.length);
+  list.replaceChildren();
+  for(const item of notices){
+    // The server sends fixed codes, never source paths or exception messages.
+    const prefix='coverage_'+item.code;
+    if(!Object.prototype.hasOwnProperty.call(I18N.en,prefix+'_title'))continue;
+    const row=node('li'),next=node('p','coverage-next');
+    next.append(node('strong','',t('coverage_next')),document.createTextNode(t(prefix+'_next')));
+    row.append(node('h3','',t(prefix+'_title')),node('p','',t(prefix+'_impact')),next);list.append(row);
+  }
+  $('usage-coverage-help').href='/help?lang='+LANG+'#coverage';
+  $('usage-quality-details').hidden=!issues.length;
+  $('usage-quality').textContent=issues.map(item=>item.detail).join(' ');
+  const affected=data.quality_affected_sessions??data.sessions.filter(sessionHasQualityLimits).length;
+  $('usage-quality-show').hidden=!affected;
+  $('usage-quality-show').textContent=t('quality_show',{n:number(affected)});
 }
 function restoreUsageSelection(data){
   if(!usageState.restore||!data.has_snapshot)return false;
@@ -1089,9 +1415,21 @@ function planLabel(row){
   return t(row.agent==='claude-code'?'plan_unchosen':'plan_unlogged');
 }
 function planFinding(row,finding){
-  if(finding==='api_cheaper')return t('plan_api_cheaper',{usd:usageUsd(row.api_usd),price:usageUsd(row.price_usd)});
-  if(finding==='smaller_fits'||finding==='smaller_fits_weekly')return t(finding==='smaller_fits'?'plan_smaller_fits':'plan_smaller_fits_weekly',{peak:usagePct(row.smaller.peak/100),smaller:planNames[row.smaller.plan],price:usageUsd(row.smaller.usd),share:usagePct(row.smaller.share)});
+  if(finding==='no_meter'&&row.agent==='codex')return t('plan_no_meter_codex');
+  if(finding==='api_below_list_price')return t('plan_api_below_list_price',{usd:usageUsd(row.api_usd),price:usageUsd(row.price_usd)});
+  if(finding==='lower_observed'||finding==='lower_weekly_observed'){
+    const lower=row.lower_plan_comparison,expires=Date.parse(lower?.expires_at);
+    if(!Number.isFinite(expires)||expires<=Date.now())return t('plan_comparison_expired');
+    return t(finding==='lower_observed'?'plan_lower_observed':'plan_lower_weekly_observed',
+      {peak:usagePct(lower.peak/100),smaller:planNames[lower.plan],price:usageUsd(lower.usd),share:usagePct(lower.share),current:planNames[lower.assumed_plan]});
+  }
   return planFindings[finding]?t(planFindings[finding]):'';
+}
+function agePlanComparisons(){
+  for(const line of document.querySelectorAll('#usage-plans .plan-comparison')){
+    const expires=Date.parse(line.dataset.expiresAt);
+    if(!Number.isFinite(expires)||expires<=Date.now())line.textContent=t('plan_comparison_expired');
+  }
 }
 function planSelect(value,row){
   const label=node('label','plan-choice');label.append(node('span','',t('plan_choose_label')));
@@ -1104,19 +1442,30 @@ function renderUsagePlans(data){
   // The advice comes from the server (plans.py); this only lays it out.
   const value=data.plans,box=$('usage-plans');box.hidden=!value?.rows?.length;if(box.hidden)return;
   const title=node('h2','',t('plans_title'));title.id='usage-plans-title';
-  box.replaceChildren(node('span','eyebrow',t('plans_eyebrow')),title);
+  box.replaceChildren(node('span','eyebrow',t('plans_eyebrow')),title,node('p','section-note',t('plan_payment_unknown')));
   for(const row of value.rows){
     const card=node('div','plan-row'+(row.findings.includes('limits_reached')?' warn':'')),head=node('div','plan-head');
     head.append(node('strong','',(usageAgents[row.agent]||row.agent)+': '+planLabel(row)));
     if(row.agent==='claude-code')head.append(planSelect(value,row));
-    card.append(head,node('p','',t('plan_api_line',{usd:usageUsd(row.api_usd),share:usagePct(row.api_priced_share)})+(row.usage_partial?t('plan_partial'):'')));
+    card.append(head,node('p','',row.api_priced_share>0?
+      t('plan_api_line',{usd:usageUsd(row.api_usd),share:usagePct(row.api_priced_share)})+(row.usage_partial?t('plan_partial'):''):t('plan_api_unknown')));
     const five=row.meter.find(window=>window.window_minutes===300),week=row.meter.find(window=>window.window_minutes===10080);
     if(five||week)card.append(node('p','',t('plan_meter_line',{five:number(five?.full??0),five_total:number(five?.periods??0),week:number(week?.full??0),week_total:number(week?.periods??0)})));
     if(row.agent==='claude-code'&&value.readable===false)card.append(node('p','plan-finding',t('plan_unreadable')));
-    for(const finding of row.findings){const text=planFinding(row,finding);if(text)card.append(node('p','plan-finding',text));}
+    const limits=node('ul','plan-limitations');
+    for(const reason of row.limitations||[]){const key='plan_limit_'+reason;if(Object.prototype.hasOwnProperty.call(I18N.en,key))limits.append(node('li','',t(key)));}
+    if(limits.children.length)card.append(limits);
+    for(const finding of row.findings){
+      const text=planFinding(row,finding);if(!text)continue;
+      const comparison=['lower_observed','lower_weekly_observed'].includes(finding),line=node('p','plan-finding'+(comparison?' plan-comparison':''),text);
+      if(comparison)line.dataset.expiresAt=row.lower_plan_comparison?.expires_at||'';
+      card.append(line);
+    }
     box.append(card);
   }
   const date=new Intl.DateTimeFormat(LOCALE,{dateStyle:'long',timeZone:'UTC'}).format(new Date(value.prices_as_of+'T12:00:00Z'));
+  const period=value.rows[0];
+  if(period.since&&period.until){const format=new Intl.DateTimeFormat(LOCALE,{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'});box.append(node('p','section-note',t('plan_interval',{since:format.format(new Date(period.since)),until:format.format(new Date(period.until))})));}
   box.append(node('p','section-note',t('plan_period',{date})),node('p','section-note',t('plan_note')));
 }
 async function setPlan(plan){
@@ -1397,15 +1746,170 @@ function showMoreUsageSessions(){
   $('usage-sessions').querySelectorAll('button')[previous]?.focus();
 }
 // Work titles are manual, private metadata. Keep their state separate from measured usage.
-const workState={ready:false,selected:'',pageSize:20,createDraft:'',renameDrafts:{},sessionDrafts:{},sessionChoices:{},openSession:null,action:0,navigation:false,needsRefresh:false,deleteID:null};
-function workViewMemory(){return {selected:workState.selected,create:workState.createDraft,rename:workState.renameDrafts};}
+const workState={ready:false,selected:'',pageSize:20,createDraft:'',renameDrafts:{},detailDrafts:{},sessionDrafts:{},sessionChoices:{},openSession:null,action:0,navigation:false,needsRefresh:false,deleteID:null};
+function workViewMemory(){const value={selected:workState.selected,create:workState.createDraft,rename:workState.renameDrafts};if(Object.keys(workState.detailDrafts).length)value.details=workState.detailDrafts;if(Object.keys(followState.drafts).length)value.follow=followState.drafts;if($('usage-work-followups').open)value.followOpen=true;return value;}
 function restoreWorkMemory(){
   if(workState.ready)return;workState.ready=true;
   const saved=usageState.workRestore;delete usageState.workRestore;
   if(!saved||typeof saved!=='object')return;
   if(typeof saved.selected==='string'&&/^[a-f0-9]{24}$/.test(saved.selected))workState.selected=saved.selected;
   if(typeof saved.create==='string')workState.createDraft=saved.create.slice(0,240);
+  if(saved.followOpen===true)$('usage-work-followups').open=true;
+  if(saved.follow&&typeof saved.follow==='object')for(const [id,draft] of Object.entries(saved.follow).slice(0,200)){
+    if(!/^[a-f0-9]{24}$/.test(id)||!draft||typeof draft.change!=='string'||typeof draft.observation!=='string'||!followTriggers.includes(draft.trigger))continue;
+    const clean={trigger:draft.trigger,change:draft.change.slice(0,2000),observation:draft.observation.slice(0,2000),reviews:{}};
+    if(draft.reviews&&typeof draft.reviews==='object')for(const [rid,review] of Object.entries(draft.reviews).slice(0,10))if(/^[a-f0-9]{24}$/.test(rid)&&review&&followContexts.includes(review.context)&&typeof review.note==='string')clean.reviews[rid]={context:review.context,note:review.note.slice(0,2000)};
+    followState.drafts[id]=clean;
+  }
   if(saved.rename&&typeof saved.rename==='object')for(const [id,title] of Object.entries(saved.rename).slice(0,200))if(/^[a-f0-9]{24}$/.test(id)&&typeof title==='string')workState.renameDrafts[id]=title.slice(0,240);
+  if(saved.details&&typeof saved.details==='object')for(const [id,draft] of Object.entries(saved.details).slice(0,200)){
+    if(/^[a-f0-9]{24}$/.test(id)&&draft&&typeof draft.goal==='string'&&typeof draft.result_note==='string'
+      &&workOutcomes.includes(draft.outcome)&&/^[a-f0-9]{24}$/.test(draft.expected_revision))
+      workState.detailDrafts[id]={goal:draft.goal.slice(0,2000),outcome:draft.outcome,result_note:draft.result_note.slice(0,2000),expected_revision:draft.expected_revision,conflict:draft.conflict===true};
+  }
+}
+const workOutcomes=['not_recorded','partial','completed','not_completed'];
+const workOutcomeWords={not_recorded:'work_outcome_not_recorded',partial:'work_outcome_partial',completed:'work_outcome_completed',not_completed:'work_outcome_not_completed'};
+function workOutcomeName(value){return t(workOutcomeWords[value]||workOutcomeWords.not_recorded);}
+function cleanWorkText(value){return value.replace(/\r\n?/g,'\n').trim();}
+function workDetails(item){return {goal:item.goal||'',outcome:item.outcome||'not_recorded',result_note:item.result_note||''};}
+function validWorkDetails(value){return workOutcomes.includes(value.outcome)&&['goal','result_note'].every(key=>typeof value[key]==='string'&&[...cleanWorkText(value[key])].length<=1000&&!/[\u0000-\u0009\u000b-\u001f\u007f-\u009f\ud800-\udfff\u2028\u2029]/u.test(cleanWorkText(value[key])));}
+function changedWorkDetails(item,draft){return Boolean(draft)&&['goal','result_note'].some(key=>cleanWorkText(draft[key])!==(item[key]||''))||Boolean(draft)&&draft.outcome!==(item.outcome||'not_recorded');}
+function workDetailsStatus(item){
+  const draft=workState.detailDrafts[item.id],status=$('usage-work-details-status');
+  status.textContent=t(draft?.conflict?'work_details_conflict':draft&&!validWorkDetails(draft)?'work_details_invalid':changedWorkDetails(item,draft)?'work_details_unsaved':'work_details_current');
+}
+function captureWorkDetails(){
+  const item=selectedWork();if(!item||usageState.stopped||workState.navigation||usageState.workBusy)return;
+  const prior=workState.detailDrafts[item.id];
+  workState.detailDrafts[item.id]={goal:$('usage-work-goal').value,outcome:$('usage-work-outcome').value,
+    result_note:$('usage-work-result-note').value,expected_revision:prior?.expected_revision||item.details_revision||'',conflict:prior?.conflict===true};
+  workDetailsStatus(item);syncWorkControls();
+}
+function renderWorkDetails(item){
+  const saved=workDetails(item),draft=workState.detailDrafts[item.id];
+  if(draft&&draft.expected_revision!==item.details_revision)draft.conflict=true;
+  const fields=draft||saved;
+  $('usage-work-goal').value=fields.goal;$('usage-work-outcome').value=fields.outcome;$('usage-work-result-note').value=fields.result_note;
+  $('usage-work-goal-view').textContent=saved.goal?t('work_goal_view',{text:saved.goal}):t('work_goal_empty');
+  $('usage-work-outcome-view').textContent=t('work_outcome_view',{outcome:workOutcomeName(saved.outcome)});
+  $('usage-work-result-view').hidden=!saved.result_note;$('usage-work-result-view').textContent=saved.result_note?t('work_result_view',{text:saved.result_note}):'';
+  const when=new Date(item.outcome_at*1000),validTime=item.outcome_at!=null&&Number.isFinite(when.getTime());
+  $('usage-work-outcome-time').hidden=!validTime;$('usage-work-outcome-time').textContent=validTime?t('work_outcome_time',{at:usageDate(when.toISOString())}):'';
+  $('usage-work-details-conflict').hidden=!draft?.conflict;
+  $('usage-work-latest-goal').textContent=saved.goal?t('work_goal_view',{text:saved.goal}):t('work_goal_empty');
+  $('usage-work-latest-outcome').textContent=t('work_outcome_view',{outcome:workOutcomeName(saved.outcome)});
+  $('usage-work-latest-result').textContent=t('work_result_view',{text:saved.result_note||'—'});
+  workDetailsStatus(item);
+}
+function reviewWorkDetails(keep){
+  const item=selectedWork(),draft=item&&workState.detailDrafts[item.id];if(workBlocked()||!draft)return;
+  if(keep){draft.expected_revision=item.details_revision;draft.conflict=false;}else delete workState.detailDrafts[item.id];
+  notice('');renderWorkDetails(item);syncWorkControls();$('usage-work-goal').focus();
+}
+function saveWorkDetails(){
+  const item=selectedWork(),draft=item&&workState.detailDrafts[item.id];
+  if(workBlocked()||!draft||draft.conflict||!validWorkDetails(draft)||!changedWorkDetails(item,draft)||!/^[a-f0-9]{24}$/.test(draft.expected_revision))return;
+  return performWorkAction({action:'describe',id:item.id,goal:cleanWorkText(draft.goal),outcome:draft.outcome,
+    result_note:cleanWorkText(draft.result_note),expected_revision:draft.expected_revision},{focus:'details'});
+}
+function renderWorkObservations(item){
+  const box=$('usage-work-observations');box.replaceChildren();
+  if(!item.selected_sessions){box.append(node('p','section-note',t('work_obs_none')));return;}
+  const observed=item.observations;if(!observed){box.append(node('p','section-note',t('work_obs_unavailable')));return;}
+  for(const [kind,key] of [['test','work_obs_test'],['build','work_obs_build']]){
+    const value=observed[kind];if(!value)continue;
+    box.append(node('p','',value.sessions?t('work_obs_checks',{kind:t(key),passed:number(value.passed),failed:number(value.failed),unknown:number(value.unknown)}):t('work_obs_no_checks',{kind:t(key)})));
+  }
+  const git=observed.git;
+  box.append(node('p','',git?.available_sessions?t('work_obs_git',{available:number(git.available_sessions),active:number(git.activity_sessions),limited:number(git.limited_sessions)}):t('work_obs_git_unknown')));
+}
+// Fetch these private snapshots only when this section is opened, never on initial load.
+const followState={key:'',data:null,loading:false,error:'',request:0,drafts:{},deleting:null};
+const followTriggers=['quota','concentration','session_pattern','other'],followContexts=['unknown','similar','different'];
+function followKey(){const item=selectedWork();return item?JSON.stringify([item.id,usageState.data.scanned_at,item.followup_revision,item.session_ids]):'';}
+function followDraft(){const id=selectedWork()?.id;if(!id)return null;return followState.drafts[id]??(followState.drafts[id]={trigger:'other',observation:'',change:'',reviews:{}});}
+function validFollowText(text,required=false){const value=cleanWorkText(text);return (!required||value.length>0)&&[...value].length<=1000&&!/[\u0000-\u0009\u000b-\u001f\u007f-\u009f\ud800-\udfff\u2028\u2029]/u.test(value);}
+function followDate(value){return new Intl.DateTimeFormat(LANG==='tr'?'tr-TR':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(value))+' UTC';}
+function followPercent(value){return new Intl.NumberFormat(LANG==='tr'?'tr-TR':'en-GB',{style:'percent',maximumFractionDigits:2,signDisplay:'exceptZero'}).format(value/100);}
+function followReading(value){return t('follow_reading',{since:followDate(value.since),until:followDate(value.until),sessions:number(value.sessions),responses:number(value.responses),tokens:number(value.tokens),excluded:number(value.excluded_sessions+value.boundary_sessions),missing:number(value.missing_sessions)});}
+function followWord(prefix,value){return t(prefix+value);}
+function followLimits(box,limits){if(!limits?.length)return;const list=node('ul','follow-limits');for(const reason of limits)list.append(node('li','',followWord('follow_limit_',reason)));box.append(list);}
+function syncFollowControls(){
+  const current=followState.key===followKey(),data=current&&followState.data,blocked=workBlocked()||followState.loading||!data;
+  const draft=followState.drafts[selectedWork()?.id];
+  $('usage-follow-reload').disabled=workBlocked()||followState.loading;
+  for(const id of ['usage-follow-change','usage-follow-observation','usage-follow-trigger'])$(id).disabled=blocked;
+  $('usage-follow-start').disabled=blocked||!data.fresh||data.items.some(r=>r.status==='open')||data.items.length>=10||!draft||!validFollowText(draft.change,true)||!validFollowText(draft.observation);
+  for(const control of $('usage-follow-records').querySelectorAll('button,select,textarea')){
+    const record=data&&data.items.find(r=>r.id===control.followRecord);
+    const review=record&&draft?.reviews?.[record.id];
+    control.disabled=blocked||!record||(control.followAction==='review'&&(!record.ready||!validFollowText(review?.note||'')));
+  }
+}
+async function loadFollowups(force=false){
+  if(!$('usage-work-followups').open||!selectedWork()||workBlocked())return;
+  const key=followKey();if(!force&&followState.key===key&&(followState.data||followState.loading||followState.error))return;
+  const request=++followState.request,id=selectedWork().id;
+  followState.key=key;followState.data=null;followState.loading=true;followState.error='';renderFollowups();syncWorkControls();
+  const current=()=>!usageState.stopped&&!workState.navigation&&request===followState.request&&key===followKey()&&$('usage-work-followups').open;
+  try{const data=await api('/api/usage/work/followups?'+new URLSearchParams({work:id,lang:LANG}));if(!current())return;
+    if(data.ok!==true)throw new Error(t('follow_failed'));followState.data=data;
+  }catch(error){if(current())followState.error=error.message;}
+  finally{if(request===followState.request){followState.loading=false;if(current()){renderFollowups();syncWorkControls();}}}
+}
+function renderFollowups(){
+  if(!$('usage-work-followups').open)return;
+  const status=$('usage-follow-status'),box=$('usage-follow-records'),form=$('usage-follow-form');
+  box.replaceChildren();form.hidden=true;
+  const data=followState.key===followKey()&&followState.data;
+  status.textContent=followState.loading?t('follow_loading'):followState.error||(!data?t('follow_reload_hint'):!data.fresh?t('follow_stale'):'');
+  if(!data)return;
+  const draft=followDraft();
+  for(const record of data.items){
+    const card=node('article','follow-record');card.append(node('h3','',followWord('follow_status_',record.status)),node('p','follow-change',record.change));
+    card.append(node('p','section-note',t('follow_reason',{reason:followWord('follow_trigger_',record.trigger)})));
+    if(record.observation)card.append(node('p','follow-note',record.observation));
+    const windows=node('div','follow-windows'),before=node('section','');before.append(node('h4','',t('follow_before')),node('p','',followReading(record.baseline)));windows.append(before);
+    const afterValue=record.review?.after||record.after_preview;
+    if(afterValue){const after=node('section','');after.append(node('h4','',t(record.status==='reviewed'?'follow_after':'follow_after_preview')),node('p','',followReading(afterValue)));windows.append(after);}card.append(windows);
+    if(record.status==='reviewed'){
+      card.append(node('p','section-note',t('follow_context_saved',{context:followWord('follow_context_',record.review.context)})));
+      if(record.review.note)card.append(node('p','follow-note',record.review.note));
+      if(record.comparison.limitations.length){card.append(node('p','follow-unresolved',t('follow_no_comparison')));followLimits(card,record.comparison.limitations);}
+      else{card.append(node('p','section-note',t('follow_metric')));for(const c of record.comparison.cohorts)card.append(node('p','follow-delta',t('follow_delta',{agent:usageAgents[c.agent]||c.agent,project:c.project_id.slice(0,8),model:c.model,before:number(c.before),after:number(c.after),percent:followPercent(c.change_percent)})));}
+    }else if(record.status==='open'){
+      card.append(node('p','section-note',t('follow_due',{date:followDate(record.due_at)})));
+      if(record.ready){
+        const saved=draft.reviews[record.id]??(draft.reviews[record.id]={context:'unknown',note:''});
+        const review=node('form','work-details-form'),label=node('label','',t('follow_context')),select=node('select','');select.id='follow-context-'+record.id;label.htmlFor=select.id;
+        for(const value of followContexts){const option=node('option','',followWord('follow_context_',value));option.value=value;select.append(option);}select.value=saved.context;
+        const noteLabel=node('label','',t('follow_review_note')),note=node('textarea','');note.rows=2;note.maxLength=2000;note.id='follow-note-'+record.id;noteLabel.htmlFor=note.id;note.value=saved.note;
+        select.addEventListener('change',()=>{saved.context=select.value;syncWorkControls();});note.addEventListener('input',()=>{saved.note=note.value;syncWorkControls();});
+        const save=node('button','secondary',t('follow_review'));save.type='submit';save.followAction='review';
+        for(const control of [select,note,save])control.followRecord=record.id;
+        review.addEventListener('submit',event=>{event.preventDefault();runFollowup('review_followup',record);});review.append(label,select,noteLabel,note,save);card.append(review);
+      }else card.append(node('p','section-note',t('follow_wait')));
+      followLimits(card,record.baseline.limitations);
+      const cancel=node('button','quiet',t('follow_cancel'));cancel.type='button';cancel.followRecord=record.id;cancel.addEventListener('click',()=>runFollowup('cancel_followup',record));card.append(cancel);
+    }else if(record.cancel_note)card.append(node('p','follow-note',record.cancel_note));
+    const remove=node('button','quiet',t(followState.deleting===record.id?'follow_delete_confirm':'follow_delete'));remove.type='button';remove.followRecord=record.id;
+    remove.addEventListener('click',()=>{if(followState.deleting!==record.id){followState.deleting=record.id;renderFollowups();syncWorkControls();}else runFollowup('delete_followup',record);});card.append(remove);
+    if(followState.deleting===record.id){card.append(node('p','section-note',t('follow_delete_warning')));const keep=node('button','quiet',t('follow_keep'));keep.type='button';keep.followRecord=record.id;keep.addEventListener('click',()=>{followState.deleting=null;renderFollowups();syncWorkControls();});card.append(keep);}
+    box.append(card);
+  }
+  if(!data.items.length)box.append(node('p','section-note',t('follow_empty')));
+  if(!data.items.some(r=>r.status==='open')&&data.items.length<10){form.hidden=false;$('usage-follow-baseline').textContent=followReading(data.preview);$('usage-follow-change').value=draft.change;$('usage-follow-observation').value=draft.observation;$('usage-follow-trigger').value=draft.trigger;followLimits(box,data.preview.limitations);}
+}
+function runFollowup(action,record=null){
+  const data=followState.key===followKey()&&followState.data,item=selectedWork(),draft=followDraft();
+  if(workBlocked()||followState.loading||!data||!item)return;
+  let body={action,id:item.id,expected_revision:action==='start_followup'?data.preview_revision:action==='review_followup'?record.review_revision:record.revision};
+  if(action==='start_followup'){
+    if(!data.fresh||!validFollowText(draft.change,true)||!validFollowText(draft.observation)||data.items.some(r=>r.status==='open'))return;
+    Object.assign(body,{trigger:draft.trigger,observation:cleanWorkText(draft.observation),change:cleanWorkText(draft.change)});
+  }else{body.record_id=record.id;if(action==='review_followup'){if(!record.ready)return;const review=draft.reviews[record.id]||{context:'unknown',note:''};if(!validFollowText(review.note))return;Object.assign(body,{context:review.context,note:cleanWorkText(review.note)});}else if(action==='cancel_followup')body.note='';}
+  return performWorkAction(body,{focus:'followup'});
 }
 function workProjection(){return usageState.data?.work_items;}
 function selectedWork(){return workProjection()?.items?.find(item=>item.id===workState.selected);}
@@ -1417,11 +1921,15 @@ function workQualityLimited(value){return ['tokens_complete','calls_complete','a
 function syncWorkControls(){
   const box=$('usage-work-items');if(!box)return;
   const blocked=workBlocked(),item=selectedWork();
-  for(const root of [box,$('usage-session-work-items')])if(root)for(const control of root.querySelectorAll('button,input,select'))control.disabled=blocked;
+  for(const root of [box,$('usage-session-work-items')])if(root)for(const control of root.querySelectorAll('button,input,select,textarea'))control.disabled=blocked;
   $('usage-work-create').disabled=blocked||!validWorkTitle($('usage-work-create-title').value);
   $('usage-work-select').disabled=blocked||!workProjection()?.items?.length;
   $('usage-work-rename').disabled=blocked||!item||!validWorkTitle($('usage-work-rename-title').value)||$('usage-work-rename-title').value.trim()===item.title;
   $('usage-work-delete').disabled=blocked||!item;
+  const draft=item&&workState.detailDrafts[item.id];
+  $('usage-work-details-save').disabled=blocked||!draft||draft.conflict||!validWorkDetails(draft)||!changedWorkDetails(item,draft)||!/^[a-f0-9]{24}$/.test(draft.expected_revision);
+  $('usage-work-details-keep').disabled=blocked||!draft?.conflict;
+  $('usage-work-details-discard').disabled=blocked||!draft;
   $('usage-work-reload').hidden=workProjection()?.readable===true&&!workState.needsRefresh;
   $('usage-work-reload').disabled=Boolean(usageState.stopped||workState.navigation||usageState.loading||usageState.workBusy||usageState.data?.state==='scanning');
   $('usage-work-create').textContent=t(usageState.workBusy==='create'?'work_saving':'work_create');
@@ -1432,6 +1940,7 @@ function syncWorkControls(){
   $('usage-work-delete-cancel').disabled=Boolean(usageState.stopped||deleting);
   $('usage-work-delete-confirm').textContent=t(deleting?'work_saving':'work_delete_confirm');
   box.setAttribute('aria-busy',String(Boolean(usageState.workBusy)));
+  syncFollowControls();
 }
 function renderWorkItems(data){
   restoreWorkMemory();workState.needsRefresh=false;
@@ -1457,6 +1966,8 @@ function renderSelectedWork(){
   const item=selectedWork(),readable=workProjection()?.readable===true;
   $('usage-work-selected').hidden=!readable||!item;if(!readable||!item)return;
   $('usage-work-rename-title').value=workState.renameDrafts[item.id]??item.title;
+  renderWorkDetails(item);renderWorkObservations(item);
+  renderFollowups();loadFollowups();
   $('usage-work-counts').textContent=t('work_counts',{linked:number(item.linked_sessions),available:number(item.linked_sessions-item.missing_sessions),selected:number(item.selected_sessions),outside:number(item.outside_selection),missing:number(item.missing_sessions),overlap:number(item.overlapping_sessions)});
   $('usage-work-usage').textContent=item.selected_sessions?workUsageText('work_usage',item):t('work_no_selection');
   $('usage-work-quality').hidden=!item.selected_sessions||!workQualityLimited(item);
@@ -1517,27 +2028,44 @@ async function performWorkAction(body,context={}){
   sessionWorkMessage(context,t('work_saving'));
   if(workState.deleteID)$('usage-work-delete-status').textContent=t('work_saving');
   try{
-    const result=await post('/api/usage/work',body);if(!current())return false;
+    const following=body.action.endsWith('_followup');
+    const result=await post(following?'/api/usage/work/followup':body.action==='describe'?'/api/usage/work/details':'/api/usage/work',body);if(!current())return false;
     if(result.ok!==true)throw new Error(t('work_failed'));
     if(body.action==='create'){
       workState.selected=result.id;workState.pageSize=20;
       if(body.session)delete workState.sessionDrafts[body.session];else workState.createDraft='';
     }
     if(body.action==='rename')delete workState.renameDrafts[body.id];
+    if(body.action==='describe')delete workState.detailDrafts[body.id];
+    if(following){followState.key='';followState.deleting=null;if(body.action==='start_followup')delete followState.drafts[body.id];else delete followState.drafts[body.id]?.reviews?.[body.record_id];}
     if(body.action==='link')delete workState.sessionChoices[body.session];
     if(body.action==='delete'){
       delete workState.renameDrafts[body.id];if(workState.selected===body.id)workState.selected='';
+      delete workState.detailDrafts[body.id];
+      delete followState.drafts[body.id];
       workState.deleteID=null;$('usage-work-delete-dialog').close();
     }
     const previous=usageState.data;await loadUsage();if(!current())return false;
     workState.needsRefresh=usageState.data===previous;
-    const message=t(workState.needsRefresh?'work_saved_refresh':'work_saved');notice(message);sessionWorkMessage(context,message);
+    const message=t(workState.needsRefresh?'work_saved_refresh':body.action==='describe'?'work_details_saved':'work_saved');notice(message);sessionWorkMessage(context,message);
     return true;
-  }catch(error){if(current()){notice(error.message);sessionWorkMessage(context,error.message);if(workState.deleteID)$('usage-work-delete-status').textContent=error.message;}return false;}
+  }catch(error){
+    if(current()){
+      if(body.action==='describe'&&error.code==='conflict'){
+        const draft=workState.detailDrafts[body.id];if(draft)draft.conflict=true;
+        const previous=usageState.data;await loadUsage();if(!current())return false;
+        workState.needsRefresh=usageState.data===previous;renderSelectedWork();
+      }else if(body.action.endsWith('_followup')){followState.key='';followState.data=null;if(!['invalid','limit','early','active','closed','stale','conflict','missing'].includes(error.code))workState.needsRefresh=true;}
+      else if(body.action==='describe'&&!['invalid','limit','missing'].includes(error.code))workState.needsRefresh=true;
+      notice(error.message);sessionWorkMessage(context,error.message);if(workState.deleteID)$('usage-work-delete-status').textContent=error.message;
+    }
+    return false;
+  }
   finally{
     usageState.workBusy=false;syncArchiveButton();syncExportButton();syncWorkControls();
+    if(current()&&body.action.endsWith('_followup'))await loadFollowups(true);
     if(current()){
-      const target=context.focus==='session'&&workState.openSession===context.session?$('usage-session-work-select'):context.focus==='rename'?$('usage-work-rename-title'):$('usage-work-select');
+      const target=context.focus==='session'&&workState.openSession===context.session?$('usage-session-work-select'):context.focus==='details'?$('usage-work-goal'):context.focus==='rename'?$('usage-work-rename-title'):$('usage-work-select');
       if(target&&!target.disabled&&!$('usage-work-delete-dialog').open)target.focus();
     }
   }
@@ -1552,10 +2080,18 @@ $('usage-backup-download').addEventListener('click',downloadUsageBackup);
 $('usage-backup-check').addEventListener('click',checkUsageBackup);
 $('usage-backup-file').addEventListener('change',()=>{$('usage-backup-result').hidden=true;syncBackupControls();});
 $('usage-work-create-title').addEventListener('input',()=>{workState.createDraft=$('usage-work-create-title').value;syncWorkControls();});
+$('usage-work-followups').addEventListener('toggle',()=>{if($('usage-work-followups').open)loadFollowups();else{followState.request++;followState.loading=false;followState.key='';}});
+$('usage-follow-reload').addEventListener('click',()=>loadFollowups(true));
+$('usage-follow-form').addEventListener('submit',event=>{event.preventDefault();runFollowup('start_followup');});
+for(const [id,key] of [['usage-follow-change','change'],['usage-follow-observation','observation'],['usage-follow-trigger','trigger']])$(id).addEventListener(key==='trigger'?'change':'input',()=>{const draft=followDraft();if(draft)draft[key]=$(id).value;syncWorkControls();});
 $('usage-work-create-form').addEventListener('submit',event=>{event.preventDefault();createWork();});
 $('usage-work-select').addEventListener('change',()=>{workState.selected=$('usage-work-select').value;workState.pageSize=20;renderSelectedWork();syncWorkControls();});
 $('usage-work-rename-title').addEventListener('input',()=>{if(workState.selected)workState.renameDrafts[workState.selected]=$('usage-work-rename-title').value;syncWorkControls();});
 $('usage-work-rename-form').addEventListener('submit',event=>{event.preventDefault();renameWork();});
+for(const id of ['usage-work-goal','usage-work-result-note','usage-work-outcome'])$(id).addEventListener(id==='usage-work-outcome'?'change':'input',captureWorkDetails);
+$('usage-work-details-form').addEventListener('submit',event=>{event.preventDefault();saveWorkDetails();});
+$('usage-work-details-keep').addEventListener('click',()=>reviewWorkDetails(true));
+$('usage-work-details-discard').addEventListener('click',()=>reviewWorkDetails(false));
 $('usage-work-more').addEventListener('click',()=>{workState.pageSize+=20;renderSelectedWork();syncWorkControls();});
 $('usage-work-delete').addEventListener('click',requestWorkDelete);
 $('usage-work-reload').addEventListener('click',loadUsage);
@@ -1572,7 +2108,7 @@ $('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').
 $('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-quality-only').checked=false;$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
 function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}
-function updateSnapshotClock(){if(!usageState.stopped&&usageState.data?.has_snapshot){renderQuotaAlerts();if(document.hidden)return;renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}
+function updateSnapshotClock(){if(!usageState.stopped&&usageState.data?.has_snapshot){renderQuotaAlerts();if(document.hidden)return;agePlanComparisons();renderUsageQuota(usageState.data);if(quotaInsightStates(usageState.data)!==usageState.insightQuotaStates)renderUsageInsights(usageState.data);}}
 usageState.clock=setInterval(updateSnapshotClock,30000);
 document.addEventListener('visibilitychange',updateSnapshotClock);
 window.addEventListener('focus',updateSnapshotClock);

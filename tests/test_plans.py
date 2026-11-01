@@ -47,6 +47,16 @@ def row(rows, agent):
     return next(value for value in rows if value['agent'] == agent)
 
 
+def dense_meter(minutes, peak, now=NOW):
+    result=[]
+    for days in range(20,-1,-1):
+        at=now-timedelta(days=days)
+        reset=(at+timedelta(hours=5) if minutes==300 else
+               now+timedelta(days=2)-timedelta(days=7*((days+1)//7)))
+        result.append((at,minutes,peak,reset))
+    return result
+
+
 class PlanRuleTests(unittest.TestCase):
     def test_codex_plan_limits_and_api_equivalent_never_name_an_unpublished_larger_plan(self):
         samples = meter(300, [40, 100, 100, 60]) + meter(10080, [55, 100])
@@ -59,18 +69,20 @@ class PlanRuleTests(unittest.TestCase):
         self.assertNotIn('smaller', value)
 
     def test_a_smaller_claude_plan_is_named_only_with_published_ratios_history_and_headroom(self):
-        low = meter(300, [5, 12, 15]) + meter(10080, [9, 14])
+        low = dense_meter(300,15) + dense_meter(10080,14)
         value = row(plans.advise([session(usd=[150])], low, NOW, claude_plan='max'), 'claude-code')
-        self.assertEqual(value['findings'], ['smaller_fits'])
-        self.assertEqual(value['smaller'], dict(plan='pro', usd=20, unmeasured=False, share=0.2, peak=15))
+        self.assertEqual(value['findings'], ['lower_observed'])
+        lower=value['lower_plan_comparison']
+        self.assertEqual((lower['plan'],lower['usd'],lower['share'],lower['peak'],lower['observed_only']),('pro',20,0.2,15,True))
+        self.assertNotIn('smaller',value)  # legacy "fits" advice is not exported
         # 16% is the most Pro could have carried with a fifth to spare; 17% is too close.
-        close = meter(300, [5, 17]) + meter(10080, [9, 14])
-        self.assertNotIn('smaller', row(plans.advise([session(usd=[150])], close, NOW, claude_plan='max'), 'claude-code'))
+        close = dense_meter(300,17) + dense_meter(10080,14)
+        self.assertNotIn('lower_plan_comparison', row(plans.advise([session(usd=[150])], close, NOW, claude_plan='max'), 'claude-code'))
         short = meter(300, [5, 12], days=10) + meter(10080, [9, 14], days=10)
-        self.assertNotIn('smaller', row(plans.advise([session(usd=[150])], short, NOW, claude_plan='max'), 'claude-code'))
-        ultra = meter(10080, [20, 38])
+        self.assertNotIn('lower_plan_comparison', row(plans.advise([session(usd=[150])], short, NOW, claude_plan='max'), 'claude-code'))
+        ultra = dense_meter(10080,38)
         value = row(plans.advise([session(usd=[250])], ultra, NOW, claude_plan='ultra'), 'claude-code')
-        self.assertEqual((value['findings'], value['smaller']['plan'], value['smaller']['share']), (['smaller_fits_weekly'], 'max', 0.5))
+        self.assertEqual((value['findings'], value['lower_plan_comparison']['plan'], value['lower_plan_comparison']['share']), (['lower_weekly_observed'], 'max', 0.5))
         self.assertNotIn('smaller', row(plans.advise([session(usd=[150])], meter(300, [5, 8]) + meter(10080, [5, 9]),
                                                       NOW, claude_plan='pro'), 'claude-code'))
 
@@ -81,17 +93,19 @@ class PlanRuleTests(unittest.TestCase):
         hit = session(usd=[1], limit_hits=[NOW - timedelta(days=2)])
         self.assertIn('limits_reached', row(plans.advise([hit], (), NOW, claude_plan='max'), 'claude-code')['findings'])
 
-    def test_api_cheaper_needs_a_full_period_of_dated_usage(self):
+    def test_numeric_api_comparison_does_not_claim_a_switching_saving(self):
         cheap = row(plans.advise([session(usd=[3, 4])], (), NOW, claude_plan='max'), 'claude-code')
-        self.assertEqual(cheap['findings'], ['no_meter', 'api_cheaper'])
+        self.assertEqual(cheap['findings'], ['no_meter', 'api_below_list_price'])
+        self.assertIsNone(cheap['actual_payment_usd'])
+        self.assertFalse(cheap['history_complete'])
         young = row(plans.advise([session(days=10, usd=[3, 4])], (), NOW, claude_plan='max'), 'claude-code')
-        self.assertNotIn('api_cheaper', young['findings'])
+        self.assertNotIn('api_below_list_price', young['findings'])
         undated = session(usd=[3, 4])
         undated._usage_events.append(dict(first=None, at=None, tokens=tokens(1000), usd=None))
         undated.calls += 1
         value = row(plans.advise([undated], (), NOW, claude_plan='max'), 'claude-code')
         self.assertTrue(value['usage_partial'])
-        self.assertNotIn('api_cheaper', value['findings'])
+        self.assertNotIn('api_below_list_price', value['findings'])
 
     def test_a_session_with_unknown_project_still_counts_for_the_account(self):
         # Regression: the dated-usage view leaves such sessions out; a plan belongs to the account.
@@ -137,8 +151,8 @@ class PlanReaderTests(IsolatedMetadata):
             main(['--lang', 'en'])
         text = output.getvalue()
         self.assertIn('Plan check', text)
-        self.assertIn('Codex: Plus ($20 a month)', text)
-        self.assertIn('Limit reached in 1 of 3 5-hour windows', text)
+        self.assertIn('Codex: Plus (list price: $20 a month)', text)
+        self.assertIn('Observed at 100% in 1 of 3 sampled 5-hour reset periods', text)
         output = io.StringIO()
         with patch('sys.stdout', output):
             main(['--json'])

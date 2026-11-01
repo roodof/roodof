@@ -154,22 +154,31 @@ def _plan_lines(rows, lang):
             plan = say(lang, 'report.plan_named', name=name, price=row['price_usd']) if row['price_usd'] else name
         else:
             plan = say(lang, 'report.plan_unchosen' if row['agent'] == 'claude-code' else 'report.plan_unlogged')
-        lines.append(say(lang, 'report.plan_row', agent=AGENTS[row['agent']], plan=plan, usd=_usd(row['api_usd'], lang),
+        amount='$'+_usd(row['api_usd'],lang) if row['api_priced_share'] else say(lang,'unknown')
+        lines.append(say(lang, 'report.plan_row', agent=AGENTS[row['agent']], plan=plan, amount=amount,
                          partial=say(lang, 'report.plan_partial') if row['usage_partial'] else ''))
         meter = {value['window_minutes']: value for value in row['meter']}
         five, week = meter.get(plan_rules.FIVE_HOURS), meter.get(plan_rules.WEEK)
         if five or week:
             lines.append(say(lang, 'report.plan_meter', five=five['full'] if five else 0, five_total=five['periods'] if five else 0,
                              week=week['full'] if week else 0, week_total=week['periods'] if week else 0))
-        smaller = row.get('smaller')
+        lower = row.get('lower_plan_comparison')
+        for reason in row.get('limitations',()):
+            key='report.plan_limit_'+reason
+            lines.append(say(lang,key))
         for finding in row['findings']:
-            if finding in ('smaller_fits', 'smaller_fits_weekly'):
-                lines.append(say(lang, 'report.' + finding, peak=_pct(smaller['peak'] / 100, lang), share=_pct(smaller['share'], lang),
-                                 smaller=smaller['plan'].capitalize(), smaller_price=smaller['usd']))
-            elif finding == 'api_cheaper':
-                lines.append(say(lang, 'report.api_cheaper', usd=_usd(row['api_usd'], lang), price=row['price_usd']))
+            if finding in ('lower_observed', 'lower_weekly_observed'):
+                lines.append(say(lang, 'report.' + finding, peak=_pct(lower['peak'] / 100, lang), share=_pct(lower['share'], lang),
+                                 current=lower['assumed_plan'].capitalize(),smaller=lower['plan'].capitalize(),smaller_price=lower['usd']))
+            elif finding == 'api_below_list_price':
+                lines.append(say(lang, 'report.api_below_list_price', usd=_usd(row['api_usd'], lang), price=row['price_usd']))
+            elif finding == 'no_meter' and row['agent']=='codex':
+                lines.append(say(lang,'report.no_meter_codex'))
             elif finding != 'limits_reached':
                 lines.append(say(lang, 'report.' + finding))
+    if rows and rows[0].get('since') and rows[0].get('until'):
+        lines.append(say(lang,'report.plan_range',since=rows[0]['since'],until=rows[0]['until']))
+    lines.append(say(lang,'report.plan_payment_unknown'))
     return lines
 
 
@@ -336,7 +345,7 @@ def main(argv=None):
     try: claude_plan=plan_rules.Choice().read()
     except (OSError,ValueError,TypeError,UnicodeError): claude_plan=None
     # A plan is the account's: every session, whatever --days selects.
-    sources['_plans']=plan_rules.advise(sessions,sources['claude_quota'],observed,claude_plan,sources.get('quota_source_groups'))
+    sources['_plans']=plan_rules.advise(sessions,sources['claude_quota'],observed,claude_plan,sources.get('quota_source_groups'),sources=sources)
     if hasattr(sys.stdout, 'reconfigure'):
         # JSON is UTF-8 by definition; a redirected Windows console would otherwise use the ANSI code page.
         sys.stdout.reconfigure(encoding='utf-8')

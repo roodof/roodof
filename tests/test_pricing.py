@@ -46,8 +46,14 @@ class PriceTableTests(unittest.TestCase):
         self.assertIsNone(pricing.response_cost('claude-code', 'claude-sonnet-4-5', tokens(input=200_001)))
         self.assertAlmostEqual(pricing.response_cost('claude-code', 'claude-haiku-5-5', tokens(input=100_001)), 0.0500005)
 
-    def test_codex_cache_writes_are_input_tokens_at_the_input_price(self):
-        self.assertAlmostEqual(pricing.response_cost('codex', 'gpt-6-sol', tokens(cache_write=100_000)), 0.2)
+    def test_codex_new_cache_writes_without_lifetime_are_unpriced_legacy_rate_is_preserved(self):
+        for model in ('gpt-6-astra','gpt-6.1-sol','gpt-6.1-terra','gpt-6-luna','gpt-6-sol'):
+            self.assertIsNone(pricing.response_cost('codex',model,tokens(input=50,cache_write=100,output=10)))
+            self.assertIsNotNone(pricing.response_cost('codex',model,tokens(input=50,output=10)))
+        self.assertAlmostEqual(pricing.response_cost('codex','gpt-5.3-codex',tokens(cache_write=100_000)),0.175)
+
+    def test_unlisted_codex_dated_suffix_is_not_a_published_model_alias(self):
+        self.assertIsNone(pricing.response_cost('codex','gpt-6.1-sol-20990101',tokens(input=100)))
 
 
 class ReaderPricingTests(unittest.TestCase):
@@ -85,6 +91,14 @@ class ReaderPricingTests(unittest.TestCase):
         self.assertAlmostEqual(session.api_usd, 4)
         self.assertAlmostEqual(summarize([session])['totals']['api_priced_share'], 0.25)
 
+    def test_a_region_logged_as_not_available_is_priced_like_an_absent_one(self):
+        # Claude Code wrote 'not_available' for every response before the region was reported.
+        base = dict(input_tokens=1_000_000, output_tokens=0, speed='standard', service_tier='standard')
+        session, = self.claude([reply('m1', '2026-09-23T10:00:00Z', dict(base, inference_geo='not_available')),
+                                reply('m2', '2026-10-29T10:00:00Z', dict(base, inference_geo='global'))])
+        self.assertAlmostEqual(session.api_usd, 8)
+        self.assertEqual(session.api_priced_tokens, 2_000_000)
+
     def test_the_archive_keeps_only_numeric_split_and_short_words(self):
         usage = dict(input_tokens=1, output_tokens=1, cache_creation_input_tokens=5, ephemeral_1h_input_tokens=5,
                      speed='standard', inference_geo='global')
@@ -96,6 +110,7 @@ class ReaderPricingTests(unittest.TestCase):
         self.assertEqual(bad, [dict(type='pler_file_issue', reason='MalformedRows')])
         odd = sanitize('claude-code', [dict(row, message=dict(row['message'], usage=dict(usage, speed='not a word!')))])
         self.assertNotIn('speed', odd[0]['message']['usage'])
+        self.assertIs(odd[0]['message']['usage']['price_inputs_complete'],False)
 
     def test_codex_responses_are_priced_by_their_turn_model(self):
         rows = [dict(type='session_meta', timestamp='2026-10-29T09:00:00Z', payload=dict(id='c1', cwd='/invented/project')),

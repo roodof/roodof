@@ -1,0 +1,501 @@
+{
+  "format": 1,
+  "reader_review": {
+    "reviewed_at": "2026-11-01",
+    "parser_version": "accounting-2026-11-01.1",
+    "schema_version": 2,
+    "modules": [
+      "usage/accounting.py",
+      "usage/records.py",
+      "usage/codex.py",
+      "usage/claude_code.py",
+      "usage/reconcile.py",
+      "usage/period_usage.py",
+      "usage/archive.py",
+      "usage/cache.py",
+      "usage/input_limits.py",
+      "usage/edit_paths.py",
+      "usage/checks.py",
+      "usage/projects.py",
+      "usage/zstd.py",
+      "usage/unzstd.py",
+      "usage/xxh64.py",
+      "usage/pricing.py",
+      "usage/plans.py"
+    ],
+    "code_sha256": "953fa793c3cf8b99eff97c9c1d0891e821e5341d9218abc78612d7a108430a50",
+    "note": "Price-confidence correction: unknown GPT-6 cache-write lifetimes and unlisted Codex dated IDs are unpriced. Invalid Claude lifetime/modifier evidence is retained as a safe boolean without clamping valid counts; selected copies must agree on price in either order. Token schema is unchanged; changed reader keys rebuild caches and keep older archives explicitly limited. Second review (real logs): Claude Code logged region 'not_available' for every response before regions were reported (until 2026-10-08 in real logs); only 'us' carries the published 1.1x price, so it is priced like an absent region. A contradictory quota episode removes only its own window period from plan period counts and still blocks lower-plan comparisons."
+  },
+  "price_review": {
+    "reviewed_at": "2026-11-01",
+    "maximum_age_days": 30,
+    "api_as_of": "2026-11-01",
+    "plan_as_of": "2026-11-01",
+    "sources": [
+      "https://platform.claude.com/docs/en/about-claude/pricing",
+      "https://developers.openai.com/api/docs/pricing",
+      "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+      "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+      "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "https://developers.openai.com/api/docs/models/gpt-6-sol",
+      "https://claude.com/pricing",
+      "https://support.claude.com/en/articles/17728952-what-is-the-ultra-plan",
+      "https://learn.chatgpt.com/docs/pricing"
+    ],
+    "api_groups": [
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-fable-5-1",
+          "claude-mythos-5-1"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 10,
+              "write_5m": 12.5,
+              "write_1h": 20,
+              "cache_read": 0.25,
+              "output": 50
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-fable-5",
+          "claude-mythos-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 10,
+              "write_5m": 12.5,
+              "write_1h": 20,
+              "cache_read": 1,
+              "output": 50
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 4,
+              "write_5m": 5,
+              "write_1h": 8,
+              "cache_read": 0.2,
+              "output": 20
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-opus-5",
+          "claude-opus-4-8",
+          "claude-opus-4-7",
+          "claude-opus-4-6",
+          "claude-opus-4-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 5,
+              "write_5m": 6.25,
+              "write_1h": 10,
+              "cache_read": 0.5,
+              "output": 25
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-opus-4-1",
+          "claude-opus-4"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 15,
+              "write_5m": 18.75,
+              "write_1h": 30,
+              "cache_read": 1.5,
+              "output": 75
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-sonnet-5-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 2,
+              "write_5m": 2.5,
+              "write_1h": 4,
+              "cache_read": 0.1,
+              "output": 10
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-sonnet-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 2,
+              "write_5m": 2.5,
+              "write_1h": 4,
+              "cache_read": 0.2,
+              "output": 10
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-sonnet-4-6"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 3,
+              "write_5m": 3.75,
+              "write_1h": 6,
+              "cache_read": 0.3,
+              "output": 15
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-sonnet-4-5",
+          "claude-sonnet-4"
+        ],
+        "tiers": [
+          [
+            200000,
+            {
+              "input": 3,
+              "write_5m": 3.75,
+              "write_1h": 6,
+              "cache_read": 0.3,
+              "output": 15
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-haiku-5-5"
+        ],
+        "tiers": [
+          [
+            100000,
+            {
+              "input": 0.1,
+              "write_5m": 0.125,
+              "write_1h": 0.2,
+              "cache_read": 0.01,
+              "output": 0.5
+            }
+          ],
+          [
+            null,
+            {
+              "input": 0.5,
+              "write_5m": 0.625,
+              "write_1h": 1,
+              "cache_read": 0.05,
+              "output": 2.5
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-haiku-4-5"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 1,
+              "write_5m": 1.25,
+              "write_1h": 2,
+              "cache_read": 0.1,
+              "output": 5
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "claude-code",
+        "models": [
+          "claude-3-5-haiku"
+        ],
+        "tiers": [
+          [
+            null,
+            {
+              "input": 0.8,
+              "write_5m": 1,
+              "write_1h": 1.6,
+              "cache_read": 0.08,
+              "output": 4
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-6-astra"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 10,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 1,
+              "output": 50
+            }
+          ],
+          [
+            null,
+            {
+              "input": 20,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 2,
+              "output": 75.0
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-6.1-sol"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 2,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.1,
+              "output": 10
+            }
+          ],
+          [
+            null,
+            {
+              "input": 4,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.2,
+              "output": 15.0
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-6.1-terra"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 1,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.05,
+              "output": 5
+            }
+          ],
+          [
+            null,
+            {
+              "input": 2,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.1,
+              "output": 7.5
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-6-luna"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 0.1,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.01,
+              "output": 0.5
+            }
+          ],
+          [
+            null,
+            {
+              "input": 0.2,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.02,
+              "output": 0.75
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-6-sol"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 2,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.2,
+              "output": 10
+            }
+          ],
+          [
+            null,
+            {
+              "input": 4,
+              "write_5m": null,
+              "write_1h": null,
+              "cache_read": 0.4,
+              "output": 15.0
+            }
+          ]
+        ]
+      },
+      {
+        "agent": "codex",
+        "models": [
+          "gpt-5.3-codex"
+        ],
+        "tiers": [
+          [
+            272000,
+            {
+              "input": 1.75,
+              "write_5m": 1.75,
+              "write_1h": 1.75,
+              "cache_read": 0.175,
+              "output": 14
+            }
+          ]
+        ]
+      }
+    ],
+    "scope": "USD per million tokens, public global standard tier only. Claude dated-family alias policy retained; Codex uses exact model IDs. No automatic provider fetch or price replacement. Null write rates mean unknown lifetime remains unpriced, not free.",
+    "limits": [
+      "Claude Sonnet 4/4.5 prompts above 200000 remain unpriced (unreviewed legacy long-context price).",
+      "GPT-5.3 Codex prompts above 272000 remain unpriced (unreviewed long-context price).",
+      "GPT-6 writes require 30m/12h evidence absent from current Codex projections; positive writes withhold the entire response price.",
+      "Codex service tier is not in the retained contract; standard-tier equivalent is assumed, not a bill.",
+      "Regional/fast/unrecognized Claude pricing modifiers are not mapped to the global standard rate; an absent or 'not_available' region (logged before regions were reported) is.",
+      "Subscriptions, taxes, credits and actual account payment are not inferred."
+    ],
+    "plans": {
+      "claude-code": {
+        "pro": {
+          "usd": 20,
+          "limits": {
+            "300": 1,
+            "10080": 1
+          }
+        },
+        "max": {
+          "usd": 100,
+          "limits": {
+            "300": 5,
+            "10080": 5
+          }
+        },
+        "ultra": {
+          "usd": 200,
+          "limits": {
+            "300": null,
+            "10080": 10
+          }
+        }
+      },
+      "codex": {
+        "go": {
+          "usd": 8,
+          "limits": null
+        },
+        "plus": {
+          "usd": 20,
+          "limits": null
+        },
+        "pro": {
+          "usd": null,
+          "limits": null
+        }
+      }
+    }
+  },
+  "record_cases_sha256": "cbb8bade97d44f60ab115ad1de027dfa453b4e9a48cc75f2ce0ff45c5e055317",
+  "regressions": [
+    "test_accounting.AccountingTests.test_same_logical_legacy_session_in_plain_and_compressed_copies_is_counted_once",
+    "test_accounting.AccountingTests.test_mixed_cumulative_and_response_records_reconcile_without_losing_legacy_usage",
+    "test_pricing.PriceTableTests.test_prompt_size_selects_a_tier_and_an_uncovered_size_stays_unpriced",
+    "test_pricing.PriceTableTests.test_codex_new_cache_writes_without_lifetime_are_unpriced_legacy_rate_is_preserved",
+    "test_pricing.ReaderPricingTests.test_content_block_copies_are_priced_once_with_their_one_hour_share",
+    "test_pricing.ReaderPricingTests.test_fast_or_us_only_responses_and_unknown_models_are_counted_but_unpriced",
+    "test_rescan.RescanTests.test_unchanged_inputs_return_the_previous_sessions_without_reading",
+    "test_period_usage.PeriodUsageTests.test_reader_cache_rebuilds_identical_private_events_without_storing_them"
+  ]
+}

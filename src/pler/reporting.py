@@ -3,7 +3,7 @@ from . import __version__
 from .i18n import say
 
 SCHEMA_VERSION=2
-PARSER_VERSION='accounting-2026-10-30.3'
+PARSER_VERSION='accounting-2026-11-01.1'
 ISSUES={'invalid_records':'quality.invalid_records','conflicting_usage':'quality.conflicting_usage',
         'unreconciled_totals':'quality.unreconciled_totals','shared_attribution':'quality.shared_attribution',
         'unknown_model':'quality.unknown_model','cumulative_usage':'quality.cumulative_usage',
@@ -26,7 +26,7 @@ def affected(value):
 
 
 def without_work_items(value):
-    """Ordinary usage exports never carry private user-entered work labels or memberships."""
+    """Ordinary exports never carry private work titles, goals, results or memberships."""
     result=dict(value)
     result.pop('work_items',None)
     # Keep this boundary explicit if session-level membership is added later.
@@ -69,3 +69,37 @@ def quality(rows,sources,lang='en'):
                 calls_complete=all(s.calls_complete for s in rows),counts_complete=all(s.counts_complete for s in rows),
                 attribution_complete=all(s.attribution_complete for s in rows),models_complete=all(s.models_complete for s in rows),
                 issues=[dict(code=code,detail=say(lang,ISSUES[code])) for code in sorted(codes) if code in ISSUES])
+
+
+def coverage_guidance(rows, sources):
+    """Fixed, path-free explanations; no inference that retained logs cover an account.
+
+    File failures cover all selected source folders, even when session filters
+    exclude their readable rows. Session evidence follows the current selection.
+    This projection does not change accounting, forecast or recommendation rules.
+    """
+    reasons={reason for _,reason in sources.get('skipped',())}
+    notices=[]
+    def add(code, present):
+        if present: notices.append(dict(code=code))
+    add('wsl_unavailable', reasons & {'WSLUnavailable','WSLNotRunning'})
+    add('read_limits', 'ReadLimitExceeded' in reasons)
+    add('unsafe_path', 'UnsafePath' in reasons)
+    add('source_missing', 'FileNotFoundError' in reasons)
+    add('invalid_records', reasons & {'MalformedRows','InconsistentReasoning'})
+    known={'WSLUnavailable','WSLNotRunning','ReadLimitExceeded','UnsafePath',
+           'FileNotFoundError','MalformedRows','InconsistentReasoning'}
+    add('source_access', reasons-known)
+    add('archive_old_parser', any(s.archive_old_parser or 'archive_old_parser' in s.issues for s in rows))
+    add('archive_unverified', any(s.archive_unverified or 'archive_unverified' in s.issues for s in rows))
+    archive=sources.get('archive') or {}
+    add('archive_loss', archive.get('evicted_files') or archive.get('errors'))
+    add('retained_history', any(s.source_deleted for s in rows))
+    add('incomplete_usage', any(not s.tokens_complete or not s.calls_complete or not s.counts_complete
+                                for s in rows
+                                if not (s.archive_old_parser or s.archive_unverified
+                                        or s.issues & {'archive_old_parser','archive_unverified'})))
+    add('uncertain_attribution', any(not s.attribution_complete or not s.models_complete for s in rows))
+    add('unpriced_usage', any(s.api_priced_tokens < sum(s.tokens[k] for k in ('input','cache_read','cache_write','output'))
+                              for s in rows))
+    return dict(notices=notices, source_scope='all_selected_folders', session_scope='current_filters')

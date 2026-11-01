@@ -15,6 +15,8 @@ python -m venv .qa-venv
 
 The Python tests need the product's `src` directory on the import path. For the source run use `PYTHONPATH=src` in your shell, or run the source-test command from the CI workflow. The installed run below must remove that override.
 
+Before building, run `python tools/check_compatibility.py` with today's UTC date. Resolve review failures using [COMPATIBILITY.md](COMPATIBILITY.md); do not regenerate approvals blindly or change the audit date to bypass expiry. The Python suite executes the independent record cases, and the workflow discovers all `tests/test_*.cjs` suites.
+
 Use `.qa-venv\Scripts\python.exe` on Windows or `.qa-venv/bin/python` on macOS/Linux as `<qa-python>`. Substitute the actual wheel filename for `<candidate.whl>`:
 
 ```text

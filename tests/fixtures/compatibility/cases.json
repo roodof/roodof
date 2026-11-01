@@ -1,0 +1,1250 @@
+{
+  "format": 1,
+  "source": "Invented fixtures with independent expected totals, not captured user data or executed client binaries.",
+  "canary": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST",
+  "cases": [
+    {
+      "id": "codex_stable_response",
+      "agent": "codex",
+      "fixture_client_version": "0.163.0",
+      "scope": "Recognized per-response schema; not a guarantee for every event in this client release.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0.000262,
+        "api_priced_tokens": 110,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_repeated_response",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0.000262,
+        "api_priced_tokens": 110,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_cumulative_0_152_0",
+      "agent": "codex",
+      "fixture_client_version": "0.152.0",
+      "scope": "Retained cumulative totals only; no response count or dated API price is inferred.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.152.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "event_msg",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "type": "token_count",
+            "info": {
+              "total_token_usage": {
+                "input_tokens": 100,
+                "cached_input_tokens": 20,
+                "output_tokens": 10,
+                "reasoning_output_tokens": 2
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 0,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": false,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_cumulative_0_155_0",
+      "agent": "codex",
+      "fixture_client_version": "0.155.0",
+      "scope": "Retained cumulative totals only; no response count or dated API price is inferred.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.155.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "event_msg",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "type": "token_count",
+            "info": {
+              "total_token_usage": {
+                "input_tokens": 100,
+                "cached_input_tokens": 20,
+                "output_tokens": 10,
+                "reasoning_output_tokens": 2
+              }
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 0,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": false,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_unpriced_write_lifetime",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "Writes are counted; no 30m/12h split is available to price a GPT-6 response.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "cache_write_input_tokens": 30,
+              "output_tokens": 10
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_unknown_model",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "invented-model-2099"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_unlisted_dated_model",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol-20990101"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "codex_bad_usage",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "No accepted response usage; a malformed-file warning and incomplete tokens prevent complete-history interpretation.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": -1,
+              "output_tokens": 10
+            }
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 0,
+        "calls": 0,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": false,
+        "calls_complete": true,
+        "malformed": true
+      }
+    },
+    {
+      "id": "codex_unknown_metadata",
+      "agent": "codex",
+      "fixture_client_version": null,
+      "scope": "Unrecognized metadata is ignored; this does not prove complete coverage of a future usage schema.",
+      "rows": [
+        {
+          "type": "session_meta",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "id": "cx",
+            "cwd": "/invented/compat",
+            "cli_version": "0.163.0",
+            "base_instructions": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        },
+        {
+          "type": "turn_context",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "model": "gpt-6.1-sol"
+          }
+        },
+        {
+          "type": "token_usage_record",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "response_id": "r1",
+            "usage": {
+              "input_tokens": 100,
+              "cached_input_tokens": 20,
+              "output_tokens": 10,
+              "reasoning_output_tokens": 2
+            }
+          }
+        },
+        {
+          "type": "invented_ui_notification",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "payload": {
+            "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 110,
+        "calls": 1,
+        "api_usd": 0.000262,
+        "api_priced_tokens": 110,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_usage_and_ttl",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Message/request identity, separate cache fields, thinking included in output, and 5m/1h writes.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0.000589,
+        "api_priced_tokens": 120,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_content_block_copy",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        },
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "thinking",
+                "thinking": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0.000589,
+        "api_priced_tokens": 120,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_unknown_model",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "invented-model-2099",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_unknown_region",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "A non-global, unreviewed region is not priced as standard global.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "future_region"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_nonstandard_speed",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "fast",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_bad_ttl_split",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Valid token totals stay counted; an inconsistent TTL split withholds pricing instead of clamping it.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 11
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_invalid_speed",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Only a false evidence flag is retained for invalid/unsupported price metadata, never the private text.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "invalid word!",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_invalid_inference_geo",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Only a false evidence flag is retained for invalid/unsupported price metadata, never the private text.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "private/path"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_invalid_service_tier",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Only a false evidence flag is retained for invalid/unsupported price metadata, never the private text.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global",
+              "service_tier": "priority"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_conflicting_price_copies",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "Same usage with conflicting pricing evidence stays unpriced in either row order.",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        },
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "future_region"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_conflicting_price_copies_reversed",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "future_region"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        },
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_conflicting_ttl_copies",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        },
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 10
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    },
+    {
+      "id": "claude_conflicting_ttl_copies_reversed",
+      "agent": "claude-code",
+      "fixture_client_version": null,
+      "scope": "",
+      "rows": [
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 10
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        },
+        {
+          "type": "assistant",
+          "timestamp": "2026-10-30T10:00:00+00:00",
+          "sessionId": "cc",
+          "cwd": "/invented/compat",
+          "requestId": "req1",
+          "message": {
+            "id": "msg1",
+            "model": "claude-opus-5-5",
+            "usage": {
+              "input_tokens": 80,
+              "cache_read_input_tokens": 20,
+              "cache_creation_input_tokens": 10,
+              "cache_creation": {
+                "ephemeral_5m_input_tokens": 5,
+                "ephemeral_1h_input_tokens": 5
+              },
+              "output_tokens": 10,
+              "output_tokens_details": {
+                "thinking_tokens": 2
+              },
+              "speed": "standard",
+              "inference_geo": "global"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "INVENTED-COMPATIBILITY-TRANSCRIPT-MUST-NOT-PERSIST"
+              }
+            ]
+          }
+        }
+      ],
+      "expected": {
+        "total_tokens": 120,
+        "calls": 1,
+        "api_usd": 0,
+        "api_priced_tokens": 0,
+        "tokens_complete": true,
+        "calls_complete": true,
+        "malformed": false
+      }
+    }
+  ]
+}

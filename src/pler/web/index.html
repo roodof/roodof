@@ -49,8 +49,15 @@
       <div id="usage-content" hidden>
         <div id="usage-totals" class="usage-totals"></div>
         <section id="usage-dated" class="usage-panel" hidden></section>
-        <p id="usage-quality" class="notice" role="status" hidden></p>
-        <button id="usage-quality-show" class="text-button quality-jump" hidden data-i18n="quality_show">Show affected sessions</button>
+        <section id="usage-data-guidance" class="usage-panel data-guidance" aria-labelledby="usage-data-guidance-title" hidden>
+          <h2 id="usage-data-guidance-title" data-i18n="coverage_title">Before comparing these records</h2>
+          <p class="section-note" data-i18n="coverage_scope">File access warnings cover all selected log folders. Session and pricing limits follow the main filters.</p>
+          <ul id="usage-data-guidance-items" class="coverage-notices"></ul>
+          <p class="section-note" data-i18n="coverage_boundary">PLER cannot tell whether logs were deleted before its first read. It cannot recover records it never read. A successful read does not prove complete account history.</p>
+          <button id="usage-quality-show" class="text-button quality-jump" hidden data-i18n="quality_show">Show affected sessions</button>
+          <a id="usage-coverage-help" href="/help#coverage" data-i18n="coverage_help">How to check or recover records</a>
+          <details id="usage-quality-details" hidden><summary data-i18n="coverage_details">Recorded quality reasons</summary><p id="usage-quality" class="section-note"></p></details>
+        </section>
         <section id="usage-insights" class="usage-panel usage-insights" hidden></section>
         <section id="usage-work-items" class="usage-panel work-items" aria-labelledby="usage-work-title">
           <div class="section-heading"><div><span class="eyebrow" data-i18n="work_eyebrow">Across sessions and agents</span><h2 id="usage-work-title" data-i18n="work_title">My work</h2></div><button id="usage-work-reload" class="quiet" type="button" hidden data-i18n="work_reload">Reload saved work</button></div>
@@ -61,7 +68,40 @@
           <div class="work-controls"><form id="usage-work-create-form" class="work-form"><label for="usage-work-create-title" data-i18n="work_new_title">New work title</label><div class="work-input-action"><input id="usage-work-create-title" maxlength="240" autocomplete="off" data-i18n-placeholder="work_placeholder" placeholder="For example: prepare the first release"><button id="usage-work-create" class="secondary" type="submit" data-i18n="work_create">Create work</button></div></form><div class="work-picker"><label for="usage-work-select" data-i18n="work_choose">Choose work</label><select id="usage-work-select"></select></div></div>
           <div id="usage-work-selected" hidden>
             <form id="usage-work-rename-form" class="work-form work-rename"><label for="usage-work-rename-title" data-i18n="work_edit_title">Work title</label><div class="work-input-action"><input id="usage-work-rename-title" maxlength="240" autocomplete="off"><button id="usage-work-rename" class="secondary" type="submit" data-i18n="work_rename">Save title</button><button id="usage-work-delete" class="quiet" type="button" data-i18n="work_delete">Delete work…</button></div></form>
+            <section class="work-outcome" aria-labelledby="usage-work-outcome-title">
+              <h3 id="usage-work-outcome-title" data-i18n="work_outcome_title">Goal and outcome</h3>
+              <p class="section-note" data-i18n="work_outcome_scope">Your entry applies to the whole work, independently of filters. PLER does not infer completion or quality from tests, Git or usage.</p>
+              <p id="usage-work-goal-view" class="work-detail-text"></p><p id="usage-work-outcome-view" class="work-outcome-value"></p><p id="usage-work-result-view" class="work-detail-text" hidden></p><p id="usage-work-outcome-time" class="section-note" hidden></p>
+              <details id="usage-work-details-editor"><summary data-i18n="work_details_edit">Edit goal and outcome</summary>
+                <form id="usage-work-details-form" class="work-details-form">
+                  <label for="usage-work-goal" data-i18n="work_goal_label">Intended result</label><textarea id="usage-work-goal" rows="3" maxlength="2000" aria-describedby="usage-work-details-help"></textarea>
+                  <label for="usage-work-outcome" data-i18n="work_outcome_label">Your outcome</label><select id="usage-work-outcome"><option value="not_recorded" data-i18n="work_outcome_not_recorded">Not assessed</option><option value="partial" data-i18n="work_outcome_partial">Partly completed</option><option value="completed" data-i18n="work_outcome_completed">Completed</option><option value="not_completed" data-i18n="work_outcome_not_completed">Not completed</option></select>
+                  <label for="usage-work-result-note" data-i18n="work_result_label">Result or remaining work</label><textarea id="usage-work-result-note" rows="3" maxlength="2000" aria-describedby="usage-work-details-help"></textarea>
+                  <p id="usage-work-details-help" class="section-note" data-i18n="work_details_help">Goal and result notes are optional, up to 1,000 characters each. They are private user entries; normal JSON reports omit them, private backups include them.</p>
+                  <p id="usage-work-details-status" class="section-note" role="status"></p><div class="work-details-actions"><button id="usage-work-details-save" class="secondary" type="submit" data-i18n="work_details_save">Save goal and outcome</button><button id="usage-work-details-discard" class="quiet" type="button" data-i18n="work_details_discard">Discard draft and use saved</button></div>
+                </form>
+              </details>
+              <section id="usage-work-details-conflict" class="work-details-conflict" aria-labelledby="usage-work-latest-title" hidden>
+                <h4 id="usage-work-latest-title" data-i18n="work_details_latest">Latest saved version</h4><p class="section-note" data-i18n="work_details_review">Your draft stays in the form. Review the saved values below before keeping your draft for the next save or using the saved version. Neither choice writes a change.</p>
+                <p id="usage-work-latest-goal" class="work-detail-text"></p><p id="usage-work-latest-outcome"></p><p id="usage-work-latest-result" class="work-detail-text"></p>
+                <div class="work-details-actions"><button id="usage-work-details-keep" class="secondary" type="button" data-i18n="work_details_keep">Keep my draft for next save</button></div>
+              </section>
+            </section>
             <p id="usage-work-counts" class="section-note"></p><p id="usage-work-usage" class="work-usage"></p><p id="usage-work-quality" class="section-note" hidden data-i18n="work_quality">Some selected sessions have incomplete usage or attribution. These are known recorded values, not a complete measurement.</p>
+            <section class="work-observations" aria-labelledby="usage-work-observations-title"><h3 id="usage-work-observations-title" data-i18n="work_observations_title">Recorded observations</h3><div id="usage-work-observations"></div><p class="section-note" data-i18n="work_observations_scope">These follow the main filters and cover whole linked sessions. Test/build counts describe each session's latest visible result; Git activity is a time association. They do not prove that the work met its goal.</p></section>
+            <details id="usage-work-followups" class="work-followups"><summary data-i18n="follow_title">Changes to try · weekly follow-up</summary>
+              <p class="section-note" data-i18n="follow_scope">Record a change to this work, then review two seven-day windows. Uses dated responses in all linked sessions, independently of the main filters. No new model calls.</p>
+              <button id="usage-follow-reload" type="button" class="quiet" data-i18n="follow_reload">Reload follow-ups</button><p id="usage-follow-status" class="section-note" role="status" aria-live="polite"></p>
+              <div id="usage-follow-records"></div>
+              <form id="usage-follow-form" class="work-details-form" hidden>
+                <h3 data-i18n="follow_new">Try a change</h3><p id="usage-follow-baseline" class="section-note"></p><p class="section-note" data-i18n="follow_minimum">For a numeric review, each identical agent/project/model group needs at least three sessions in both windows and your assessment of similar tasks. You can still record an unresolved review.</p>
+                <label for="usage-follow-trigger" data-i18n="follow_trigger">What prompted this?</label><select id="usage-follow-trigger"><option value="quota" data-i18n="follow_trigger_quota">Quota pressure</option><option value="concentration" data-i18n="follow_trigger_concentration">Usage concentration</option><option value="session_pattern" data-i18n="follow_trigger_session_pattern">Session pattern</option><option value="other" data-i18n="follow_trigger_other" selected>Other observation</option></select>
+                <label for="usage-follow-observation" data-i18n="follow_observation">Your observation (optional)</label><textarea id="usage-follow-observation" rows="2" maxlength="2000"></textarea>
+                <label for="usage-follow-change" data-i18n="follow_change">What will you change?</label><textarea id="usage-follow-change" rows="3" maxlength="2000" required></textarea>
+                <p class="section-note" data-i18n="follow_private">Up to 1,000 characters per note. Private local records, included in private backups and excluded from normal reports. Deleting this work also deletes its follow-ups.</p>
+                <button id="usage-follow-start" type="submit" class="secondary" data-i18n="follow_start">Save baseline and start</button>
+              </form><p class="section-note" data-i18n="follow_caution">A lower token count does not prove better results, saved money or reduced account quota. Logs may cover only part of a week. Compare the work's outcome separately.</p>
+            </details>
             <ul id="usage-work-members" class="work-members"></ul><button id="usage-work-more" class="quiet" hidden data-i18n="work_more">Show more linked sessions</button><p id="usage-work-no-members" class="section-note" hidden data-i18n="work_no_members">Open a session below and link it to this work.</p>
           </div>
           <p class="section-note" data-i18n="work_scope">Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.</p>

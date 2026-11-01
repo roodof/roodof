@@ -171,11 +171,18 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200,render(lang,query.get('chapter',['guide'])[0]),'text/html; charset=utf-8')
             elif request.path in FILES:
                 self._send(200, self.server.assets[request.path], FILES[request.path])
-            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session'):
+            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups'):
                 if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
                     return
                 query = parse_qs(request.query, keep_blank_values=True)
+                if request.path=='/api/usage/work/followups':
+                    if (set(query)-{'work','lang'} or any(len(v)!=1 for v in query.values())
+                            or query.get('lang',['en'])[0] not in LANGUAGES
+                            or not re.fullmatch('[a-f0-9]{24}',query.get('work',[''])[0])):
+                        raise ValueError(say(lang,'error.query'))
+                    self._followup_result(self.server.dashboard.followup_view(query['work'][0]))
+                    return
                 if request.path=='/api/usage/session':
                     if (set(query)-{'id','lang'} or any(len(v)!=1 for v in query.values())
                             or query.get('lang',['en'])[0] not in LANGUAGES
@@ -221,7 +228,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
-                         '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/backup','/api/usage/backup/check',
+                         '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/work/details','/api/usage/work/followup','/api/usage/backup','/api/usage/backup/check',
                          '/api/quit'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
@@ -232,8 +239,11 @@ class Handler(BaseHTTPRequestHandler):
         if route in ('/api/usage/backup','/api/usage/backup/check'):
             self._backup(route)
             return
-        if route=='/api/usage/work':
-            self._work_item()
+        if route in ('/api/usage/work','/api/usage/work/details'):
+            self._work_item(details=route.endswith('/details'))
+            return
+        if route=='/api/usage/work/followup':
+            self._followup()
             return
         try:
             size = int(self.headers.get('Content-Length', '0'))
@@ -285,17 +295,16 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()
 
-    def _work_item(self):
-        """Small, authenticated manual annotations; no request can select a disk path."""
-        lang=self._lang()
+    def _annotation_json(self,limit):
+        """Bound and authenticate admission before reading a manual annotation."""
         try:
             query=parse_qs(urlsplit(self.path).query,keep_blank_values=True)
             lengths=self.headers.get_all('Content-Length') or []
             if (set(query)-{'lang'} or any(len(v)!=1 for v in query.values())
                     or query.get('lang',['en'])[0] not in LANGUAGES or len(lengths)!=1
                     or self.headers.get('Transfer-Encoding') is not None
-                    or not re.fullmatch('[0-9]{1,4}',lengths[0])
-                    or not 0<int(lengths[0])<=1024
+                    or not re.fullmatch('[0-9]{1,5}',lengths[0])
+                    or not 0<int(lengths[0])<=limit
                     or self.headers.get_content_type()!='application/json'):
                 raise ValueError()
             size=int(lengths[0]);raw=self.rfile.read(size)
@@ -309,30 +318,78 @@ class Handler(BaseHTTPRequestHandler):
             body=json.loads(raw.decode('utf-8'),object_pairs_hook=pairs,
                             parse_constant=lambda _:(_ for _ in ()).throw(ValueError()))
             if not isinstance(body,dict):raise ValueError()
+            return body
+        except (UnicodeError,RecursionError,TypeError,OverflowError):
+            raise ValueError() from None
+
+    def _work_item(self,details=False):
+        """Small, authenticated manual annotations; no request can select a disk path."""
+        lang=self._lang()
+        from .usage import work_items as work_rules
+        try:
+            body=self._annotation_json(work_rules.MAX_DETAILS_REQUEST if details else 1024)
             action=body.get('action')
+            if details!=(action=='describe'): raise ValueError()
             fields=({'action','title'} if action=='create' else
                     {'action','id','title'} if action=='rename' else
+                    {'action','id','goal','outcome','result_note','expected_revision'} if action=='describe' else
                     {'action','id','session'} if action in ('link','unlink') else
                     {'action','id'} if action=='delete' else None)
             if fields is None or set(body) not in (fields,fields|{'session'} if action=='create' else fields):
                 raise ValueError()
             if any(not isinstance(body[key],str) or re.fullmatch('[a-f0-9]{24}',body[key]) is None
-                   for key in ('id','session') if key in body):raise ValueError()
+                   for key in ('id','session','expected_revision') if key in body):raise ValueError()
             if 'title' in body and not isinstance(body['title'],str):raise ValueError()
+            if details: work_rules.validate_details({key:body[key] for key in ('goal','outcome','result_note')})
         except (ValueError,UnicodeError,RecursionError,TypeError,OverflowError):
             self._send(400,dict(error=say(lang,'error.work_invalid'),code='invalid'))
             return
+        extra=dict(details={key:body[key] for key in ('goal','outcome','result_note')},
+                   expected_revision=body['expected_revision']) if details else {}
         result=self.server.dashboard.mutate_work_item(action,identity=body.get('id'),
-            title=body.get('title'),session=body.get('session'))
+            title=body.get('title'),session=body.get('session'),**extra)
         if result.get('ok'):
             self._send(200,result)
             return
         reason=result.get('reason','unsaved')
-        known={'unavailable','unreadable','missing_session','missing','limit','invalid','unsaved'}
+        known={'unavailable','unreadable','missing_session','missing','limit','invalid','unsaved','conflict'}
         reason=reason if reason in known else 'unsaved'
-        code=404 if reason in ('missing','missing_session') else 409 if reason in ('unavailable','unreadable') else 400 if reason in ('invalid','limit') else 500
+        code=404 if reason in ('missing','missing_session') else 409 if reason in ('unavailable','unreadable','conflict') else 400 if reason in ('invalid','limit') else 500
         key='error.work_'+reason
         self._send(code,dict(error=say(lang,key),code=reason))
+
+    def _followup_result(self,result):
+        if result.get('ok'):
+            self._send(200,result)
+            return
+        reason=result.get('reason')
+        known={'invalid','unavailable','unreadable','missing','stale','conflict','early','active','closed','limit','unsaved'}
+        reason=reason if reason in known else 'unsaved'
+        status=404 if reason=='missing' else 400 if reason in ('invalid','limit') else 500 if reason=='unsaved' else 409
+        key='error.followup_'+reason
+        self._send(status,dict(error=say(self._lang(),key),code=reason))
+
+    def _followup(self):
+        from .usage import followups
+        try:
+            body=self._annotation_json(16384)
+            action=body.get('action')
+            base={'action','id','expected_revision'}
+            fields=(base|{'change','observation','trigger'} if action=='start_followup' else
+                    base|{'record_id','context','note'} if action=='review_followup' else
+                    base|{'record_id','note'} if action=='cancel_followup' else
+                    base|{'record_id'} if action=='delete_followup' else None)
+            if fields is None or set(body)!=fields: raise ValueError()
+            if any(not followups.code(body[k]) for k in ('id','expected_revision','record_id') if k in body): raise ValueError()
+            for key in ('change','observation','note'):
+                if key in body: followups.text(body[key],required=key=='change')
+            if 'trigger' in body and body['trigger'] not in followups.TRIGGERS: raise ValueError()
+            if 'context' in body and body['context'] not in followups.CONTEXTS: raise ValueError()
+        except (ValueError,TypeError,OverflowError):
+            self._followup_result(dict(ok=False,reason='invalid'))
+            return
+        args={k:v for k,v in body.items() if k not in ('action','id')}
+        self._followup_result(self.server.dashboard.mutate_followup(action,identity=body['id'],**args))
 
     def _backup(self,route):
         """A private local backup, not a masked report; uploads are checked in memory only."""

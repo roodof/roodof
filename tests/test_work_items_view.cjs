@@ -8,10 +8,14 @@ const actions=source.slice(source.indexOf('// Work titles are manual,'),source.i
 const events=source.slice(source.indexOf("$('usage-work-create-title').addEventListener"),source.indexOf("$('usage-export-mask').addEventListener"));
 const A='a'.repeat(24),B='b'.repeat(24),C='c'.repeat(24),D='d'.repeat(24),W='1'.repeat(24),X='2'.repeat(24),Y='3'.repeat(24);
 const flags={tokens_complete:true,calls_complete:true,attribution_complete:true,models_complete:true,api_priced_share:1};
-function work(id,title,sessions,selected,outside=[],missing=[],tokens=100){return {id,title,session_ids:sessions,selected_session_ids:selected,outside_session_ids:outside,missing_session_ids:missing,linked_sessions:sessions.length,selected_sessions:selected.length,outside_selection:outside.length,missing_sessions:missing.length,overlapping_sessions:1,total_tokens:tokens,calls:selected.length,api_usd:tokens/100,...flags};}
+function followSnapshot(after=false){return {since:after?'2026-11-01T12:00:00+00:00':'2026-10-25T12:00:00+00:00',until:after?'2026-11-08T12:00:00+00:00':'2026-11-01T12:00:00+00:00',sessions:3,responses:6,tokens:after?300:600,excluded_sessions:0,boundary_sessions:0,missing_sessions:0,limitations:[]};}
+function followRecord(status='open',ready=false){return {id:'f'.repeat(24),status,ready,trigger:'session_pattern',change:'Try smaller sessions',observation:'Private observation',baseline:followSnapshot(),due_at:'2026-11-08T12:00:00+00:00',revision:'b'.repeat(24),review_revision:'c'.repeat(24),review:status==='reviewed'?{after:followSnapshot(true),context:'similar',note:'Private review'}:null,after_preview:ready?followSnapshot(true):null,comparison:{limitations:[],cohorts:status==='reviewed'?[{agent:'codex',project_id:'d'.repeat(24),model:'invented-model',before:100,after:50,change_percent:-50}]:[]}};}
+function followView(items=[],fresh=true){return {ok:true,fresh,preview:followSnapshot(),preview_revision:'a'.repeat(24),items};}
+async function openFollow(p){p.elements['usage-work-followups'].open=true;await p.context.loadFollowups();}
+function work(id,title,sessions,selected,outside=[],missing=[],tokens=100){return {id,title,goal:'',outcome:'not_recorded',result_note:'',outcome_at:null,details_revision:'e'.repeat(24),session_ids:sessions,selected_session_ids:selected,outside_session_ids:outside,missing_session_ids:missing,linked_sessions:sessions.length,selected_sessions:selected.length,outside_selection:outside.length,missing_sessions:missing.length,overlapping_sessions:1,total_tokens:tokens,calls:selected.length,api_usd:tokens/100,...flags};}
 function snapshot(){return {has_snapshot:true,state:'ready',totals:{sessions:3,total_tokens:350},sessions:[{id:A,project:'Release',agent:'codex'},{id:B,project:'Review',agent:'claude-code'}],work_items:{readable:true,items:[work(W,'Ship the release',[A,C,D],[A],[C],[D]),work(X,'Review the release',[A,B],[A,B],[],[],300)],summary:{items:2,linked_sessions:4,selected_sessions:2,unassigned_sessions:1,outside_selection:1,missing_sessions:1,overlapping_sessions:1,total_tokens:300,calls:2,api_usd:3,...flags}}};}
 function page(data=snapshot(),lang='en',restore){
-  const elements={},requests=[],messages=[],opened=[],inspected=[],runs=[];
+  const elements={},requests=[],messages=[],opened=[],inspected=[],runs=[],getRequests=[];
   const document={body:{},activeElement:null};document.activeElement=document.body;
   class Element{
     constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.events={};this.attributes={};this.disabled=false;this.hidden=false;this.value='';this.open=false;this.isConnected=false;this._text='';}
@@ -32,18 +36,94 @@ function page(data=snapshot(),lang='en',restore){
   for(const match of html.matchAll(/<(\w+)[^>]*\sid="([^"]+)"/g)){const item=node(match[1]);item._id=match[2];item.connect(true);}
   const root=elements['usage-work-items'];
   for(const id of ['usage-work-reload','usage-work-create-title','usage-work-create','usage-work-select','usage-work-rename-title','usage-work-rename','usage-work-delete','usage-work-members','usage-work-more'])root.append(elements[id]);
+  for(const id of ['usage-work-goal','usage-work-outcome','usage-work-result-note','usage-work-details-save','usage-work-details-keep','usage-work-details-discard'])root.append(elements[id]);
+  for(const id of ['usage-follow-reload','usage-follow-trigger','usage-follow-observation','usage-follow-change','usage-follow-start','usage-follow-records'])root.append(elements[id]);
   elements['usage-session-dialog'].append(elements['usage-session-detail']);
   let resolve,reject;const reply=new Promise((yes,no)=>{resolve=yes;reject=no;});
-  const state={data,stopped:false,loading:false,workRestore:restore},p={elements,state,requests,messages,opened,inspected,runs,resolve,reject,reloads:0,nextData:null,Element};
+  const state={data,stopped:false,loading:false,workRestore:restore},p={elements,state,requests,messages,opened,inspected,runs,getRequests,resolve,reject,reloads:0,nextData:null,Element};
   const context=vm.createContext({usageState:state,$:id=>elements[id],document,node,number:String,usageUsd:value=>'$'+value,usagePct:value=>value*100+'%',usageAgents:{codex:'Codex','claude-code':'Claude Code'},
     t:(key,values={})=>String(words[lang][key]??words.en[key]).replace(/\{(\w+)\}/g,(all,name)=>name in values?values[name]:all),notice:value=>messages.push(value),
-    syncArchiveButton:()=>{},syncExportButton:()=>{},openUsageSession:row=>opened.push(row.id),inspectUsageSession:id=>inspected.push(id),
+    LANG:lang,URLSearchParams,usageDate:value=>value,syncArchiveButton:()=>{},syncExportButton:()=>{},openUsageSession:row=>opened.push(row.id),inspectUsageSession:id=>inspected.push(id),
+    api:route=>{getRequests.push(route);return p.getReply||Promise.resolve(p.followData||followView());},
     post:(route,body)=>{requests.push({route,body:JSON.parse(JSON.stringify(body))});return reply;},loadUsage:async()=>{p.reloads++;if(p.nextData){state.data=p.nextData;context.renderWorkItems(p.nextData);}}});
   p.context=context;vm.runInContext(actions,context);vm.runInContext(events,context);
   const perform=context.performWorkAction;context.performWorkAction=(...args)=>{const run=perform(...args);runs.push(run);return run;};
   p.stateOfWork=()=>vm.runInContext('workState',context);p.session=id=>{p.stateOfWork().openSession=id;context.renderSessionWorkItems();};
+  p.stateOfFollow=()=>vm.runInContext('followState',context);
   p.type=(id,text)=>{elements[id].value=text;elements[id].fire('input');};context.renderWorkItems(data);return p;
 }
+
+test('follow-ups are lazy, bounded to the selected work and do not add source reads on initial load',async()=>{
+  const p=page();assert.equal(p.getRequests.length,0);await openFollow(p);
+  assert.match(p.getRequests[0],/work=111111111111111111111111&lang=en/);
+  p.context.renderWorkItems(p.state.data);await p.context.loadFollowups();assert.equal(p.getRequests.length,1);
+  assert.match(p.elements['usage-follow-baseline'].textContent,/3 sessions · 6 responses · 600 tokens/);
+});
+
+test('starting a follow-up sends only user fields and a preview revision and waits for confirmation',async()=>{
+  const p=page(),before=structuredClone(p.state.data);await openFollow(p);p.type('usage-follow-change','One change');p.type('usage-follow-observation','My observation');
+  const run=p.context.runFollowup('start_followup');
+  assert.deepEqual(p.requests,[{route:'/api/usage/work/followup',body:{action:'start_followup',id:W,expected_revision:'a'.repeat(24),trigger:'other',observation:'My observation',change:'One change'}}]);
+  assert.deepEqual(p.state.data,before);assert.equal(p.elements['usage-follow-start'].disabled,true);assert.equal(p.stateOfFollow().drafts[W].change,'One change');
+  p.nextData=snapshot();p.nextData.work_items.items[0].followup_revision='e'.repeat(24);p.followData=followView([followRecord()]);p.resolve({ok:true,id:W,followup:'f'.repeat(24)});await run;
+  assert.match(p.elements['usage-follow-records'].textContent,/Change in progress/);assert.equal(p.elements['usage-follow-form'].hidden,true);assert.equal(p.state.data.totals.total_tokens,350);
+});
+
+test('stale or failed follow-up reads never enable writes and failed saves keep drafts',async()=>{
+  const p=page();p.followData=followView([],false);await openFollow(p);p.type('usage-follow-change','Keep this draft');
+  assert.equal(p.elements['usage-follow-start'].disabled,true);assert.match(p.elements['usage-follow-status'].textContent,/older than five minutes/);await p.context.runFollowup('start_followup');assert.equal(p.requests.length,0);
+  p.followData=followView();await p.context.loadFollowups(true);const run=p.context.runFollowup('start_followup');p.reject(new Error('Invented disconnected save'));await run;
+  assert.equal(p.stateOfFollow().drafts[W].change,'Keep this draft');assert.equal(p.stateOfWork().needsRefresh,true);assert.equal(p.elements['usage-follow-start'].disabled,true);
+});
+
+test('late follow-up replies for a previous selection or closed section are discarded',async()=>{
+  const p=page();let oldResolve;p.getReply=new Promise(resolve=>oldResolve=resolve);const first=openFollow(p);
+  p.elements['usage-work-select'].value=X;p.elements['usage-work-select'].fire('change');
+  p.getReply=null;await p.context.loadFollowups(true);oldResolve(followView([followRecord()]));await first;
+  assert.equal(p.stateOfFollow().data.items.length,0);assert.match(p.stateOfFollow().key,/222222222222222222222222/);
+  let closeResolve;p.getReply=new Promise(resolve=>closeResolve=resolve);const closing=p.context.loadFollowups(true);
+  p.elements['usage-work-followups'].open=false;p.elements['usage-work-followups'].fire('toggle');closeResolve(followView([followRecord()]));await closing;
+  assert.equal(p.stateOfFollow().data,null);
+});
+
+test('weekly reviews default to unknown context and freeze only on an explicit save',async()=>{
+  const p=page(),r=followRecord('open',true);p.followData=followView([r]);await openFollow(p);
+  assert.equal(p.requests.length,0);assert.match(p.elements['usage-follow-records'].textContent,/After · not saved yet/);
+  p.type('follow-note-'+r.id,'Tasks differed');const run=p.context.runFollowup('review_followup',r);
+  assert.deepEqual(p.requests[0],{route:'/api/usage/work/followup',body:{action:'review_followup',id:W,record_id:r.id,expected_revision:'c'.repeat(24),context:'unknown',note:'Tasks differed'}});
+  p.reject(Object.assign(new Error('Invented stale review'),{code:'conflict'}));await run;
+  assert.equal(p.stateOfFollow().drafts[W].reviews[r.id].note,'Tasks differed');assert.equal(p.stateOfFollow().data.items[0].status,'open');
+});
+
+test('unresolved comparisons explain the reason and display no numerical gain',async()=>{
+  for(const lang of ['en','tr']){const p=page(snapshot(),lang),r=followRecord('reviewed');r.comparison={limitations:['context_unknown','small_sample'],cohorts:[]};p.followData=followView([r]);await openFollow(p);
+    const text=p.elements['usage-follow-records'].textContent;assert.match(text,lang==='en'?/No numeric comparison/:/Sayısal karşılaştırma yapılamadı/);assert.doesNotMatch(text,/-50/);
+  }
+});
+
+test('follow-up notes and model names render as literal text in both languages',async()=>{
+  for(const lang of ['en','tr']){const p=page(snapshot(),lang),r=followRecord('reviewed');r.change='<img src=x onerror=bad>';r.comparison.cohorts[0].model='<script>bad</script>';p.followData=followView([r]);await openFollow(p);
+    assert.match(p.elements['usage-follow-records'].textContent,/<img src=x onerror=bad>/);assert.match(p.elements['usage-follow-records'].textContent,/<script>bad<\/script>/);assert.match(p.elements['usage-follow-records'].textContent,lang==='en'?/\(-50%\)/:/\(-%50\)/);
+  }
+});
+
+test('cancellation retains the record until acknowledged and deletion needs a second explicit click',async()=>{
+  const p=page(),r=followRecord();p.followData=followView([r]);await openFollow(p);
+  const remove=p.elements['usage-follow-records'].querySelectorAll('button').find(b=>b.textContent==='Delete this follow-up');remove.click();assert.equal(p.requests.length,0);
+  assert.match(p.elements['usage-follow-records'].textContent,/Existing backup files keep their copies/);
+  p.elements['usage-follow-records'].querySelectorAll('button').find(b=>b.textContent==='Permanently delete this follow-up').click();
+  assert.equal(p.requests[0].body.action,'delete_followup');assert.equal(p.requests[0].body.expected_revision,r.revision);
+  assert.equal(p.stateOfFollow().data.items.length,1);p.reject(Object.assign(new Error('Invented invalid action'),{code:'invalid'}));await p.runs[0];
+});
+
+test('private follow-up drafts survive selection and a language reload with no automatic save',async()=>{
+  const p=page();await openFollow(p);p.type('usage-follow-change','Taslak değişiklik');
+  p.elements['usage-work-select'].value=X;p.elements['usage-work-select'].fire('change');await p.context.loadFollowups(true);
+  p.elements['usage-work-select'].value=W;p.elements['usage-work-select'].fire('change');await p.context.loadFollowups(true);
+  assert.equal(p.elements['usage-follow-change'].value,'Taslak değişiklik');
+  const memory=JSON.parse(JSON.stringify(p.context.workViewMemory())),tr=page(snapshot(),'tr',memory);await tr.context.loadFollowups(true);
+  assert.equal(tr.elements['usage-follow-change'].value,'Taslak değişiklik');assert.equal(tr.requests.length,0);
+});
 
 test('work summary uses the union, selected work follows main scope, and general totals stay unchanged',()=>{
   const p=page(),before=structuredClone(p.state.data);
@@ -52,6 +132,108 @@ test('work summary uses the union, selected work follows main scope, and general
   assert.match(p.elements['usage-work-usage'].textContent,/100 known tokens/);
   assert.match(p.elements['usage-work-counts'].textContent,/Linked: 3 · Available: 2 · In the main filters: 1 · Outside the main filters: 1/);
   assert.deepEqual(p.state.data,before);
+});
+
+test('goal and outcome save only explicit fields and never optimistically change a saved result',async()=>{
+  const p=page(),before=structuredClone(p.state.data);
+  p.type('usage-work-goal','Ship safely');p.type('usage-work-result-note','One scenario remains');
+  p.elements['usage-work-outcome'].value='partial';p.elements['usage-work-outcome'].fire('change');
+  const run=p.context.saveWorkDetails();await p.context.saveWorkDetails();
+  assert.deepEqual(p.requests,[{route:'/api/usage/work/details',body:{action:'describe',id:W,goal:'Ship safely',outcome:'partial',result_note:'One scenario remains',expected_revision:'e'.repeat(24)}}]);
+  assert.deepEqual(p.state.data,before);
+  assert.equal(p.elements['usage-work-goal'].disabled,true);assert.equal(p.elements['usage-work-result-note'].disabled,true);
+  const updated=snapshot();Object.assign(updated.work_items.items[0],{goal:'Ship safely',outcome:'partial',result_note:'One scenario remains',outcome_at:100,details_revision:'f'.repeat(24)});
+  p.nextData=updated;p.resolve({ok:true,id:W});await run;
+  assert.equal(p.stateOfWork().detailDrafts[W],undefined);
+  assert.match(p.elements['usage-work-outcome-view'].textContent,/Partly completed/);
+  assert.match(p.elements['usage-work-result-view'].textContent,/One scenario remains/);
+  assert.equal(p.state.data.totals.total_tokens,350);
+});
+
+test('failed goal save keeps the draft and requires a saved-state reload after an uncertain response',async()=>{
+  const p=page();p.type('usage-work-goal','Keep this draft');const run=p.context.saveWorkDetails();
+  p.reject(new Error('Invented disconnected response'));await run;
+  assert.equal(p.stateOfWork().detailDrafts[W].goal,'Keep this draft');
+  assert.equal(p.stateOfWork().needsRefresh,true);assert.equal(p.elements['usage-work-reload'].hidden,false);
+  assert.equal(p.elements['usage-work-details-save'].disabled,true);
+  assert.match(p.elements['usage-work-outcome-view'].textContent,/Not assessed/);
+});
+
+test('a background edit preserves the draft and requires explicit review before a later save',async()=>{
+  const p=page();p.type('usage-work-goal','My draft');
+  const updated=snapshot();Object.assign(updated.work_items.items[0],{goal:'Other saved goal',outcome:'completed',outcome_at:100,details_revision:'f'.repeat(24)});
+  p.state.data=updated;p.context.renderWorkItems(updated);
+  assert.equal(p.elements['usage-work-goal'].value,'My draft');
+  assert.equal(p.elements['usage-work-details-conflict'].hidden,false);
+  assert.match(p.elements['usage-work-latest-goal'].textContent,/Other saved goal/);
+  assert.equal(p.elements['usage-work-details-save'].disabled,true);
+  p.elements['usage-work-details-keep'].click();assert.equal(p.requests.length,0);
+  assert.equal(p.elements['usage-work-details-save'].disabled,false);
+  const run=p.context.saveWorkDetails();assert.equal(p.requests[0].body.expected_revision,'f'.repeat(24));
+  p.reject(Object.assign(new Error('Invented validation error'),{code:'invalid'}));await run;
+});
+
+test('a server conflict reloads metadata without replacing the local draft and discard writes nothing',async()=>{
+  const p=page();p.type('usage-work-goal','My stale draft');
+  p.nextData=snapshot();Object.assign(p.nextData.work_items.items[0],{goal:'Newest saved goal',details_revision:'f'.repeat(24)});
+  const run=p.context.saveWorkDetails();p.reject(Object.assign(new Error('Review newest saved work'),{code:'conflict'}));await run;
+  assert.equal(p.reloads,1);assert.equal(p.elements['usage-work-goal'].value,'My stale draft');
+  assert.equal(p.elements['usage-work-details-conflict'].hidden,false);
+  p.elements['usage-work-details-discard'].click();
+  assert.equal(p.requests.length,1);assert.equal(p.elements['usage-work-goal'].value,'Newest saved goal');
+  assert.equal(p.stateOfWork().detailDrafts[W],undefined);assert.equal(p.elements['usage-work-details-conflict'].hidden,true);
+});
+
+test('detail drafts survive work selection, filters and language changes without entering usage totals',()=>{
+  const p=page();p.type('usage-work-goal','Taslak hedef');p.type('usage-work-result-note','Kalan iş');
+  p.elements['usage-work-select'].value=X;p.elements['usage-work-select'].fire('change');
+  p.elements['usage-work-select'].value=W;p.elements['usage-work-select'].fire('change');
+  assert.equal(p.elements['usage-work-goal'].value,'Taslak hedef');
+  const saved=JSON.parse(JSON.stringify(p.context.workViewMemory())),restored=page(snapshot(),'tr',saved);
+  assert.equal(restored.elements['usage-work-goal'].value,'Taslak hedef');
+  assert.equal(restored.elements['usage-work-result-note'].value,'Kalan iş');
+  assert.equal(restored.state.data.totals.total_tokens,350);
+});
+
+test('typing as a filter read starts is retained until the new snapshot arrives',()=>{
+  const p=page();p.state.loading=true;p.type('usage-work-goal','Keep the last keystroke');
+  assert.equal(p.stateOfWork().detailDrafts[W].goal,'Keep the last keystroke');
+  assert.equal(p.elements['usage-work-details-save'].disabled,true);
+  p.state.loading=false;p.context.renderWorkItems(snapshot());
+  assert.equal(p.elements['usage-work-goal'].value,'Keep the last keystroke');
+  assert.equal(p.elements['usage-work-details-save'].disabled,false);
+});
+
+test('saved private text renders literally and a passing check never changes a partial user outcome',()=>{
+  for(const lang of ['en','tr']){
+    const data=snapshot(),item=data.work_items.items[0],literal='<img onerror="attack()"> & <script>bad()</script>';
+    Object.assign(item,{goal:literal,outcome:'partial',result_note:literal,outcome_at:100,
+      observations:{test:{sessions:1,passed:1,failed:0,unknown:0},build:{sessions:0,passed:0,failed:0,unknown:0},git:{available_sessions:0,activity_sessions:0,limited_sessions:0}}});
+    const p=page(data,lang);
+    assert.ok(p.elements['usage-work-goal-view'].textContent.includes(literal));
+    assert.ok(p.elements['usage-work-result-view'].textContent.includes(literal));
+    assert.ok(p.elements['usage-work-outcome-view'].textContent.includes(words[lang].work_outcome_partial));
+    assert.ok(p.elements['usage-work-observations'].textContent.includes('1'));
+    item.selected_sessions=0;p.context.renderSelectedWork();
+    assert.equal(p.elements['usage-work-observations'].textContent,words[lang].work_obs_none);
+    assert.ok(p.elements['usage-work-outcome-view'].textContent.includes(words[lang].work_outcome_partial));
+  }
+});
+
+test('detail limits use Unicode characters, keep multiline text and reject control characters',()=>{
+  const p=page();
+  for(const [text,valid] of [['🛠'.repeat(1000),true],['🛠'.repeat(1001),false],['a\nb',true],['a\tb',false],['a\u2028b',false]]){
+    p.type('usage-work-goal',text);assert.equal(p.elements['usage-work-details-save'].disabled,!valid);
+  }
+});
+
+test('discarding an ordinary unsaved outcome draft writes nothing and restores saved values',()=>{
+  const p=page();p.type('usage-work-goal','Unsaved target');
+  assert.equal(p.elements['usage-work-details-discard'].disabled,false);
+  p.elements['usage-work-details-discard'].click();
+  assert.equal(p.requests.length,0);assert.equal(p.elements['usage-work-goal'].value,'');
+  assert.equal(p.stateOfWork().detailDrafts[W],undefined);
+  assert.equal(p.elements['usage-work-details-save'].disabled,true);
 });
 
 test('outside-filter sessions open by saved ID and missing links remain visible and removable',async()=>{

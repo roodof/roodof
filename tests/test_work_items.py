@@ -43,7 +43,7 @@ class WorkItemTests(unittest.TestCase):
         value = work.Folder(self.base).read()[identity]
         self.assertEqual(value['title'], 'Yeni başlık')
         self.assertEqual(value['sessions'], [B])
-        self.assertEqual(set(value), {'title', 'created_at', 'updated_at', 'sessions'})
+        self.assertEqual(set(value), {'title', 'created_at', 'updated_at', 'sessions','goal','outcome','result_note','outcome_at','followups'})
         self.assertEqual(set(json.loads(self.saved())), {'format', 'items'})
         self.assertNotIn(str(self.base).encode(), self.saved())
         result = self.store.mutate('delete', identity=identity)
@@ -87,7 +87,7 @@ class WorkItemTests(unittest.TestCase):
         self.create()
         path = self.base / work.FILENAME
         documents = [b'{broken', b'{"format":1,"format":1,"items":{}}',
-                     b'{"format":2,"items":{}}', b'{"format":true,"items":{}}',
+                     b'{"format":4,"items":{}}', b'{"format":true,"items":{}}',
                      b'{"format":1,"items":{},"prompt":"PRIVATE"}',
                      b'{"format":1,"items":NaN}', b'[' * 300 + b']' * 300]
         for data in documents:
