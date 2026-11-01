@@ -94,7 +94,7 @@ Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alınd�
 
 ### E01 — Zor geçmişlerin sayım uzlaştırması
 
-**Durum:** Sınırları görünür, genel çözüm açık. **Tür:** Hesap motoru/doğruluk.
+**Durum:** Sınırları görünür, genel çözüm açık. 2 Kasım'da ilk desteklenen örüntü eklendi: sıkıştırılmış ve çatallanmış Codex iş parçacıkları (ACCOUNTING.md "Compacted and forked Codex threads"). Bu bilgisayarda uzlaşmamış Codex oturumu 9 (%98,8 token) → 3 (%0,19), toplamlar aynı; sentetik regresyonlar `test_history_boundaries.py`. Açık: kalan 3 oturum (çakışan sayaç, belirsiz kapsam), eski sürümün yazdığı ve aslı diskte olmayan arşiv (Codex token'larının %71'i), Claude tarafı. **Tür:** Hesap motoru/doğruluk.
 
 Keyfi fork/ebeveyn–çocuk/compaction geçmişleri, birikimli sayaçlar ve sabit kimliği olmayan olaylar her durumda tam uzlaştırılmış değil. Mevcut dar uzlaştırmaları ve alt ajan düzeltmelerini koru. Desteklenecek kanıtlanabilir örüntüleri bağımsız beklenen toplamlarla genişlet; dosya/olay sırası değişiminde sonucu ve tamlık işaretlerini karşılaştır. Kanıtı olmayan geçmiş bilinmiyor/eksik kalmalı; bütün geçmişlerin eksiksiz olacağı sözü verilmemeli. **Kapanış:** Her desteklenen örüntü için açık sözleşme ve regresyon; desteklenmeyen durumda sessiz çift sayım veya kesin toplam iddiası yok. Y05 yalnız bu sonucu anlaşılır kılar, motoru çözmez.
 
@@ -149,7 +149,7 @@ Claude/Codex alan/olay–örnek eşlemesi ve resmi fiyat kaydı her yayında yen
 ## Önerilen yürütme sırası ve kapanış disiplini
 
 1. Y06 belirtilen yerel kurtarma kapsamıyla, Y01 iş bağlama 0.2.26'da yerel kapsamla tamamlandı. Bu kayıt tek başına yeni özellik uygulama yetkisi değildir.
-2. Y05 → Y04 → Y03 → Y02 kaynakta yapay verilerle doğrulandı; gerçek kullanıcı yararı/anlama pilotta açık. E05'in ilk bakım/yayın kontrolü tamamlandı. E04'ün hedef aşan sürelerinin nedeni (pil + tekrar işler) ayrıldı ve tek pil koşusu eşikleri geçti; prizde 3×3 kabul koşusunu tekrarla; ardından E01 zor geçmişleri ve E02 aynı kaynakta hesap değişimini somut karşı örneklerle sına. Kanıtlanamayan kapsam kesin sonuca dönüşmez. Y07'nin kullanıcı gerektirmeyen kabul hazırlıkları sürdürülür; hesap/lisans/imza/katılımcı işleri ve otomatik güncelleme sona kalır. Yeni paket çıkarmak bu incelemelerin ön koşulu değil.
+2. Y05 → Y04 → Y03 → Y02 kaynakta yapay verilerle doğrulandı; gerçek kullanıcı yararı/anlama pilotta açık. E05'in ilk bakım/yayın kontrolü tamamlandı. E04'ün hedef aşan sürelerinin nedeni (pil + tekrar işler) ayrıldı ve tek pil koşusu eşikleri geçti (prizde 3×3 tekrar ertelendi). E01'in ilk örüntüsü (sıkıştırılmış/çatallanmış Codex) eklendi; kalan E01 örüntüleri ve E02 aynı kaynakta hesap değişimini somut karşı örneklerle sına. Kanıtlanamayan kapsam kesin sonuca dönüşmez. Y07'nin kullanıcı gerektirmeyen kabul hazırlıkları sürdürülür; hesap/lisans/imza/katılımcı işleri ve otomatik güncelleme sona kalır. Yeni paket çıkarmak bu incelemelerin ön koşulu değil.
 3. Kullanıcının ürünü hazır bulmasına kadar reklam/katılımcı arama başlatma. E06 pilotu ancak kullanıcı bu aşamayı başlatınca ve gerekli kabul koşulları sağlanınca yürütülür; ölçütleri korunur ve sonraki gerçek kanıt önceliği değiştirebilir.
 4. E01–E05 doğruluk, hesap/kota kapsamı, performans ve bakım işleri somut karşı örnek ve açık destek kararıyla sürdürülür; gerçek doğruluk hatası görülürse özelliklerden önce alınır.
 

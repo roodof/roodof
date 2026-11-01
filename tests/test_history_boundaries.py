@@ -158,6 +158,41 @@ class HistoryBoundaryTests(unittest.TestCase):
         session,=codex.read([self.a])[0]
         self.assertIn('shared_attribution',session.issues)
 
+    def test_compaction_explained_by_records_that_move_with_the_meter_is_complete(self):
+        compacted=row('compacted',dict(compaction_response_id='c'))
+        write_jsonl(self.a,[meta(),response(50,'r1'),cumulative(50),response(30,'r2'),cumulative(80),
+                            compacted,response(20,'c'),response(10,'r3'),cumulative(90)])
+        session,=codex.read([self.a])[0]
+        self.assertEqual((total(session.tokens),session.calls),(110,4))  # the meter omits the compaction request
+        self.assertTrue(session.tokens_complete)
+        self.assertNotIn('unreconciled_totals',session.issues)
+        for rows in ([meta(),response(50,'r1'),cumulative(50),compacted,cumulative(80),response(40,'r2'),cumulative(120)],
+                     [meta(),response(50,'r1'),cumulative(50),response(30,'r2'),cumulative(70),compacted,cumulative(70)],
+                     [meta(),response(50,'r1'),cumulative(60),compacted,response(5,'c'),cumulative(60)]):
+            with self.subTest(rows=len(rows)):
+                write_jsonl(self.a,rows)  # a record missing, a meter jump or a start the records do not explain
+                self.assert_incomplete(codex.read([self.a])[0][0])
+
+    def test_forked_thread_counts_its_own_records_once_and_needs_evidence_for_an_inherited_counter(self):
+        def thread(identity,parent=None,version='0.9.0'):
+            payload=dict(id=identity,session_id='root',cwd='/synthetic/project',cli_version=version)
+            if parent: payload['parent_thread_id']=parent
+            return row('session_meta',payload)
+        copied=row('compacted',dict(compaction_response_id='earlier'))
+        write_jsonl(self.a,[thread('root'),response(100,'p1'),cumulative(100)])
+        write_jsonl(self.b,[thread('fork','root'),copied,cumulative(100),response(25,'k1'),cumulative(125)])
+        write_jsonl(self.c,[thread('idle','root'),cumulative(100)])
+        session,=codex.read([self.a,self.b,self.c])[0]
+        self.assertEqual((total(session.tokens),session.calls),(125,2))
+        self.assertTrue(session.tokens_complete)
+        self.assertNotIn('unreconciled_totals',session.issues)
+        # An idle inherited counter from a client version that wrote no records here may be cumulative-only usage.
+        write_jsonl(self.c,[thread('idle','root','0.1.0'),cumulative(100)])
+        self.assert_incomplete(codex.read([self.a,self.b,self.c])[0][0])
+        # A forked thread whose own records precede an unexplained start counter is not explained either.
+        write_jsonl(self.b,[thread('fork','root'),response(25,'k1'),cumulative(125)])
+        self.assert_incomplete(codex.read([self.a,self.b])[0][0])
+
     def test_compaction_without_cumulative_checkpoint_still_marks_incomplete_history(self):
         write_jsonl(self.a,[meta(),response(),row('compacted',dict(compaction_response_id='r'))])
         session,=codex.read([self.a])[0]

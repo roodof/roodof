@@ -5,10 +5,62 @@ from pathlib import Path
 
 from . import accounting as rules
 from . import discovery,input_limits,pricing
-from .records import Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
+from .records import TOKEN_FIELDS,Session,add_tokens,empty_tokens,note_file_issue,percentage,timestamp,total
 from .projects import ProjectRoots
 from .edit_paths import canonical_target
 from .period_usage import event_time, record_response
+
+
+def _lockstep(rows):
+    """Whether one file's own response records explain its cumulative meter (ACCOUNTING.md, "Compacted and
+    forked Codex threads"): (state, client versions), state None when they do not.
+
+    Between two checkpoints with no compaction between them, records and meter grow by exactly the same
+    amounts. Across a compaction the records may only gain: the meter omits the compaction request. Every
+    compaction follows a checkpoint, except a compaction marker that a thread naming a parent thread carries
+    before its own first record and checkpoint: that is the parent's history copied into the thread. The first
+    checkpoint equals the records so far ('records', or 'quiet' without records); only a thread naming a parent
+    thread, with no records yet, may start from a different counter. With records later in the file that
+    counter is inherited ('records'). Without any, the state is 'inherited': the caller accepts it only when
+    its client versions wrote response records elsewhere in the session (that format records every call,
+    so the thread made none; an older cumulative-only thread is not explained). Records after the last
+    checkpoint have no meter evidence either way, as in any other session."""
+    seen,own,gap,compacted,inherited,offset,versions={},empty_tokens(),None,False,False,False,set()
+    for row in rows:
+        payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
+        kind=row.get('type')
+        if kind=='session_meta':
+            inherited=inherited or isinstance(payload.get('parent_thread_id'),str) and bool(payload['parent_thread_id'])
+            if isinstance(payload.get('cli_version'),str) and payload['cli_version']: versions.add(payload['cli_version'])
+        elif kind=='compacted':
+            if gap is None:
+                if inherited and not seen: continue
+                return None,versions
+            compacted=True
+        elif kind=='token_usage_record' and isinstance(payload.get('usage'),dict):
+            key=payload.get('response_id')
+            if not (isinstance(key,str) and key): return None,versions
+            try: tokens=rules.tokens(payload['usage'],'codex')
+            except ValueError: return None,versions
+            if key in seen:
+                if seen[key]!=tokens: return None,versions
+                continue
+            seen[key]=tokens
+            add_tokens(own,tokens)
+        elif kind=='event_msg' and payload.get('type')=='token_count':
+            info=payload.get('info') if isinstance(payload.get('info'),dict) else {}
+            if not isinstance(info.get('total_token_usage'),dict): continue
+            try: meter=rules.tokens(info['total_token_usage'],'codex')
+            except ValueError: return None,versions
+            now=tuple(own[key]-meter[key] for key in TOKEN_FIELDS)
+            if gap is None:
+                offset=any(now)
+                if offset and (seen or not inherited): return None,versions
+            elif compacted:
+                if any(after<before for before,after in zip(gap,now)): return None,versions
+            elif now!=gap: return None,versions
+            gap,compacted=now,False
+    return ('records' if seen else 'inherited' if offset else 'quiet'),versions
 
 
 def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
@@ -123,6 +175,16 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
         incomplete_history(sessions[identity],ownership=True)
     for identity,session in sessions.items():
         if session.parent_id in sessions: join(identity,session.parent_id)
+    # A session whose every file passes _lockstep is counted completely by its response records: it needs
+    # neither the compaction warning nor a cumulative residual.
+    found=defaultdict(list)
+    for path,session,rows in streams: found[session.session_id].append(_lockstep(rows))
+    explained=set()
+    for identity,states in found.items():
+        recorded=set().union(*(versions for state,versions in states if state=='records'))
+        if all(state in ('records','quiet') or state=='inherited' and versions and versions<=recorded
+               for state,versions in states):
+            explained.add(identity)
     # First collect all response owners. Copied anonymous events are compared only within related histories.
     for path,session,rows in streams:
         model=None
@@ -140,7 +202,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                 session.issues.add('invalid_records')
             elif kind=='compacted':
                 compactions.add(session.session_id)
-                incomplete_history(session)
+                if session.session_id not in explained: incomplete_history(session)
             elif kind=='turn_context':
                 if isinstance(payload.get('model'),str): model=payload['model']
                 if isinstance(payload.get('cwd'),str) and payload['cwd']:
@@ -241,6 +303,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
     residuals=defaultdict(list)
     for identity,values in checkpoints.items():
         session=sessions[identity]
+        if identity in explained: continue
         # Decreasing checkpoints can be a reset or a changed accounting boundary. Do not present
         # a maximum from the retained records as a proven complete lifetime total.
         for path in {v['path'] for v in values}:
