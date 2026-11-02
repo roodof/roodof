@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased — local Y02 follow-ups, Y03 outcomes, Y05 coverage and Y04 comparisons
+## 0.2.30 — 2026-11-02 (local early-beta package; not published)
 
 - Add an offline reader/price release review gate, independently expected cold/cache/archive record cases, official price-source review dates and automatic discovery of all browser test suites. No provider fetch or workflow dispatch.
 - Correct price confidence: GPT-6 writes without a lifetime split and unlisted Codex dated IDs stay unpriced; invalid Claude split/modifier metadata preserves counts without being clamped or sanitized into a standard price. Copies carrying the selected usage must agree on price in either order. Parser provenance becomes `accounting-2026-11-01.1`; API/plan review date is 2026-11-01; usage schema and work/backup formats stay unchanged.

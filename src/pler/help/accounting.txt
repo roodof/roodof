@@ -2,7 +2,7 @@
 
 PLER describes the local agent records it can read. It does not reconcile a provider bill, prove complete account coverage or measure task quality. Periods select sessions by last activity and include their full retained totals.
 
-## Plan check (0.2.27; local Y04 safeguards, not yet released)
+## Plan check (0.2.27; Y04 safeguards in 0.2.30)
 
 The plan check compares published prices with dated recorded responses in the last 30 days, per agent. It uses all selected source folders and all projects, whatever the page/report filters select, including unknown projects. This scope does not establish one account or complete account coverage. Exact inclusive `since`/`until` bounds are exported; `history_complete` is false and `actual_payment_usd` is null. The date of the oldest retained session is not proof of a complete billing month.
 
