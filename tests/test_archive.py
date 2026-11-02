@@ -381,6 +381,29 @@ class ArchiveTests(unittest.TestCase):
         self.assertFalse(refreshed[0].archive_old_parser)
         self.assertEqual(fresh_details['archive']['old_parser_files'], 0)
 
+    def test_an_old_reader_copy_of_a_moved_file_is_not_counted_or_reported_when_the_live_file_carries_it(self):
+        old = self.codex / 'rollout-invented.jsonl'
+        moved = self.codex.parent / 'archived_sessions' / 'rollout-invented.jsonl'
+        rows = codex_rows() + codex_rows(response='reply-2')[2:]
+        write_jsonl(old, rows)
+        self.explicit()
+        old.rename(moved)
+        roots = [self.codex, self.codex.parent / 'archived_sessions']
+        with patch('pler.usage.version', return_value='invented-updated-reader'):
+            sessions, details = scan([self.claude], roots, retain=True)
+        session, = sessions
+        self.assertEqual((total(session.tokens), session.calls), (460, 2))
+        self.assertFalse(session.archive_old_parser)
+        self.assertTrue(session.tokens_complete)
+        self.assertEqual((details['archive']['archive_files'], details['archive']['old_parser_files']), (0, 0))
+        self.assertEqual(session.source, min(str(old), str(moved)))  # the page identity does not change
+        # A live copy that lacks one of the archived records does not carry it: the old copy still counts.
+        write_jsonl(moved, rows[:3])
+        with patch('pler.usage.version', return_value='invented-updated-reader'):
+            sessions, details = scan([self.claude], roots, retain=True)
+        self.assertTrue(sessions[0].archive_old_parser)
+        self.assertEqual(details['archive']['old_parser_files'], 1)
+
     def test_file_count_limit_evicts_whole_entries_and_reports_coverage_loss(self):
         sources = self.both()
         self.explicit()

@@ -1,5 +1,9 @@
 # Profesyonel neden kullanmaz?
 
+## 2 Kasım: E01 — kalan örüntüler (Claude)
+
+Somut karşı örnekler (gerçek kayıtlar, yalnız sayılar): Claude'un tarihli kullanımı token'larının yalnız %2,4'ünü kapsıyordu; %97,5'i taşıyan 3 oturum 21, 4 ve 3 klasörde çalıştığı için "sahiplik doğrulanmadı" sayılıp dışlanıyordu. Bu oturumlar başka oturumla tek kayıt paylaşmıyor; yalnız proje bilinmiyor. Artık tarihli kullanıma giriyorlar; oturumlar arası paylaşılan kayıtlar dışlanmaya devam ediyor. İkinci örnek: Codex token'larının %71'i "eski sürüm arşivi" yüzünden eksik sayılıyordu. Üç eski arşiv kopyasının üçü de diskteki tek bir canlı dosyada eksiksiz bulunuyor (aynı kimlikler, aynı sayılarla her yanıt, her sayaç değeri): yer değiştirmiş dosyaların bayat kopyaları. Böyle bir kopya artık sayılmıyor, oturumu işaretlemiyor ve oturumun sayfa kimliğini değiştirmiyor. Sonuç: tarihli kapsam Claude %2,4 → %100, Codex %28 → %99; toplamlar ve oturum kimlikleri birebir aynı. Açık kalan, dürüstçe bilinmeyen: Codex token'larının %0,9'u yanıt başına tarihi olmayan eski birikimli kayıtlarda, %0,2'si çelişen sayaçlı oturumlarda.
+
 ## 2 Kasım: E02 — hesap kimliği okumadan hesap kapsamı (Claude)
 
 Somut karşı örnek (sentetik): Codex'te Plus'tan Pro'ya geçen birinin haftalık tahmini, son 14 günün Plus yüzdelerini (günde 20 puan) Pro sayacına uyguluyordu; plan kontrolü de Plus'ta dolan pencereleri Pro'nun sınır sayımına katıyordu. Codex her kota örneğinde planı yazıyor; örnek artık planını taşıyor ve son plan değişiminden önceki örnekler tahmine ve sınır sayımına girmiyor (aynı örnekte tahmin günde 2 puan). Değişim zamanı sayfada, terminalde ve JSON'da. Destek tablosu ACCOUNTING.md'de: birden fazla kaynak grubu gizli; eşzamanlı iki hesap yalnız okumalar çelişirse yakalanır; aynı planda başka hesaba geçiş kayıtlardan anlaşılamaz, tek hesap iddiası yapılmaz; Claude Code planı kullanıcının seçimi. Bu bilgisayarda plan hiç değişmemiş; sayfa çıktısı birebir aynı.

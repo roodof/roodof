@@ -554,6 +554,15 @@ class Archive:
             else: result.append(dict(type='pler_archive_ambiguous'))
         return result,bool(ambiguous)
 
+    def old(self,agent,path):
+        """Whether the replayed copy of this path was written by another reader version."""
+        return bool(self.used.get((agent,str(path)),{}).get('old'))
+
+    def superseded(self,agent,path):
+        """A replayed copy that a live file fully carries (reconcile._superseded): not counted, so not reported
+        as archive coverage either. The stored entry is kept like any other."""
+        self.used.pop((agent,str(path)),None)
+
     def mark(self,session,agent,path):
         state=self.used.get((agent,str(path)),dict(state='live',deleted=False,old=False,unverified=False))
         session.source_evidence(str(path),**state)

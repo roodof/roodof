@@ -64,7 +64,11 @@ def _reason(session):
         return 'archive_unverified'
     if getattr(session,'_history_uncertain',False): return 'uncertain_history'
     if not session.tokens_complete: return 'incomplete_usage'
-    if not session.attribution_complete: return 'unverified_attribution'
+    # A session that worked in several folders has an unknown project, but each of its responses is its own and
+    # counted once. Only records shared between sessions (or an unexplained gap) make ownership unverifiable.
+    if not session.attribution_complete and (getattr(session,'_shared_records',False)
+                                             or not getattr(session,'_mixed_projects',False)):
+        return 'unverified_attribution'
     if not isinstance(getattr(session,'_usage_events',None),list) and (total(session.tokens) or session.calls):
         return 'missing_event_evidence'
     return None

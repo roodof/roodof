@@ -63,8 +63,45 @@ def _lockstep(rows):
     return ('records' if seen else 'inherited' if offset else 'quiet'),versions
 
 
+def _evidence(rows):
+    """Session identities and the identified evidence of one Codex file, for _superseded; None when it has
+    anything without a stable identity (or unreadable numbers)."""
+    identities,found=set(),set()
+    for row in rows:
+        payload=row.get('payload') if isinstance(row.get('payload'),dict) else {}
+        kind,sub=row.get('type'),payload.get('type')
+        if kind=='session_meta':
+            identities.update(payload[name] for name in ('id','session_id') if isinstance(payload.get(name),str) and payload[name])
+        elif kind=='token_usage_record' and isinstance(payload.get('usage'),dict):
+            key=payload.get('response_id')
+            if not (isinstance(key,str) and key): return None
+            try: found.add(('usage',key,tuple(rules.tokens(payload['usage'],'codex').values())))
+            except ValueError: return None
+        elif kind=='event_msg' and sub=='token_count' and isinstance((payload.get('info') or {}).get('total_token_usage'),dict):
+            try: found.add(('total',tuple(rules.tokens(payload['info']['total_token_usage'],'codex').values())))
+            except ValueError: return None
+        elif (kind=='event_msg' and sub in ('task_started','task_complete','turn_aborted','item_completed')
+              or kind=='response_item' and sub in ('function_call','custom_tool_call') or kind=='compacted'):
+            key=(payload.get('compaction_response_id') if kind=='compacted' else payload.get('item_id') if sub=='item_completed'
+                 else payload.get('call_id') if kind=='response_item' else payload.get('turn_id'))
+            if not (isinstance(key,str) and key): return None
+            found.add((kind if kind=='compacted' else sub,key))
+        elif kind in ('pler_incomplete_log','pler_archive_ambiguous'):
+            return None
+    return (identities,found) if identities else None
+
+
+def _superseded(rows,live):
+    """True when one live file already carries every session identity, identified usage record (same numbers),
+    cumulative total and turn/tool event of this replayed archive copy, which has nothing unidentified: the
+    stale copy of a moved or renamed file. `live` holds the (identities, evidence) of the files read now."""
+    own=_evidence(rows)
+    return own is not None and any(found is not None and own[0]<=found[0] and own[1]<=found[1] for found in live)
+
+
 def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
     sessions,streams,issues,projects = {},[],[],defaultdict(set)
+    live_streams=[]
     parents,threads,compactions,activity = defaultdict(list),defaultdict(set),set(),set()
     responses,events,checkpoints,locations = defaultdict(list),defaultdict(list),defaultdict(list),defaultdict(list)
     related = {}
@@ -132,6 +169,18 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
             if not admitted:input_limits.admit(rows)
         except input_limits.ReadLimitExceeded:
             note_file_issue(issues,path,'ReadLimitExceeded');continue
+        if (archived and archive is not None and archive.old('codex',path)
+                and _superseded(rows,[_evidence(r) for _,_,r in live_streams])):
+            # A live file carries everything this older reader's archive copy says: counting it adds nothing, and
+            # its reader version must not mark the session. (A current reader's copy stays: it shows the mixed
+            # provenance and counts once.) Its path still takes part in choosing the session's source, so the
+            # session's page identity (verdicts, work links) does not change.
+            if archive is not None: archive.superseded('codex',path)
+            ids=[r['payload'].get('session_id') or r['payload'].get('id') for r in rows
+                 if r.get('type')=='session_meta' and isinstance(r.get('payload'),dict)]
+            identity=next((v for v in reversed(ids) if isinstance(v,str) and v),None)
+            if identity in sessions: sessions[identity].source=min(sessions[identity].source,str(path))
+            continue
         metas=[r.get('payload',{}) for r in rows if r.get('type')=='session_meta']
         ids=[m.get('session_id') or m.get('id') for m in metas]
         identity=next((v for v in reversed(ids) if isinstance(v,str) and v),str(path))
@@ -150,6 +199,7 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
                 parents[identity].append((own[0] if own else None,meta['parent_thread_id']))
             session.seen(timestamp(meta.get('timestamp')))
         streams.append((path,session,rows))
+        if not archived: live_streams.append((path,session,rows))
     for identity,session in sessions.items():
         # Subagent threads of one Codex session share its session_id and name the root or a sibling
         # thread as parent. That lineage stays inside the merged session; only outside parents count.

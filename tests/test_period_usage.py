@@ -268,4 +268,32 @@ class PeriodUsageTests(unittest.TestCase):
                 analyze([],since,cutoff)
 
 
+
+class SessionAttributionTests(unittest.TestCase):
+    """E01: an unknown project alone does not hide a session's own dated responses; shared records still do."""
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name)
+
+    def reply(self,session,message,cwd,at):
+        return dict(type='assistant',sessionId=session,requestId='request-'+message,timestamp=iso(at),cwd=cwd,
+                    message=dict(id=message,model='claude-opus-5-5',usage=dict(input_tokens=100,output_tokens=10),
+                                 content=[dict(type='text',text=TRANSCRIPT)]))
+
+    def test_a_session_in_several_folders_keeps_its_dated_responses_but_shared_records_do_not(self):
+        at=NOW-timedelta(days=1)
+        write_jsonl(self.root/'a.jsonl',[self.reply('wide','m1','/invented/one',at),self.reply('wide','m2','/invented/two',at)])
+        wide,=claude_code.read([self.root/'a.jsonl'])
+        self.assertIsNone(wide.project)
+        self.assertFalse(wide.attribution_complete)
+        result=analyze([wide],SINCE,NOW)
+        self.assertEqual((result['total_tokens'],result['response_calls'],result['unallocated_sessions']),(220,2,0))
+        # The same response copied into a second session: its owner is a stable anchor, not proven.
+        write_jsonl(self.root/'b.jsonl',[self.reply('copy','m1','/invented/one',at),self.reply('copy','m3','/invented/one',at)])
+        sessions=claude_code.read([self.root/'a.jsonl',self.root/'b.jsonl'])
+        result=analyze(sessions,SINCE,NOW)
+        self.assertEqual(result['excluded']['unverified_attribution'],2)
+        self.assertNotIn(TRANSCRIPT,json.dumps(result))
+
+
 if __name__=='__main__':unittest.main()

@@ -71,6 +71,7 @@ def owner(candidates):
         for session in unique.values():
             session.attribution_complete = False
             session.issues.add('shared_attribution')
+            session._shared_records = True  # record ownership is uncertain, not only the project
         evidence={getattr(s,'_project_evidence',frozenset([s.project])) for s in unique.values()}
         if len(evidence)>1 or any(len(v)>1 for v in evidence):
             chosen.project = None
@@ -100,6 +101,7 @@ def metadata(session, projects, branches=()):
         session.project = None
         session.attribution_complete = False
         session.issues.add('shared_attribution')
+        session._mixed_projects = True  # one session in several folders: only its project is unknown
     elif values:
         session.project = next(iter(values))
     values = set(branches)
