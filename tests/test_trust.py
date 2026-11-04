@@ -1,5 +1,5 @@
-"""What PLER promises, checked: it calls no model, sends nothing to external services and only reads logs.
-The only process exception is the fixed WSL status query for an explicitly selected WSL root.
+"""What PLER promises: normal usage analysis calls no service/model and only reads logs.
+Exceptions are the fixed WSL status query and explicit/opted-in signed application updates.
 
 The source is checked statically (no module that can open a connection or start a process is imported), and a
 whole run is checked at runtime (a scan and every page request, with outgoing connections and new processes
@@ -27,6 +27,8 @@ SOURCE = Path(__file__).resolve().parent.parent / 'src' / 'pler'
 FORBIDDEN = {'socket', 'ssl', 'subprocess', 'multiprocessing', 'asyncio', 'ctypes', 'urllib.request', 'http.client',
              'ftplib', 'smtplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'requests', 'httpx', 'aiohttp', 'urllib3'}
 ONLY_IN = {'http.server': 'server.py', 'webbrowser': 'cli.py'}
+UPDATE_IMPORTS={'updates.py':{'subprocess','ssl','urllib.request'},
+                'update_worker.py':{'ctypes','subprocess','ssl','http.client'},'update_crypto.py':{'ctypes'},'update_bootstrap.py':{'subprocess'}}
 PROCESS_CALLS = {'system', 'popen', 'startfile', 'spawnl', 'spawnv', 'execv', 'execl', 'fork'}
 
 
@@ -49,6 +51,8 @@ class SourceTests(unittest.TestCase):
                 with self.subTest(file=path.name, module=name):
                     if path.name == 'wsl.py' and name == 'subprocess':
                         continue  # Only the fixed, read-only running-distribution query is allowed here.
+                    if path.parent==SOURCE and any(name==allowed or name.startswith(allowed+'.') for allowed in UPDATE_IMPORTS.get(path.name,())):
+                        continue  # Narrow update-only boundary; ordinary scan/page traffic is still audited below.
                     self.assertFalse(any(name == bad or name.startswith(bad + '.') for bad in FORBIDDEN))
                     if name in ONLY_IN:
                         self.assertEqual(path.name, ONLY_IN[name])
@@ -58,7 +62,7 @@ class SourceTests(unittest.TestCase):
             self.assertFalse(calls & PROCESS_CALLS, path.name)
 
     def test_the_page_loads_nothing_from_the_internet(self):
-        for name in ('index.html', 'app.js', 'app.css'):
+        for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css'):
             text = (SOURCE / 'web' / name).read_text(encoding='utf-8')
             self.assertNotIn('http://', text.replace('http://127.0.0.1', ''), name)
             self.assertNotIn('https://', text, name)
@@ -66,7 +70,9 @@ class SourceTests(unittest.TestCase):
 
     def test_the_package_ships_the_page(self):
         project = (SOURCE.parent.parent / 'pyproject.toml').read_text(encoding='utf-8')
-        self.assertIn('pler = ["web/*", "help/*.html", "help/*.txt"]', project)
+        section=project.split('[tool.setuptools.package-data]',1)[1]
+        line=next(line for line in section.splitlines() if line.startswith('pler = '))
+        self.assertEqual(set(ast.literal_eval(line.split('=',1)[1].strip())),{'web/*','help/*.html','help/*.txt','update_keys.json'})
         self.assertIn('pler = "pler.cli:main"', project)
         self.assertIn('dependencies = []', project)
 

@@ -48,17 +48,20 @@ from pler import __version__
 
 out = args.output
 out.mkdir(parents=True)
+(out/'.pler-running.lock').write_bytes(b'')
 runtime = out/'runtime'
 (runtime/'DLLs').mkdir(parents=True)
 for name in ('python.exe', tag + '.dll', 'python3.dll', 'vcruntime140.dll', 'vcruntime140_1.dll', 'LICENSE.txt'):
     shutil.copy2(args.runtime/name, runtime/name)
-# These modules support the local HTTP server, select, Unicode handling and (3.14+) zstd. No TLS,
-# database, third-party package, pip, compiler or development environment is included in the candidate.
-for name in ('_socket.pyd', 'select.pyd', 'unicodedata.pyd', '_zstd.pyd'):
+# TLS/CNG support is used only by explicitly requested or opted-in application updates.
+for name in ('_socket.pyd', 'select.pyd', 'unicodedata.pyd', '_zstd.pyd','_ssl.pyd','_hashlib.pyd','_ctypes.pyd'):
     if (extensions/name).is_file():
         shutil.copy2(extensions/name, runtime/'DLLs'/name)
     elif name != '_zstd.pyd' or int(tag[7:]) >= 14:
         parser.error('The supplied runtime lacks %s.' % name)
+for name in ('libcrypto-3.dll','libssl-3.dll','libffi-8.dll'):
+    if not (args.runtime/name).is_file():parser.error('The supplied runtime lacks '+name)
+    shutil.copy2(args.runtime/name,runtime/name)
 if embedded:
     # The official embeddable package already holds the compiled standard library.
     shutil.copy2(args.runtime/(tag + '.zip'), runtime/(tag + '.zip'))
@@ -73,8 +76,11 @@ else:
 app = out/'app'
 shutil.copytree(PRODUCT/'src'/'pler', app/'pler', ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
 (app/'start.py').write_text('from pler.cli import main\nraise SystemExit(main())\n', 'utf-8')
+(app/'update_worker.py').write_text('from pler.update_worker import main\nraise SystemExit(main())\n','utf-8')
+(app/'update_probe.py').write_text('import sys\nfrom pler.update_worker import probe\nprobe(sys.argv[1],sys.argv[2])\n','utf-8')
+(app/'bootstrap.py').write_text('from pler.update_bootstrap import main\nraise SystemExit(main())\n','utf-8')
 # Bytes, not text: text mode on Windows would turn each \r\n into \r\r\n.
-(out/'PLER.cmd').write_bytes(b'@echo off\r\n"%~dp0runtime\\python.exe" -I -S "%~dp0app\\start.py" %*\r\n')
+(out/'PLER.cmd').write_bytes(b'@echo off\r\n"%~dp0runtime\\python.exe" -I -S "%~dp0app\\bootstrap.py" %*\r\n')
 # Double-click to try the page with invented data only; the window closes at once, PLER keeps running.
 (out/'PLER-Demo.cmd').write_bytes(b'@echo off\r\nstart "" "%~dp0PLER.exe" demo\r\n')
 subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64',
@@ -97,6 +103,11 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'First useful result: open Help in the app for the demo-to-own-records walkthrough.\n'
     'Data: %LOCALAPPDATA%\\pler by default; a chosen data folder stays separate too.\n'
     'Removing the extracted package does not remove saved PLER history.\n'
+    'Updates: use Updates in the app. Checking on launch is optional and initially off.\n'
+    'Updates contact the release site; agent records and project data are not sent.\n'
+    'For the first manual upgrade, extract into a new folder and close the older app.\n'
+    'Private recovery backups remain beside the installation in protected .pler-update-* folders.\n'
+    'Do not send recovery folders to support or remove an active update.\n'
     'Turkish: OKU.txt\n', 'utf-8')
 (out/'OKU.txt').write_text(
     'PLER '+__version__+' — Windows x64 '+('erken beta' if public_beta else 'yerel aday')+'\n\n'

@@ -1,6 +1,13 @@
 # Changes
 
-## 0.2.30 — 2026-11-02 (local early-beta package; not published)
+## 0.2.31 — 2026-11-02 (published early beta)
+
+- Add Windows portable Updates: explicit checks, optional launch checks (off by default), verified download, private backup and restart. The first upgrade from .30 or earlier remains manual; Python wheels update manually.
+- Verify pinned-key signed release metadata, entire ZIP and all files; refuse incompatible data formats. Keep the stable launcher and baseline runtime, select prepared versions atomically and recover an interrupted selection on launch. Failed startup reopens the old version without overwriting newer user data.
+- Preserve unsaved work/follow-up drafts by refusing the UI install action; freeze edits during preparation. Stage private recovery data under protected per-user Windows permissions; retain backups and old versions for recovery. No agent data is sent.
+- Publish matching .31 ZIP/wheel and signed feed; verify live bytes, EN/TR versions and the unchanged .30 URL. Tests use invented records; Windows Authenticode, clean-machine acceptance and full CI remain open.
+
+## 0.2.30 — 2026-11-02 (published early beta)
 
 - Add an offline reader/price release review gate, independently expected cold/cache/archive record cases, official price-source review dates and automatic discovery of all browser test suites. No provider fetch or workflow dispatch.
 - Correct price confidence: GPT-6 writes without a lifetime split and unlisted Codex dated IDs stay unpriced; invalid Claude split/modifier metadata preserves counts without being clamped or sanitized into a standard price. Copies carrying the selected usage must agree on price in either order. Parser provenance becomes `accounting-2026-11-01.1`; API/plan review date is 2026-11-01; usage schema and work/backup formats stay unchanged.

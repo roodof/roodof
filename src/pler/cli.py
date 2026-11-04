@@ -11,7 +11,7 @@
                    open using the explicitly selected local PLER data folder
   pler --version
 
-No model is called, nothing is sent anywhere, and the logs are only read.
+No model is called and logs are only read. Optional updates contact the release service without agent data.
 """
 import argparse
 import os
@@ -26,12 +26,18 @@ PORT = 8765
 
 def serve(port=PORT, browser=True, lang='en', dashboard=None):
     from .server import Server
+    from .updates import UpdateError
     try:
-        server = Server(port, dashboard)
-    except OSError:  # the usual port is taken, e.g. by another PLER window: take any free one
-        server = Server(0, dashboard)
+        try:
+            server = Server(port, dashboard)
+        except OSError:  # a port already in use does not change the selected data or installation
+            server = Server(0, dashboard)
+    except UpdateError:
+        print(say(lang,'error.update_busy'),file=sys.stderr);return 1
     print(say(lang, 'cli.open', server.access_url), flush=True)
-    if browser:
+    from .update_worker import startup_ready
+    handoff=startup_ready(server,(lambda:webbrowser.open(server.access_url)) if browser else None)
+    if browser and not handoff:
         webbrowser.open(server.access_url)
     try:
         server.serve_forever()

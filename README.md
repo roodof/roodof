@@ -5,7 +5,7 @@
 See what Claude Code and Codex used, from their own logs on your computer: tokens by project and model, where your subscription quota is heading, and where usage builds up.
 
 - **Calls no model.** Measuring costs zero tokens.
-- **Sends nothing to external services.** The page opens on this computer only (`127.0.0.1`). Explicit WSL log roots on this computer are supported; other network shares stay refused.
+- **Agent data stays local.** The page opens on this computer only (`127.0.0.1`). Usage analysis works offline. Optional update checks/downloads contact the release service without agent records or project data. Explicit local WSL roots are supported; other network shares stay refused.
 - **Agent logs stay unchanged.** PLER keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
 - **Any programming language.** It reads agent logs. The local Git line observation also reads committed file names and contents in memory; only counts are stored or shown.
 
@@ -13,7 +13,7 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 Download the Windows x64 package from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the whole ZIP and open `PLER.exe`. Python is included. `PLER-Demo.cmd` opens invented data only; close the demo and open `PLER.exe` to use your selected local records. `PLER.cmd` is the terminal entry point.
 
-Open **Help** in the app for the first work-group walkthrough, empty-record guidance, privacy, removal and local-data retention. Support: plersolutions1st@gmail.com. The beta is unsigned; clean-machine acceptance remains open. No automatic update delivery is included.
+Open **Help** in the app for the first work-group walkthrough, empty-record guidance, privacy, removal and local-data retention. Support: plersolutions1st@gmail.com. The beta is unsigned; clean-machine acceptance remains open. Windows portable 0.2.31 adds **Updates → Check for updates → Download and update** with signed release verification, a private backup and safe restart. Checking on launch is off until you opt in. A first manual upgrade from 0.2.30 or earlier is required; wheel/macOS/Linux installs are not modified by this updater. See [UPDATES.md](docs/UPDATES.md).
 
 ## Install
 

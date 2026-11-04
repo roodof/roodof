@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 [assembly: AssemblyTitle("PLER")]
@@ -11,6 +12,49 @@ using System.Windows.Forms;
 [assembly: AssemblyDescription("Local agent usage viewer")]
 
 internal static class Launcher {
+    private static string VersionWord(string value) {
+        value = value.Trim();
+        if (!Regex.IsMatch(value, @"\A(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})\.(0|[1-9][0-9]{0,3})\z"))
+            throw new IOException("The installed version selection is invalid.");
+        return value;
+    }
+    private static string Pointer(string folder) {
+        string path = Path.Combine(folder, ".pler-current");
+        if (!File.Exists(path)) return null;
+        if (new FileInfo(path).Length > 64) throw new IOException("The installed version selection is invalid.");
+        return VersionWord(File.ReadAllText(path));
+    }
+    private static string Selected(string folder, string version) {
+        string selected = version == null ? folder : Path.Combine(folder, ".pler-versions", version);
+        if (!File.Exists(Path.Combine(selected, "runtime", "python.exe")) || !File.Exists(Path.Combine(selected, "app", "start.py")))
+            throw new IOException("The selected PLER version is incomplete. Keep your data and reinstall the complete package.");
+        return selected;
+    }
+    private static void WritePointer(string folder, string version) {
+        string path = Path.Combine(folder, ".pler-current");
+        if (version == null) { if (File.Exists(path)) File.Delete(path); return; }
+        string temp = Path.Combine(folder, ".pler-pointer-" + Guid.NewGuid().ToString("N"));
+        byte[] data = Encoding.ASCII.GetBytes(VersionWord(version) + "\n");
+        using (FileStream file = new FileStream(temp, FileMode.CreateNew, FileAccess.Write)) { file.Write(data, 0, data.Length); file.Flush(true); }
+        if (File.Exists(path)) File.Replace(temp, path, null); else File.Move(temp, path);
+    }
+    private static FileStream Lease(string folder, bool exclusive) {
+        return new FileStream(Path.Combine(folder, ".pler-running.lock"), exclusive ? FileMode.OpenOrCreate : FileMode.Open, exclusive ? FileAccess.ReadWrite : FileAccess.Read,
+                              exclusive ? FileShare.None : FileShare.ReadWrite);
+    }
+    private static void Recover(string folder) {
+        string pending = Path.Combine(folder, ".pler-pending");
+        if (!File.Exists(pending)) return;
+        using (FileStream lease = Lease(folder, true)) {
+            if (new FileInfo(pending).Length > 128) throw new IOException("PLER recovery needs inspection.");
+            string[] lines = File.ReadAllLines(pending);
+            if (lines.Length != 2) throw new IOException("PLER recovery needs inspection.");
+            string next = VersionWord(lines[0]), old = lines[1] == "base" ? null : VersionWord(lines[1]);
+            string current = Pointer(folder);
+            if (current != next && current != old) throw new IOException("PLER recovery needs inspection.");
+            Selected(folder, old); WritePointer(folder, old); File.Delete(pending);
+        }
+    }
     // Quote a Windows argv value without passing through cmd or another shell.
     private static string Quote(string value) {
         StringBuilder result = new StringBuilder("\"");
@@ -32,8 +76,11 @@ internal static class Launcher {
         bool check = args.Length == 1 && args[0] == "--self-check";
         try {
             string folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string runtime = Path.Combine(folder, "runtime", "python.exe");
-            string entry = Path.Combine(folder, "app", "start.py");
+            Recover(folder);
+            using (FileStream lease = Lease(folder, false)) {
+            string selected = Selected(folder, Pointer(folder));
+            string runtime = Path.Combine(selected, "runtime", "python.exe");
+            string entry = Path.Combine(selected, "app", "start.py");
             if (!File.Exists(runtime) || !File.Exists(entry))
                 throw new IOException("Extract the complete PLER folder before opening the application.");
             StringBuilder command = new StringBuilder("-I -S " + Quote(entry));
@@ -42,6 +89,8 @@ internal static class Launcher {
             ProcessStartInfo info = new ProcessStartInfo(runtime, command.ToString());
             info.WorkingDirectory = folder;
             info.UseShellExecute = false;
+            info.EnvironmentVariables["PLER_LAUNCHER_PID"] = Process.GetCurrentProcess().Id.ToString();
+            info.EnvironmentVariables["PLER_INSTALL_ROOT"] = folder;
             info.CreateNoWindow = true;
             info.RedirectStandardOutput = true;
             info.RedirectStandardError = true;
@@ -55,6 +104,7 @@ internal static class Launcher {
                     MessageBox.Show("PLER could not start. The original agent logs were not changed.\n\n" +
                         error.Result, "PLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return process.ExitCode;
+            }
             }
         } catch (Exception error) {
             if (!check) MessageBox.Show(error.Message, "PLER", MessageBoxButtons.OK, MessageBoxIcon.Error);

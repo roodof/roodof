@@ -5,7 +5,7 @@
 Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtlarından gösterir: hangi projede, hangi modelle, ne kadar token; kotanın nereye gittiği; harcamanın nerede biriktiği.
 
 - **Model çağırmaz.** Ölçmek için tek bir token harcamaz.
-- **Hiçbir şey göndermez.** İnternete bağlanmaz; sayfa yalnız bu bilgisayardan açılır (`127.0.0.1`).
+- **Ajan verisi yerel kalır.** Sayfa yalnız bu bilgisayardan açılır (`127.0.0.1`); kullanım analizi çevrimdışı çalışır. İsteğe bağlı güncelleme kontrolü ve indirme yayın hizmetine bağlanır; ajan kayıtları veya proje bilgileri gönderilmez.
 - **Ajan kayıtlarını değiştirmez.** PLER üst bilgi önbelleği tutar; istek, yanıt, komut ve araç çıktısı ekrana ve önbelleğe girmez. İsteğe bağlı durum satırı, Claude Code ayarını onaydan sonra ve yedek alarak değiştirir.
 - **Her dilde çalışır.** Ajan kayıtlarını inceler. Yerel Git satır gözlemi ayrıca commit'lerdeki dosya adlarını ve içeriklerini bellekte okur; yalnız sayılar saklanır veya gösterilir.
 
@@ -13,7 +13,7 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 paketini indir, ZIP dosyasının tamamını klasöre çıkar ve `PLER.exe` dosyasını aç. Python pakete dahildir. `PLER-Demo.cmd` yalnız uydurma kayıtları açar; kendi seçili yerel kayıtların için demoyu kapatıp `PLER.exe` dosyasını aç. `PLER.cmd` terminal girişidir.
 
-İlk iş grubunu oluşturmak, boş kayıt durumunu anlamak, gizlilik, kaldırma ve yerel veri saklama için uygulamadaki **Yardım** bölümünü aç. Destek: plersolutions1st@gmail.com. Beta imzasızdır; temiz makine kabulü açıktır. Otomatik güncelleme dağıtımı yoktur.
+İlk iş grubunu oluşturmak, boş kayıt durumunu anlamak, gizlilik, kaldırma ve yerel veri saklama için uygulamadaki **Yardım** bölümünü aç. Destek: plersolutions1st@gmail.com. Beta imzasızdır; temiz makine kabulü açıktır. Windows taşınabilir 0.2.31 paketi **Güncellemeler → Güncellemeleri kontrol et → İndir ve güncelle** akışını; imzalı sürüm doğrulaması, özel yedek ve güvenli yeniden açılışla ekler. Açılışta kontrol, sen seçene kadar kapalıdır. 0.2.30 ve öncesinden ilk geçiş elle yapılır; Python wheel/macOS/Linux kurulumları bu güncelleyiciyle değiştirilmez. Ayrıntı: [UPDATES.md](docs/UPDATES.md).
 
 ## Kurulum
 

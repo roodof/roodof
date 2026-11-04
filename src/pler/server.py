@@ -3,7 +3,7 @@
 It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
 command; the actions are "read the logs again", metadata settings, your own verdict, Claude plan or work links,
 prepare/check a private metadata backup and "close". An uploaded backup is checked in memory only;
-recovery into a new folder is a CLI action. It opens no connection to an external service. Selected WSL log roots allow only the fixed
+recovery into a new folder is a CLI action. Only explicitly requested/opted-in updates contact the fixed release service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -21,12 +21,18 @@ from .dashboard import UnknownProject, UsageDashboard
 from .i18n import LANGUAGES, say
 
 WEB = Path(__file__).with_name('web')
-FILES = {'/app.js': 'text/javascript; charset=utf-8', '/app.css': 'text/css; charset=utf-8'}
+FILES = {'/app.js': 'text/javascript; charset=utf-8','/updates.js':'text/javascript; charset=utf-8',
+         '/updates.css':'text/css; charset=utf-8','/app.css': 'text/css; charset=utf-8'}
 SECURITY = {
     'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
     'X-Frame-Options': 'DENY',
     'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; "
                                "img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"}
+
+
+def sys_argv():
+    import sys
+    return list(sys.argv[1:])
 
 
 class Server(ThreadingHTTPServer):
@@ -38,7 +44,10 @@ class Server(ThreadingHTTPServer):
     # allows a quick restart after closing.
     allow_reuse_address = os.name != 'nt'
 
-    def __init__(self, port=0, dashboard=None):
+    def __init__(self, port=0, dashboard=None, updater=None):
+        from .updates import Manager
+        self.updates=updater if updater is not None else Manager(restart_args=sys_argv())
+        self._action_lock=threading.RLock()
         self._slots = threading.BoundedSemaphore(self.max_workers)
         self._requests = {}
         self._requests_lock = threading.Lock()
@@ -46,12 +55,19 @@ class Server(ThreadingHTTPServer):
         self._backup_lock = threading.Lock()
         # A running server must not mix old Python code with files edited after startup.
         self.assets = {route: (WEB / filename).read_bytes() for route, filename in
-                       (('/', 'index.html'), ('/app.js', 'app.js'), ('/app.css', 'app.css'))}
+                       (('/', 'index.html'), ('/app.js', 'app.js'),('/updates.js','updates.js'),('/updates.css','updates.css'), ('/app.css', 'app.css'))}
         super().__init__(('127.0.0.1', port), Handler)
         self.origin = 'http://127.0.0.1:%d' % self.server_port
         self.token = secrets.token_hex(32)
         self.access_url = self.origin + '/#access=' + self.token
         self.dashboard = dashboard or UsageDashboard()
+        def update_shutdown():
+            time.sleep(1.0)  # let the open page observe the authenticated restarting status
+            self.shutdown()
+        self.updates.close_application=update_shutdown
+        if self.updates.automatic and not self.updates.handoff:
+            try:self.updates.check()
+            except ValueError:pass
 
     def get_request(self):
         request, address = super().get_request()
@@ -97,6 +113,7 @@ class Server(ThreadingHTTPServer):
             self._interrupt(request)
 
     def server_close(self):
+        if hasattr(self,'updates'):self.updates.close()
         if hasattr(self, 'dashboard'):
             self.dashboard.close()
         with self._requests_lock:
@@ -161,7 +178,8 @@ class Handler(BaseHTTPRequestHandler):
             if request.path == '/':
                 from .usage.backup import MAX_BUNDLE_BYTES
                 page = (self.server.assets['/'].decode('utf-8').replace('__SESSION_TOKEN__', '')
-                        .replace('__BACKUP_MAX_BYTES__',str(MAX_BUNDLE_BYTES)))
+                        .replace('__BACKUP_MAX_BYTES__',str(MAX_BUNDLE_BYTES))
+                        .replace('__UPDATER_CAPABLE__','1' if self.server.updates.root else '0'))
                 self._send(200, page, 'text/html; charset=utf-8')
             elif request.path=='/help':
                 query=parse_qs(request.query,keep_blank_values=True)
@@ -171,6 +189,11 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200,render(lang,query.get('chapter',['guide'])[0]),'text/html; charset=utf-8')
             elif request.path in FILES:
                 self._send(200, self.server.assets[request.path], FILES[request.path])
+            elif request.path=='/api/updates':
+                if not self._token():
+                    self._send(401,dict(error=say(lang,'error.read_token'),code='connection_required'));return
+                if request.query:raise ValueError(say(lang,'error.query'))
+                self._send(200,self.server.updates.view())
             elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups'):
                 if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
@@ -224,17 +247,33 @@ class Handler(BaseHTTPRequestHandler):
             self._send(400, dict(error=str(error)))
 
     def do_POST(self):
+        if urlsplit(self.path).path in ('/api/usage/backup','/api/usage/backup/check'):
+            return self._post()
+        with self.server._action_lock:
+            from .updates import BUSY
+            if self.server.updates.state in BUSY-{'checking'} and urlsplit(self.path).path not in ('/api/updates/check','/api/updates/install','/api/updates/preferences'):
+                if not self._local():return
+                if not self._token():
+                    self._send(403,dict(error=say(self._lang(),'error.token')));return
+                self._send(409,dict(error=say(self._lang(),'error.update_busy'),code='update_busy'))
+                return
+            return self._post()
+
+    def _post(self):
         if not self._local():
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
                          '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/work/details','/api/usage/work/followup','/api/usage/backup','/api/usage/backup/check',
-                         '/api/quit'):
+                         '/api/quit','/api/updates/check','/api/updates/install','/api/updates/preferences'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
                 or not self._token()):
             self._send(403, dict(error=say(self._lang(), 'error.token')))
+            return
+        if route.startswith('/api/updates/'):
+            self._update_action(route)
             return
         if route in ('/api/usage/backup','/api/usage/backup/check'):
             self._backup(route)
@@ -294,6 +333,22 @@ class Handler(BaseHTTPRequestHandler):
             self.server.dashboard.close(timeout=0)
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()
+
+    def _update_action(self,route):
+        from .updates import UpdateError
+        try:
+            body=self._annotation_json(128)
+            if route.endswith('/preferences'):
+                if set(body)!={'automatic'} or type(body['automatic']) is not bool:raise ValueError()
+                result=self.server.updates.preferences(body['automatic'])
+            else:
+                if body!={}:raise ValueError()
+                result=self.server.updates.check() if route.endswith('/check') else self.server.updates.install()
+            self._send(202 if not route.endswith('/preferences') else 200,result)
+        except UpdateError as error:
+            self._send(409,dict(error=say(self._lang(),'error.update_unavailable'),code=error.code))
+        except ValueError:
+            self._send(400,dict(error=say(self._lang(),'error.fields'),code='invalid'))
 
     def _annotation_json(self,limit):
         """Bound and authenticate admission before reading a manual annotation."""

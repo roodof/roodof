@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="pler-session" content="__SESSION_TOKEN__">
   <meta name="pler-backup-max" content="__BACKUP_MAX_BYTES__">
+  <meta name="pler-updater" content="__UPDATER_CAPABLE__">
   <title>PLER · My usage</title>
   <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/updates.css">
   <script src="/app.js" defer></script>
+  <script src="/updates.js" defer></script>
 </head>
 <body>
   <!-- Visible words come from app.js (I18N) by data-i18n key; the English here is only the default. -->
   <a class="skip" href="#workspace" data-i18n="skip">Skip to content</a>
   <header class="topbar">
     <a class="brand" href="/" aria-label="PLER home" data-i18n-label="brand_label"><span class="brand-mark" aria-hidden="true">∥</span>PLER<span class="brand-caption" data-i18n="caption">Your agent usage, from your own logs.</span></a>
-    <div class="top-actions"><span class="local"><span aria-hidden="true"></span><span data-i18n="local">This computer only</span></span><a id="usage-help" href="/help" data-i18n="help">Help</a><button id="lang-toggle" class="quiet" data-i18n="lang_toggle" data-i18n-label="lang_toggle_label">Türkçe</button><button id="close-app" class="quiet" data-i18n="close">Close</button></div>
+    <div class="top-actions"><span class="local"><span aria-hidden="true"></span><span data-i18n="local">This computer only</span></span><button id="usage-update-open" class="quiet" hidden>Updates</button><a id="usage-help" href="/help" data-i18n="help">Help</a><button id="lang-toggle" class="quiet" data-i18n="lang_toggle" data-i18n-label="lang_toggle_label">Türkçe</button><button id="close-app" class="quiet" data-i18n="close">Close</button></div>
   </header>
   <main id="workspace" tabindex="-1">
     <div id="notice" class="notice" role="status" hidden></div>
@@ -129,5 +132,14 @@
   </main>
   <dialog id="usage-session-dialog" aria-labelledby="usage-session-title"><div class="dialog-heading"><h2 id="usage-session-title" data-i18n="dialog_title">Session details</h2><button id="usage-close-session" class="icon-button" aria-label="Close session details" data-i18n-label="dialog_close">×</button></div><div id="usage-session-detail"></div></dialog>
   <dialog id="usage-work-delete-dialog" aria-labelledby="usage-work-delete-title" aria-describedby="usage-work-delete-help"><h2 id="usage-work-delete-title" data-i18n="work_delete_heading">Delete this work?</h2><p id="usage-work-delete-name" class="work-delete-name"></p><p id="usage-work-delete-help" class="section-note" data-i18n="work_delete_help">Deletes only this work title and its session links. Session logs, recorded usage and verdicts stay unchanged.</p><p id="usage-work-delete-status" class="section-note" role="status"></p><div class="work-dialog-actions"><button id="usage-work-delete-cancel" class="secondary" type="button" data-i18n="work_cancel">Keep work</button><button id="usage-work-delete-confirm" class="primary" type="button" data-i18n="work_delete_confirm">Delete work and links</button></div></dialog>
+  <dialog id="usage-update-dialog" class="update-dialog" aria-labelledby="usage-update-title">
+    <div class="update-heading"><h2 id="usage-update-title">Updates</h2><button id="usage-update-close" class="quiet" type="button" aria-label="Close update window">×</button></div>
+    <p id="usage-update-version" class="section-note"></p><p id="usage-update-status" role="status" aria-live="polite"></p>
+    <p id="usage-update-notes" class="update-notes"></p><p id="usage-update-size" class="section-note"></p>
+    <progress id="usage-update-progress" aria-label="Update download" hidden></progress>
+    <div class="update-actions"><button id="usage-update-check" class="secondary" type="button">Check for updates</button><button id="usage-update-install" class="primary" type="button" hidden>Download and update</button><button id="usage-update-later" class="quiet" type="button">Later</button></div>
+    <label class="check-label"><input id="usage-update-auto" type="checkbox"><span id="usage-update-auto-label">Check for updates when I open the app</span></label>
+    <p id="usage-update-privacy" class="section-note"></p>
+  </dialog>
 </body>
 </html>

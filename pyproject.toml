@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pler"
 dynamic = ["version"]
-description = "See what your AI coding agents (Claude Code, Codex) used, from their own logs on your computer. No model calls; nothing is sent anywhere."
+description = "See what Claude Code and Codex used from local logs. No model calls; agent data stays on your computer."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = []
@@ -32,7 +32,7 @@ version = {attr = "pler.__version__"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-pler = ["web/*", "help/*.html", "help/*.txt"]
+pler = ["web/*", "help/*.html", "help/*.txt", "update_keys.json"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
