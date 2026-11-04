@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Require the launch Site’s offline signature/package/wheel/EN/TR consistency gate in the normal build before publication; current .31 artifacts remain unchanged. Prepare preregistered work/follow-up pilot tasks and comprehension/effort forms without claiming participant results.
+
+- Clarify English/Turkish offline Help: usage missing from retained records cannot be counted, and no general error margin is established. Remove the unsupported claim that the figure may be only a few percent low. Published 0.2.31 artifacts are unchanged.
+
 ## 0.2.31 — 2026-11-02 (published early beta)
 
 - Add Windows portable Updates: explicit checks, optional launch checks (off by default), verified download, private backup and restart. The first upgrade from .30 or earlier remains manual; Python wheels update manually.
