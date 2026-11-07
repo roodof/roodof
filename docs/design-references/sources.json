@@ -1,0 +1,93 @@
+[
+  {
+    "repo": "miqdadbadjuber/anti-slop",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/miqdadbadjuber/anti-slop/main/README.md",
+      "file": "miqdadbadjuber--anti-slop-README.md",
+      "sha256": "6fd89cc7b28d8132dcf48e30a5762500c6c15fe023da111d03e15a0d7655d7dc"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/miqdadbadjuber/anti-slop/git/trees/main?recursive=1",
+      "file": "miqdadbadjuber--anti-slop-tree.json",
+      "sha256": "7963aecb9e24ba99cbf2903fb16cb0d829090b64c5e66aeb7965f01fc033f3f7"
+    }
+  },
+  {
+    "repo": "google-labs-code/design.md",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/google-labs-code/design.md/main/README.md",
+      "file": "google-labs-code--design.md-README.md",
+      "sha256": "c73779bfe3bdbec5c6ad0e01259e6835b6f64762a304fae8227bf01434733504"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/google-labs-code/design.md/git/trees/main?recursive=1",
+      "file": "google-labs-code--design.md-tree.json",
+      "sha256": "ac19a8aede15845ee2f6db41f26413a472aa7deaae6043f31a03f9f35bca9cbb"
+    }
+  },
+  {
+    "repo": "kwakseongjae/oh-my-design",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/kwakseongjae/oh-my-design/main/README.md",
+      "file": "kwakseongjae--oh-my-design-README.md",
+      "sha256": "1c941a4b8d4bcff9ff6e478b79093307ce7263c7e131d4276a0b08f3a7bcccd3"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/kwakseongjae/oh-my-design/git/trees/main?recursive=1",
+      "file": "kwakseongjae--oh-my-design-tree.json",
+      "sha256": "7c3221a959672828b029e7a1fe2ea955b8dfcde2675d32dafd08cc4809a2382a"
+    }
+  },
+  {
+    "repo": "cosscom/coss",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/cosscom/coss/main/README.md",
+      "file": "cosscom--coss-README.md",
+      "sha256": "731330ceb5d017152f3ce75e7f1cd52c490fa688c99eb64040f28e3006f50d48"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/cosscom/coss/git/trees/main?recursive=1",
+      "file": "cosscom--coss-tree.json",
+      "sha256": "7a7a8040fd24c4fc6b1532a2dfc62852ffdf04deac6617deb0ba3e503df797e1"
+    }
+  },
+  {
+    "repo": "cosscom/ui",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/cosscom/ui/main/README.md",
+      "file": "cosscom--ui-README.md",
+      "sha256": "c0b0ab37a29a33b9a8fb3043ddd06d1f39e6cf60bd075999cde79eff0007d8bc"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/cosscom/ui/git/trees/main?recursive=1",
+      "file": "cosscom--ui-tree.json",
+      "sha256": "9780aa42be1680e5bb21a7b7ff524266dee479e71fbfd3e793ffbeb5fd680aa4"
+    }
+  },
+  {
+    "repo": "nexu-io/open-design",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/nexu-io/open-design/main/README.md",
+      "file": "nexu-io--open-design-README.md",
+      "sha256": "dbd9cd62043f52a7c38af33b10dc6dd66f7c01a88211d2a3ce8dbfd5a00ed74a"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/nexu-io/open-design/git/trees/main?recursive=1",
+      "file": "nexu-io--open-design-tree.json",
+      "sha256": "45904a4a60d5508f4ed62e0745444aed65f5538eea970cff9d59493f9c415ce1"
+    }
+  },
+  {
+    "repo": "ibelick/motion-primitives",
+    "readme": {
+      "url": "https://raw.githubusercontent.com/ibelick/motion-primitives/main/README.md",
+      "file": "ibelick--motion-primitives-README.md",
+      "sha256": "104fe086b717c6e68274965445d49e7b433b5ec5e0c13bc9056804e74e39d69a"
+    },
+    "tree": {
+      "url": "https://api.github.com/repos/ibelick/motion-primitives/git/trees/main?recursive=1",
+      "file": "ibelick--motion-primitives-tree.json",
+      "sha256": "085a9f911c0def2295201500d1fd65f8322cc399410db06d60f081d03fbb1c34"
+    }
+  }
+]

@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="/updates.css">
   <script src="/app.js" defer></script>
   <script src="/updates.js" defer></script>
+  <link rel="stylesheet" href="/workspace.css">
+  <link rel="stylesheet" href="/sessions-grid.css">
+  <script src="/workspace.js" defer></script>
 </head>
 <body>
   <!-- Visible words come from app.js (I18N) by data-i18n key; the English here is only the default. -->
@@ -116,7 +119,7 @@
         <section id="usage-plans" class="usage-panel plans" hidden aria-labelledby="usage-plans-title"></section>
         <div id="usage-columns" class="usage-columns"><section class="usage-panel"><div class="section-heading"><div><span class="eyebrow" data-i18n="projects_eyebrow">Projects</span><h2 data-i18n="projects_title">Where does usage build up?</h2></div></div><div id="usage-projects"></div></section><section class="usage-panel"><div class="section-heading"><div><span class="eyebrow" data-i18n="models_eyebrow">Models</span><h2 data-i18n="models_title">Split shown in the logs</h2></div></div><div id="usage-models"></div></section></div>
         <section id="usage-session-section" class="task-section" aria-labelledby="usage-sessions-title"><div class="section-heading"><div><span class="eyebrow" data-i18n="sessions_eyebrow">Sessions</span><h2 id="usage-sessions-title" data-i18n="sessions_title">Look into your sessions.</h2></div><span id="usage-session-count" class="subtle" role="status"></span></div>
-          <div class="session-controls"><div><label for="usage-session-search" data-i18n="search_label">Search sessions</label><input id="usage-session-search" type="search" maxlength="160" placeholder="Project, model or session code" data-i18n-placeholder="search_placeholder" aria-describedby="usage-session-scope" autocomplete="off"></div><div><label for="usage-session-sort" data-i18n="sort_label">Sort</label><select id="usage-session-sort"><option value="tokens" data-i18n="sort_tokens">Most tokens</option><option value="recent" data-i18n="sort_recent">Most recently active</option><option value="started" data-i18n="sort_started">Most recently started</option><option value="issues" data-i18n="sort_issues">Most errors / interruptions</option></select></div></div>
+          <div class="session-controls"><div><label for="usage-session-search" data-i18n="search_label">Search sessions</label><input id="usage-session-search" type="search" maxlength="160" placeholder="Project, model or session code" data-i18n-placeholder="search_placeholder" aria-describedby="usage-session-scope" autocomplete="off"></div><div><label for="usage-session-sort" data-i18n="sort_label">Sort</label><select id="usage-session-sort"><option value="tokens" data-i18n="sort_tokens">Most tokens</option><option value="recent" selected data-i18n="sort_recent">Most recently active</option><option value="started" data-i18n="sort_started">Most recently started</option><option value="issues" data-i18n="sort_issues">Most errors / interruptions</option></select></div></div>
           <label class="check-label quality-filter"><input id="usage-quality-only" type="checkbox"><span data-i18n="quality_only">Only sessions with data-quality limits</span></label><p class="section-note" data-i18n="quality_filter_note">This list filter does not change totals or JSON scope.</p>
           <p id="usage-session-scope" class="section-note" data-i18n="search_scope">Search narrows only this list; the summary above and the downloaded JSON follow the main filters. Open a session to see coincident local Git events. The record span includes waiting; it is not continuous working time.</p>
           <p id="usage-verdict-summary" class="verdict-summary" role="status" hidden></p>

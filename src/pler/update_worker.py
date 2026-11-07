@@ -20,12 +20,14 @@ def probe(stage,expected):
     from . import server,update_crypto
     from .usage import backup,work_items
     from .reporting import SCHEMA_VERSION
-    if expected!=__version__ or COMPATIBILITY!=dict(updater=1,schema=SCHEMA_VERSION,work=work_items.FORMAT,backup=backup.FORMAT):
+    if expected!=__version__ or COMPATIBILITY!=dict(updater=2,schema=SCHEMA_VERSION,work=work_items.FORMAT,backup=backup.FORMAT):
         raise UpdateError('preflight')
     ssl.create_default_context();update_crypto.api()
     backup.inspect(read_small(Path(stage)/'data-backup.zip',backup.MAX_BUNDLE_BYTES))
     for name in ('index.html','app.js','app.css'):
         if not (server.WEB/name).is_file():raise UpdateError('preflight')
+    from .desktop import executable_path
+    if not executable_path().is_file():raise UpdateError('preflight')
 
 
 def process_handle(pid):
@@ -109,6 +111,9 @@ def healthy(stage,p,child,timeout=20):
             try:
                 connection.request('GET','/api/health',headers={'Host':url.netloc})
                 response=connection.getresponse();body=decoded(response.read(4097),4096)
+                if response.status==503 and body==dict(app='pler',version=p['version']):
+                    time.sleep(.1)
+                    continue  # The desktop document is still loading; respect the same startup deadline.
                 return response.status==200 and body==dict(app='pler',version=p['version'])
             finally:connection.close()
         except (OSError,UpdateError,KeyError,ValueError):time.sleep(.1)

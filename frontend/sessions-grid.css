@@ -1,0 +1,51 @@
+/* Tokenized Tabulator skin. Data order and writes remain with the controller. */
+.tabulator-sessions #usage-session-section{padding:0;margin:0 0 12px;overflow:visible;border:1px solid var(--ui-border);border-radius:7px;background:var(--ui-surface);box-shadow:inset 0 1px 0 var(--ui-highlight)}
+.tabulator-sessions #usage-session-section>.section-heading,.tabulator-sessions #usage-table-help{display:none}
+.tabulator-sessions #usage-session-section .session-controls{display:grid;grid-template-columns:minmax(150px,1fr) 175px auto;align-items:end;gap:8px;padding:12px}
+.tabulator-sessions .session-controls>div>label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.tabulator-sessions .session-controls input,.tabulator-sessions .session-controls select{font-size:12px;min-height:32px}
+.tabulator-sessions #usage-session-section .quality-filter{margin:0 12px 10px;font-size:11px;color:var(--ui-muted)}
+.grid-options{position:relative;margin:0;z-index:5;font-size:12px;color:var(--ui-secondary)}
+.workspace-redesign .grid-options>summary{display:flex;align-items:center;justify-content:space-between;min-height:32px;list-style:none;white-space:nowrap;padding:0 10px;border:1px solid var(--ui-border-strong);border-radius:5px;background:var(--ui-raised);box-shadow:inset 0 1px 0 var(--ui-highlight)}
+.grid-options>summary:after{content:'⌄';margin-left:8px;color:var(--ui-muted)}
+.workspace-redesign .grid-options>summary:hover{border-color:var(--ui-focus);background:var(--ui-hover)}
+.grid-column-menu{position:absolute;right:0;top:37px;width:252px;max-width:calc(100vw - 72px);padding:8px;border:1px solid var(--ui-border-strong);border-radius:7px;background:var(--ui-raised);box-shadow:inset 0 1px 0 var(--ui-highlight);display:grid;gap:1px}
+.grid-column-menu label{display:flex;align-items:center;gap:8px;min-height:28px;padding:4px 6px;border-radius:4px;font-size:12px;color:var(--ui-secondary);cursor:pointer}
+.grid-column-menu label:hover{background:var(--ui-hover);color:var(--ui-text)}
+.grid-menu-note{margin:2px 6px 8px;font-size:11px;line-height:1.6;color:var(--ui-muted)}
+.workspace-redesign .grid-reset{margin-top:6px;padding:0 6px;min-height:30px;justify-content:flex-start;text-align:left;border:0;border-top:1px solid var(--ui-border);border-radius:0;box-shadow:none;background:transparent;color:var(--ui-text);font-size:12px}
+.tabulator-sessions .sessions-grid.tabulator{border:0;background:var(--ui-surface);font:12px/1.5 var(--body);color:var(--ui-secondary);overflow:hidden}
+.tabulator-sessions .tabulator .tabulator-header{border-top:1px solid var(--ui-border);border-bottom:1px solid var(--ui-border);background:var(--ui-sidebar);color:var(--ui-muted);font-size:11px;font-weight:500}
+.tabulator-sessions .tabulator .tabulator-header .tabulator-col{background:var(--ui-sidebar);border-right:1px solid transparent;padding:0 8px;cursor:grab}
+.tabulator-sessions .tabulator .tabulator-header .tabulator-col:hover{background:var(--ui-raised);color:var(--ui-text)}
+.tabulator-sessions .tabulator .tabulator-header .tabulator-col:active{cursor:grabbing;background:var(--ui-selected)}
+.tabulator-sessions .tabulator .tabulator-header .tabulator-col .tabulator-col-content{padding:8px 4px}
+.tabulator-sessions .tabulator .tabulator-col-resize-handle:hover{background:var(--ui-focus);opacity:.5;width:2px}
+.tabulator-sessions .tabulator .tabulator-tableholder .tabulator-table{color:var(--ui-text);background:var(--ui-surface)}
+.tabulator-sessions .tabulator-row,.tabulator-sessions .tabulator-row.tabulator-row-even{background:var(--ui-surface);border-bottom:1px solid var(--ui-border);min-height:64px;cursor:pointer;position:relative}
+.tabulator-sessions .tabulator-row:hover{background-color:var(--ui-raised);background-image:radial-gradient(220px circle at var(--pointer-x,50%) var(--pointer-y,50%),rgb(255 255 255/.035),transparent)}
+.tabulator-sessions .tabulator-row.grid-row-open{background-color:var(--ui-selected);box-shadow:inset 2px 0 0 var(--ui-secondary)}
+.tabulator-sessions .tabulator-row .tabulator-cell{border-right:0;padding:6px 12px;display:inline-flex;align-items:center;font-size:12px;color:var(--ui-secondary);outline-offset:-3px}
+.grid-project,.grid-identity{min-width:0;width:100%}
+.workspace-redesign .grid-project-name{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0;min-height:18px;background:transparent;box-shadow:none;padding:0;font:500 13px/18px var(--body);color:var(--ui-text);text-align:left}
+.workspace-redesign .grid-project-name:after{content:'›';margin-left:8px;font-size:16px;color:var(--ui-muted)}
+.workspace-redesign .grid-project-name:hover{background:transparent;border-color:transparent;color:var(--ui-text);text-decoration:underline;text-underline-offset:3px}
+.grid-session-meta{display:flex;align-items:center;gap:7px;margin-top:3px;white-space:nowrap;font-size:11px;line-height:15px;color:var(--ui-muted)}
+.workspace-redesign .grid-agent-filter{padding:0;border:0;border-bottom:1px dotted var(--ui-border-strong);border-radius:0;box-shadow:none;background:transparent;min-height:15px;font:400 11px/15px var(--body);color:var(--ui-secondary);cursor:pointer}
+.workspace-redesign .grid-agent-filter:hover{background:transparent;border-color:var(--ui-secondary);color:var(--ui-text)}
+.grid-meta-divider{color:var(--ui-muted)}
+.grid-project-path{display:block;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:14px;color:var(--ui-muted)}
+.grid-number{font:13px var(--mono);font-variant-numeric:tabular-nums;color:var(--ui-text);display:block;width:100%;text-align:right;letter-spacing:-.02em}
+.grid-code{font:11px var(--mono);color:var(--ui-muted)}
+.workspace-redesign select.grid-review{font-size:11px;min-height:28px;width:100%;padding:4px 6px;border:1px solid var(--ui-border);border-radius:4px;background:var(--ui-raised);color:var(--ui-secondary)}
+.grid-status{display:inline-flex;align-items:center;gap:6px;padding:3px 6px;border:1px solid var(--ui-border);border-radius:4px;background:var(--ui-raised);color:var(--ui-secondary);font-size:10px;line-height:15px;white-space:nowrap}
+.grid-status:before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ui-muted)}
+.grid-status.passed{color:var(--ui-success);border-color:color-mix(in srgb,var(--ui-success) 18%,transparent);background:color-mix(in srgb,var(--ui-success) 6%,var(--ui-surface))}.grid-status.passed:before{background:var(--ui-success)}
+.grid-status.failed{color:var(--ui-danger);border-color:color-mix(in srgb,var(--ui-danger) 18%,transparent);background:color-mix(in srgb,var(--ui-danger) 6%,var(--ui-surface))}.grid-status.failed:before{background:var(--ui-danger)}
+.grid-status.limited{color:var(--ui-warning);border-color:color-mix(in srgb,var(--ui-warning) 18%,transparent);background:color-mix(in srgb,var(--ui-warning) 6%,var(--ui-surface))}.grid-status.limited:before{background:var(--ui-warning)}
+.grid-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 12px;border-top:1px solid var(--ui-border);font-size:11px;color:var(--ui-muted)}
+.tabulator-sessions #usage-session-count{font:11px var(--body);color:var(--ui-muted)}
+.tabulator-sessions .tabulator-placeholder{visibility:hidden}
+.tabulator-sessions #usage-search-empty{margin:0;padding:12px;background:var(--ui-surface);font-size:12px;border:0}
+.tabulator-sessions #usage-more{margin:8px 12px 10px;font-size:12px}
+@media(max-width:760px){.tabulator-sessions #usage-session-section .session-controls{grid-template-columns:minmax(120px,1fr) auto;padding:10px}.tabulator-sessions .session-controls>div:first-child{grid-column:1/-1}.grid-column-menu{width:240px}.workspace-redesign .grid-options>summary{font-size:11px;padding-inline:8px}.tabulator-sessions .tabulator-row .tabulator-cell{padding-inline:10px}}

@@ -86,6 +86,11 @@ internal static class Launcher {
             StringBuilder command = new StringBuilder("-I -S " + Quote(entry));
             foreach (string argument in check ? new string[] { "--version" } : args)
                 command.Append(' ').Append(Quote(argument));
+            // The portable GUI always opens its own window. Terminal commands use PLER.cmd.
+            if (!check && (args.Length == 0 || args[0] == "demo" || args[0].StartsWith("--")) &&
+                Array.IndexOf(args, "--version") < 0 && Array.IndexOf(args, "--help") < 0 &&
+                Array.IndexOf(args, "--desktop") < 0)
+                command.Append(" --desktop");
             ProcessStartInfo info = new ProcessStartInfo(runtime, command.ToString());
             info.WorkingDirectory = folder;
             info.UseShellExecute = false;

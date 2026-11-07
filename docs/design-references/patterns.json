@@ -1,0 +1,68 @@
+[
+  {
+    "name": "anti-slop-filter",
+    "url": "https://raw.githubusercontent.com/miqdadbadjuber/anti-slop/main/antislop.md",
+    "file": "anti-slop-filter.md",
+    "sha256": "c2341728e54e12db4f969f748c3431c701bbbccf67f276efa585a01e99e400d8"
+  },
+  {
+    "name": "design-spec",
+    "url": "https://raw.githubusercontent.com/google-labs-code/design.md/main/docs/spec.md",
+    "file": "design-spec.md",
+    "sha256": "9894f2021da2fa3b0a17bc87625813957981bf684587eafbe255e6a360875d03"
+  },
+  {
+    "name": "origin-button",
+    "url": "https://raw.githubusercontent.com/cosscom/ui/main/apps/ui/registry/default/ui/button.tsx",
+    "file": "origin-button.tsx",
+    "sha256": "1e65556bde3071f90f61825cf573aec74bdd8695824470bea3dae4d68a6b8fc8"
+  },
+  {
+    "name": "origin-input",
+    "url": "https://raw.githubusercontent.com/cosscom/ui/main/apps/ui/registry/default/ui/input.tsx",
+    "file": "origin-input.tsx",
+    "sha256": "3d488d491eb4e63642adc8b9354b0b0cc5b8ec4e284bbc26da7e2516f24980a4"
+  },
+  {
+    "name": "origin-tabs",
+    "url": "https://raw.githubusercontent.com/cosscom/ui/main/apps/ui/registry/default/ui/tabs.tsx",
+    "file": "origin-tabs.tsx",
+    "sha256": "abf6a27fe48fc407e2a263ccc70997952561e06e8c2603b56c7595f825086895"
+  },
+  {
+    "name": "motion-background",
+    "url": "https://raw.githubusercontent.com/ibelick/motion-primitives/main/components/core/animated-background.tsx",
+    "file": "motion-background.tsx",
+    "sha256": "fa592713c408eaf58b21976c20737d84239c42a0b7e47cf9e7843121b1c0852c"
+  },
+  {
+    "name": "motion-panel",
+    "url": "https://raw.githubusercontent.com/ibelick/motion-primitives/main/components/core/transition-panel.tsx",
+    "file": "motion-panel.tsx",
+    "sha256": "1b3c67058a09a560a034b7fe52ad1c205b589a63ed80055900e8a66830db0be2"
+  },
+  {
+    "name": "motion-accordion",
+    "url": "https://raw.githubusercontent.com/ibelick/motion-primitives/main/components/core/accordion.tsx",
+    "file": "motion-accordion.tsx",
+    "sha256": "5de8206a53d083d3c5d4503fc4d203efaed734ea904de4fd77b33c1ebc991b7c"
+  },
+  {
+    "name": "open-design-raycast",
+    "url": "https://raw.githubusercontent.com/nexu-io/open-design/main/design-systems/raycast/DESIGN.md",
+    "file": "open-design-raycast.md",
+    "sha256": "20e65e05ed2eee597dcdb6c7b056bd70842d786c0888592dda255ef672d8dd60"
+  },
+  {
+    "name": "oh-my-raycast",
+    "url": "https://raw.githubusercontent.com/kwakseongjae/oh-my-design/main/design-md/raycast/DESIGN.md",
+    "file": "oh-my-raycast.md",
+    "sha256": "d6b6c3ddbc4311d8046fbcb9d48e511d563139eabf86f2e583da0ec907b04621"
+  },
+  {
+    "name": "oh-my-vercel",
+    "url": "https://raw.githubusercontent.com/kwakseongjae/oh-my-design/main/design-md/vercel/DESIGN.md",
+    "file": "oh-my-vercel.md",
+    "sha256": "08c30c089c0afb50873bcb535a4779ff11c4d81bec1929f6076761d6dace16f0"
+  }
+]

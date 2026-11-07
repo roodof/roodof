@@ -79,7 +79,7 @@ const I18N=/*I18N*/{
 "backup_privacy": "The file includes private paths, identifiers and the work details you entered. It is unencrypted and is not an anonymous report. Keep it safe.",
 "backup_download": "Download private backup",
 "backup_preparing": "Preparing backup…",
-"backup_prepared": "Backup prepared. Check your browser downloads; if it did not start,",
+"backup_prepared": "Backup prepared. Check your saved downloads; if it did not start,",
 "backup_file": "Backup file to check",
 "backup_check": "Check backup",
 "backup_checking": "Checking backup…",
@@ -104,7 +104,7 @@ const I18N=/*I18N*/{
 "work_outcome_not_completed": "Not completed",
 "work_outcome_time": "Outcome last recorded: {at}. This is the entry time, not measured completion time.",
 "work_details_edit": "Edit goal and outcome",
-"work_details_help": "Goal and result notes are optional, up to 1,000 characters each. They are private user entries; normal JSON reports omit them, private backups include them. Drafts stay in this browser tab during language changes.",
+"work_details_help": "Goal and result notes are optional, up to 1,000 characters each. They are private user entries; normal JSON reports omit them, private backups include them. Drafts stay in this window during language changes.",
 "work_details_save": "Save goal and outcome",
 "work_details_saved": "Goal and outcome saved.",
 "work_details_unsaved": "Unsaved goal or outcome changes.",
@@ -142,9 +142,10 @@ const I18N=/*I18N*/{
 "work_no_selection": "No linked sessions in the main filters. No usage total is shown for this work.",
 "work_quality": "Some selected sessions have incomplete usage or attribution. These are known recorded values, not a complete measurement.",
 "work_more": "Show more linked sessions ({n})",
-"work_no_members": "Open a session below and link it to this work.",
+"work_no_members": "Add sessions from Sessions to collect the work here.",
 "work_scope": "Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.",
 "work_api_note": "API equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.",
+"work_links_privacy": "Privacy of these links",
 "work_privacy": "Titles, goals, outcome notes and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.",
 "work_outside": "Outside the main filters",
 "work_missing": "Session unavailable",
@@ -277,7 +278,7 @@ const I18N=/*I18N*/{
 "scanning": "Reading logs…",
 "showing_previous": " Showing the previous summary.",
 "last_read": "Last read: {at} · found {claude} and {codex}.",
-"demo_banner": "Demo: every log, project and commit here is invented. Your own agent logs are not read. To use your own records, close this demo and open PLER normally. Demo work groups are temporary; Help explains the first steps.",
+"demo_banner": "Demo data: invented logs and projects. Your own records are not read. Demo work is temporary.",
 "unreadable_coverage": "{files} could not be fully read. Verified records are included; totals may be incomplete. ",
 "all_read": "Every readable record of the sources found was used. This does not prove complete account history.",
 "cross_period": " {sessions} started before the selected period; their whole totals are included.",
@@ -305,12 +306,12 @@ const I18N=/*I18N*/{
 "quota_alert_soon": "{agent}: at this pace the {window} limit fills around {full}, in {left}. It resets {reset}.",
 "quota_alert_title": "PLER quota warning",
 "live_watch": "Watch the quota live",
-"live_watch_help": "While this page is open, PLER reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this browser remembers the choice.",
+"live_watch_help": "While this page is open, PLER reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this window remembers the choice while it stays open.",
 "live_notify_on": "Turn on desktop notifications",
 "live_notify_off": "Turn off desktop notifications",
 "live_notify_active": "Desktop notifications are on for new warnings.",
-"live_notify_blocked": "This browser blocks notifications for this page; the warning still appears here.",
-"live_notify_unsupported": "This browser cannot show notifications here; the warning still appears on the page.",
+"live_notify_blocked": "Notifications are unavailable in this window; the warning still appears here.",
+"live_notify_unsupported": "Notifications are unavailable here; the warning still appears on the page.",
 "pace_hour": "at this window's pace ({rate} an hour)",
 "pace_day": "at the average of the last {days} days ({rate} a day)",
 "out_fills": "Warning: {pace} it fills around {full}; it resets {reset}.",
@@ -529,7 +530,7 @@ const I18N=/*I18N*/{
 "stat_known_total": "Known token usage",
 "export_retry": "Download again",
 "export_preparing": "Preparing summary…",
-"export_started": "Summary prepared. Check your browser downloads; if it did not start,",
+"export_started": "Summary prepared. Check your saved downloads; if it did not start,",
 "table_scroll_help": "Scroll sideways for more columns. With a keyboard, focus the table area and use the left and right arrows.",
 "follow_title": "Changes to try · weekly follow-up",
 "follow_scope": "Record a change to this work, then review two seven-day windows. Uses dated responses in all linked sessions, independently of the main filters. No new model calls.",
@@ -669,7 +670,7 @@ const I18N=/*I18N*/{
 "backup_privacy": "Dosya özel yollar, kimlikler ve girdiğiniz iş ayrıntılarını içerir. Şifreli değildir ve anonim bir rapor değildir. Güvenli yerde saklayın.",
 "backup_download": "Özel yedek indir",
 "backup_preparing": "Yedek hazırlanıyor…",
-"backup_prepared": "Yedek hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
+"backup_prepared": "Yedek hazır. İndirilen dosyaları kontrol edin; başlamadıysa",
 "backup_file": "Kontrol edilecek yedek dosyası",
 "backup_check": "Yedeği kontrol et",
 "backup_checking": "Yedek kontrol ediliyor…",
@@ -694,7 +695,7 @@ const I18N=/*I18N*/{
 "work_outcome_not_completed": "Tamamlanmadı",
 "work_outcome_time": "Sonuç son kaydedildi: {at}. Bu, giriş zamanıdır; ölçülmüş bitiş zamanı değildir.",
 "work_details_edit": "Hedefi ve sonucu düzenle",
-"work_details_help": "Hedef ve sonuç notları isteğe bağlıdır; her biri en fazla 1.000 karakter olabilir. Bunlar özel kullanıcı girdileridir; normal JSON raporuna girmez, özel yedeğe dahildir. Dil değiştirirken taslaklar bu tarayıcı sekmesinde korunur.",
+"work_details_help": "Hedef ve sonuç notları isteğe bağlıdır; her biri en fazla 1.000 karakter olabilir. Bunlar özel kullanıcı girdileridir; normal JSON raporuna girmez, özel yedeğe dahildir. Dil değiştirirken taslaklar bu pencerede korunur.",
 "work_details_save": "Hedefi ve sonucu kaydet",
 "work_details_saved": "Hedef ve sonuç kaydedildi.",
 "work_details_unsaved": "Kaydedilmemiş hedef veya sonuç değişikliği var.",
@@ -732,9 +733,10 @@ const I18N=/*I18N*/{
 "work_no_selection": "Ana filtrelerde bu işe bağlı oturum yok. Bu iş için kullanım toplamı gösterilmiyor.",
 "work_quality": "Bazı seçili oturumların kullanım veya kaynak eşleştirmesi eksik. Bunlar bilinen kayıtlı değerlerdir; tam bir ölçüm değildir.",
 "work_more": "Daha fazla bağlı oturum göster ({n})",
-"work_no_members": "Aşağıdan bir oturum açıp bu işe bağlayın.",
+"work_no_members": "Bu işe ait çalışmaları toplamak için Oturumlar bölümünden oturum ekleyin.",
 "work_scope": "Kullanım ana filtreleri izler ve tek bir değişikliğin maliyetini değil, oturumların tamamını kapsar. Arama ve veri kalitesi liste filtreleri bu kapsamı değiştirmez. Bir oturum birden fazla işe bağlanabilir; iş toplamları birbiriyle toplanamaz. Özet, her bağlı oturumu bir kez sayar.",
 "work_api_note": "API karşılıkları mevcut fiyatları kullanır; fiyatı bilinmeyen kullanım dahil edilmeyebilir. Bunlar abonelik faturanız değildir.",
+"work_links_privacy": "Bu bağlantıların gizliliği",
 "work_privacy": "Başlıklar, hedefler, sonuç notları ve bağlantılar bu bilgisayarda kalır; normal JSON özetlerine eklenmez. Özel yedeklere dahildir. Erişilemeyen oturumlar kayıtlı kodlarıyla bağlı kalır; PLER otomatik olarak başka bir oturuma bağlamaz.",
 "work_outside": "Ana filtrelerin dışında",
 "work_missing": "Oturuma erişilemiyor",
@@ -867,7 +869,7 @@ const I18N=/*I18N*/{
 "scanning": "Kayıtlar okunuyor…",
 "showing_previous": " Önceki özet gösteriliyor.",
 "last_read": "Son okuma: {at} · {claude}, {codex} bulundu.",
-"demo_banner": "Deneme: buradaki bütün kayıtlar, projeler ve commit'ler uydurmadır. Kendi ajan kayıtların okunmuyor. Kendi kayıtların için demoyu kapatıp PLER'i normal aç. Denemedeki iş grupları geçicidir; Yardım ilk adımları anlatır.",
+"demo_banner": "Demo verileri: kayıtlar ve projeler örnektir. Kendi kayıtların okunmaz. Demo işleri geçicidir.",
 "unreadable_coverage": "{files} tamamen okunamadı. Doğrulanabilen kayıtlar dahil; toplamlar eksik olabilir. ",
 "all_read": "Bulunan kaynakların okunabilen kayıtları kullanıldı. Bu, hesap geçmişinin eksiksiz olduğunu kanıtlamaz.",
 "cross_period": " {sessions} seçilen dönemden önce başlamış; tüm oturum toplamı dahil.",
@@ -895,12 +897,12 @@ const I18N=/*I18N*/{
 "quota_alert_soon": "{agent}: bu hızla {window} sınır {full} civarında, {left} sonra dolar. Sıfırlanma: {reset}.",
 "quota_alert_title": "PLER kota uyarısı",
 "live_watch": "Kotayı canlı izle",
-"live_watch_help": "Bu sayfa açıkken PLER kayıtları 5 dakikada bir yeniden okur ve bir sınır bir saat içinde (haftalık sınırda bir gün içinde) dolacaksa uyarır. Her okuma biraz işlemci zamanı kullanır; seçim bu tarayıcıda hatırlanır.",
+"live_watch_help": "Bu sayfa açıkken PLER kayıtları 5 dakikada bir yeniden okur ve bir sınır bir saat içinde (haftalık sınırda bir gün içinde) dolacaksa uyarır. Her okuma biraz işlemci zamanı kullanır; seçim pencere açıkken hatırlanır.",
 "live_notify_on": "Masaüstü bildirimlerini aç",
 "live_notify_off": "Masaüstü bildirimlerini kapat",
 "live_notify_active": "Yeni uyarılar için masaüstü bildirimleri açık.",
-"live_notify_blocked": "Bu tarayıcı bu sayfanın bildirimlerini engelliyor; uyarı yine burada görünür.",
-"live_notify_unsupported": "Bu tarayıcı burada bildirim gösteremiyor; uyarı yine sayfada görünür.",
+"live_notify_blocked": "Bu pencerede bildirimler kullanılamıyor; uyarı yine burada görünür.",
+"live_notify_unsupported": "Burada bildirimler kullanılamıyor; uyarı yine sayfada görünür.",
 "pace_hour": "bu penceredeki çalışma hızıyla (saatte {rate})",
 "pace_day": "son {days} günün ortalamasıyla (günde {rate})",
 "out_fills": "Uyarı: {pace} {full} civarı dolar; sıfırlanma {reset}.",
@@ -1068,7 +1070,7 @@ const I18N=/*I18N*/{
 "stat_known_total": "Bilinen token kullanımı",
 "export_retry": "Yeniden indir",
 "export_preparing": "Özet hazırlanıyor…",
-"export_started": "Özet hazır. Tarayıcı indirmelerini kontrol edin; başlamadıysa",
+"export_started": "Özet hazır. İndirilen dosyaları kontrol edin; başlamadıysa",
 "table_scroll_help": "Diğer sütunlar için yana kaydırın. Klavyede tablo alanına gelip sol ve sağ oklarını kullanın.",
 "follow_title": "Dene ve takip et · haftalık inceleme",
 "follow_scope": "Bu iş için bir değişiklik kaydet, sonra iki yedi günlük dönemi incele. Ana filtrelerden bağımsız olarak tüm bağlı oturumların tarihli yanıtlarını kullanır. Yeni model çağrısı yapmaz.",
@@ -1146,7 +1148,7 @@ if(accessMatch){
 }else{try{token=sessionStorage.getItem('pler-access')||'';}catch(_){}}
 const number=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{maximumFractionDigits:0}).format(value);
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=text;return n;}
-function notice(message){$('notice').textContent=message||'';$('notice').hidden=!message;}
+function notice(message,kind='error'){$('notice').textContent=message||'';$('notice').hidden=!message;$('notice').dataset.kind=kind;}
 function applyLanguage(){
   document.documentElement.lang=LANG;document.title=t('title');
   for(const item of document.querySelectorAll('[data-i18n]'))item.textContent=t(item.dataset.i18n);
@@ -1371,7 +1373,8 @@ function renderQuotaAlerts(){
 function syncLiveControls(){
   const box=$('usage-live');box.hidden=!usageState.data?.has_snapshot||usageState.stopped;
   $('usage-live-watch').checked=liveState.watch;
-  const supported=typeof Notification!=='undefined',blocked=supported&&Notification.permission==='denied';
+  const desktop=typeof navigator!=='undefined'&&/Electron\//.test(navigator.userAgent);
+  const supported=!desktop&&typeof Notification!=='undefined',blocked=supported&&Notification.permission==='denied';
   $('usage-live-notify').hidden=!supported||blocked;$('usage-live-notify').textContent=t(liveState.notify?'live_notify_off':'live_notify_on');
   $('usage-live-note').textContent=!supported?t('live_notify_unsupported'):blocked?t('live_notify_blocked'):liveState.notify?t('live_notify_active'):'';
 }
@@ -1534,18 +1537,26 @@ async function setVerdict(id,verdict){
   }catch(error){if(!usageState.stopped)notice(error.message);}
   finally{usageState.verdictSaving=false;}
 }
-function renderUsageSessions(){
-  if(!usageState.data)return;
+function filteredUsageSessions(){
+  if(!usageState.data)return [];
   const all=usageState.data.sessions,query=$('usage-session-search').value.trim().toLocaleLowerCase(LOCALE);
-  const sessions=all.filter(session=>(!$('usage-quality-only').checked||sessionHasQualityLimits(session))&&[session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model)].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
+  const works=usageState.data.work_items?.readable===true?usageState.data.work_items.items:[],titles=new Map();
+  if(query)for(const item of works)for(const id of item.session_ids){if(!titles.has(id))titles.set(id,[]);titles.get(id).push(item.title);}
+  const sessions=all.filter(session=>(!$('usage-quality-only').checked||sessionHasQualityLimits(session))&&[session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model),...(titles.get(session.id)||[])].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
   const order=$('usage-session-sort').value;
   const stamp=value=>value?Date.parse(value):-Infinity;
   const byTime=(a,b,key)=>stamp(b[key])-stamp(a[key])||b.total_tokens-a.total_tokens||a.id.localeCompare(b.id);
   sessions.sort((a,b)=>order==='recent'?byTime(a,b,'ended'):order==='started'?byTime(a,b,'started'):order==='issues'?(b.errors+b.aborted)-(a.errors+a.aborted)||byTime(a,b,'ended'):b.total_tokens-a.total_tokens||byTime(a,b,'ended'));
+  return sessions;
+}
+function renderUsageSessions(){
+  if(!usageState.data)return;
+  const all=usageState.data.sessions,query=$('usage-session-search').value.trim().toLocaleLowerCase(LOCALE),sessions=filteredUsageSessions();
   const visible=sessions.slice(0,usageState.pageSize);
   $('usage-session-count').textContent=t('sessions_count',{shown:number(visible.length),sessions:count(sessions.length,'session')})+(query?t('searching',{sessions:count(all.length,'session')}):'');
   $('usage-sessions').replaceChildren(...visible.map(session=>{
     const row=node('tr'),first=node('td'),button=node('button','text-button',session.project),code=usageSessionCode(session);
+    row.setAttribute('data-session-id',session.id);
     button.setAttribute('aria-label',session.project+' · '+(usageAgents[session.agent]||session.agent)+' · '+code+t('open_detail'));button.addEventListener('click',()=>openUsageSession(session));
     first.append(button,node('small','task-subject',(usageAgents[session.agent]||session.agent)+' · #'+code));
     if(session.source_note)first.append(node('small','session-issues',session.source_note));
@@ -1601,7 +1612,7 @@ function openUsageSession(session){
   for(const note of session.notes)content.append(node('p','section-note',note));
   if(session.quota_burn.length)content.append(node('p','section-note',t('burn',{items:session.quota_burn.map(w=>t('burn_item',{window:usageWindow(w.window_minutes),points:w.percentage_points})).join(' · ')})));
   renderGitActivity(content,session.git_activity);
-  content.append(node('p','section-note',t('metadata_note')));workState.openSession=session.id;renderSessionWorkItems();$('usage-session-dialog').showModal();
+  content.append(node('p','section-note',t('metadata_note')));workState.openSession=session.id;renderSessionWorkItems();if(typeof window.plerShowSession==='function')window.plerShowSession(session);else $('usage-session-dialog').showModal();
 }
 async function inspectUsageSession(id){
   const request=(usageState.sessionRequest||0)+1,revision=usageState.revision;usageState.sessionRequest=request;
@@ -2007,7 +2018,7 @@ function renderSessionWorkItems(){
   select.addEventListener('change',()=>{workState.sessionChoices[session]=select.value;syncWorkControls();});
   form.addEventListener('submit',event=>{event.preventDefault();if(select.value)performWorkAction({action:'link',id:select.value,session},{focus:'session',session});});controls.append(select,link);form.append(label,controls);box.append(form);
   const createForm=node('form','work-form'),createLabel=node('label','',t('work_new_title')),createControls=node('div','work-input-action'),title=node('input',''),create=node('button','secondary',t('work_create_link'));title.id='usage-session-work-title';title.maxLength=240;title.autocomplete='off';title.placeholder=t('work_placeholder');title.value=workState.sessionDrafts[session]||'';createLabel.htmlFor=title.id;create.id='usage-session-work-create';create.type='submit';
-  title.addEventListener('input',()=>{workState.sessionDrafts[session]=title.value;syncWorkControls();});createForm.addEventListener('submit',event=>{event.preventDefault();createWork(session);});createControls.append(title,create);createForm.append(createLabel,createControls);box.append(createForm,node('p','section-note',t('work_privacy')));
+  title.addEventListener('input',()=>{workState.sessionDrafts[session]=title.value;syncWorkControls();});createForm.addEventListener('submit',event=>{event.preventDefault();createWork(session);});createControls.append(title,create);createForm.append(createLabel,createControls);const privacy=node('details','work-link-privacy');privacy.append(node('summary','',t('work_links_privacy')),node('p','section-note',t('work_privacy')));box.append(createForm,privacy);
   const status=node('p','section-note');status.id='usage-session-work-status';status.setAttribute('role','status');box.append(status);
   syncWorkControls();
 }
@@ -2053,7 +2064,7 @@ async function performWorkAction(body,context={}){
     }
     const previous=usageState.data;await loadUsage();if(!current())return false;
     workState.needsRefresh=usageState.data===previous;
-    const message=t(workState.needsRefresh?'work_saved_refresh':body.action==='describe'?'work_details_saved':'work_saved');notice(message);sessionWorkMessage(context,message);
+    const message=t(workState.needsRefresh?'work_saved_refresh':body.action==='describe'?'work_details_saved':'work_saved');notice(message,workState.needsRefresh?'warning':'success');sessionWorkMessage(context,message);
     return true;
   }catch(error){
     if(current()){

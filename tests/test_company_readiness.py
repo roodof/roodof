@@ -203,18 +203,18 @@ class RunningVersionTests(unittest.TestCase):
     def test_running_assets_stay_consistent_until_a_new_server_is_started(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css'):
+            for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
                 (root/name).write_text('old-'+name+' __SESSION_TOKEN__', 'utf-8')
             with patch('pler.server.WEB', root):
                 old = Server(0, UsageDashboard(lambda: ([], {})))
-                for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css'):
+                for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
                     (root/name).write_text('new-'+name+' __SESSION_TOKEN__', 'utf-8')
                 new = Server(0, UsageDashboard(lambda: ([], {})))
             for server, expected in ((old, 'old-'), (new, 'new-')):
                 thread = threading.Thread(target=server.serve_forever, daemon=True)
                 thread.start()
                 try:
-                    for route, name in (('/', 'index.html'), ('/app.js', 'app.js'), ('/app.css', 'app.css'),('/updates.js','updates.js'),('/updates.css','updates.css')):
+                    for route, name in (('/', 'index.html'), ('/app.js', 'app.js'), ('/app.css', 'app.css'),('/updates.js','updates.js'),('/updates.css','updates.css'),('/workspace.js','workspace.js'),('/workspace.css','workspace.css'),('/workspace-font.woff2','workspace-font.woff2'),('/sessions-grid.css','sessions-grid.css')):
                         connection = http.client.HTTPConnection('127.0.0.1', server.server_port, timeout=10)
                         connection.request('GET', route)
                         response = connection.getresponse()

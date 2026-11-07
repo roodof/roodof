@@ -22,7 +22,9 @@ from .i18n import LANGUAGES, say
 
 WEB = Path(__file__).with_name('web')
 FILES = {'/app.js': 'text/javascript; charset=utf-8','/updates.js':'text/javascript; charset=utf-8',
-         '/updates.css':'text/css; charset=utf-8','/app.css': 'text/css; charset=utf-8'}
+         '/updates.css':'text/css; charset=utf-8','/app.css': 'text/css; charset=utf-8',
+         '/workspace.css':'text/css; charset=utf-8','/workspace.js':'text/javascript; charset=utf-8',
+         '/workspace-font.woff2':'font/woff2','/sessions-grid.css':'text/css; charset=utf-8'}
 SECURITY = {
     'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
     'X-Frame-Options': 'DENY',
@@ -55,7 +57,8 @@ class Server(ThreadingHTTPServer):
         self._backup_lock = threading.Lock()
         # A running server must not mix old Python code with files edited after startup.
         self.assets = {route: (WEB / filename).read_bytes() for route, filename in
-                       (('/', 'index.html'), ('/app.js', 'app.js'),('/updates.js','updates.js'),('/updates.css','updates.css'), ('/app.css', 'app.css'))}
+                       (('/', 'index.html'), ('/app.js', 'app.js'),('/updates.js','updates.js'),('/updates.css','updates.css'), ('/app.css', 'app.css'),('/workspace.css','workspace.css'),
+                        ('/workspace.js','workspace.js'),('/workspace-font.woff2','workspace-font.woff2'),('/sessions-grid.css','sessions-grid.css'))}
         super().__init__(('127.0.0.1', port), Handler)
         self.origin = 'http://127.0.0.1:%d' % self.server_port
         self.token = secrets.token_hex(32)
@@ -238,7 +241,9 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     self._send(200, value)
             elif request.path == '/api/health':
-                self._send(200, dict(app='pler', version=__version__))
+                ready = getattr(self.server, 'desktop_ready', None)
+                self._send(200 if ready is None or ready.is_set() else 503,
+                           dict(app='pler', version=__version__))
             else:
                 self._send(404, dict(error=say(lang, 'error.not_found')))
         except UnknownProject as error:

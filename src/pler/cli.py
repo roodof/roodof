@@ -24,7 +24,7 @@ from .i18n import language, say
 PORT = 8765
 
 
-def serve(port=PORT, browser=True, lang='en', dashboard=None):
+def serve(port=PORT, browser=True, lang='en', dashboard=None, desktop=False):
     from .server import Server
     from .updates import UpdateError
     try:
@@ -34,19 +34,35 @@ def serve(port=PORT, browser=True, lang='en', dashboard=None):
             server = Server(0, dashboard)
     except UpdateError:
         print(say(lang,'error.update_busy'),file=sys.stderr);return 1
-    print(say(lang, 'cli.open', server.access_url), flush=True)
+    if not desktop:
+        print(say(lang, 'cli.open', server.access_url), flush=True)
+    window = []
+    desktop_errors = []
+    def open_window():
+        from .desktop import Window
+        window.append(Window(server))
+    opener = open_window if desktop else (lambda: webbrowser.open(server.access_url)) if browser else None
     from .update_worker import startup_ready
-    handoff=startup_ready(server,(lambda:webbrowser.open(server.access_url)) if browser else None)
-    if browser and not handoff:
-        webbrowser.open(server.access_url)
     try:
+        if desktop:
+            open_window()
+        handoff = startup_ready(server, None if desktop else opener)
+        if opener and not handoff and not desktop:
+            opener()
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        for instance in window:
+            if instance.process.poll() not in (None, 0) or not server.desktop_ready.is_set():
+                desktop_errors.append(True)
+            instance.close()
         server.dashboard.close(timeout=0)
         server.server_close()
     print(say(lang, 'cli.closed'))
+    if desktop_errors:
+        print('The PLER desktop window stopped unexpectedly. Reopen the complete desktop package.', file=sys.stderr)
+        return 1
 
 
 def main(argv=None):
@@ -136,12 +152,13 @@ def _main(argv):
     parser.add_argument('--version', action='version', version='PLER ' + __version__)
     parser.add_argument('--port', type=int, default=PORT, help=say(lang, 'cli.port', PORT))
     parser.add_argument('--no-browser', action='store_true', help=say(lang, 'cli.no_browser'))
+    parser.add_argument('--desktop', action='store_true', help='Open the bundled PLER desktop window.')
     # The global parser removes this option before routing. Advertising it here
     # keeps the normal page help discoverable without reading any local data.
     parser.add_argument('--data-dir', metavar='FOLDER', help=say(lang, 'backup.data_dir_help'))
     args = parser.parse_args(argv[1:] if demo else argv)
     if not demo:
-        return serve(args.port, not args.no_browser, lang)
+        return serve(args.port, not args.no_browser, lang, desktop=args.desktop)
     from .dashboard import UsageDashboard
     from .demo import create
     from .usage import scan
@@ -170,4 +187,4 @@ def _main(argv):
     # those of your own sessions.
     return serve(args.port, not args.no_browser, lang,
                  UsageDashboard(reader, verdicts=Memory(), survival=Saved(made['folder']), work_items=WorkMemory(),
-                                plan_choice=PlanMemory()))
+                                plan_choice=PlanMemory()), desktop=args.desktop)

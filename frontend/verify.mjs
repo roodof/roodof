@@ -1,0 +1,38 @@
+import {chromium} from 'playwright';
+import {readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const report=new URL('../../reports/workspace-v1/',import.meta.url);
+const log=await readFile(new URL('browser-access.tmp',report),'utf8');
+const url=log.match(/http:\/\/127\.0\.0\.1:\d+\/#access=[a-f0-9]{64}/)?.[0];assert.ok(url);
+const browser=await chromium.launch({channel:'msedge',headless:true});
+try {
+const page=await browser.newPage({viewport:{width:1440,height:1050},reducedMotion:'reduce'});
+const errors=[],external=[];page.on('pageerror',e=>errors.push(e.message));
+page.on('request',req=>{if(/^https?:/.test(req.url())&&!req.url().startsWith(new URL(url).origin))external.push(req.url());});
+await page.goto(url);await page.waitForFunction(()=>typeof usageState!=='undefined'&&usageState.data?.has_snapshot);
+await page.waitForSelector('.ws-chart canvas');
+await page.screenshot({path:fileURLToPath(new URL('overview-en.png',report)),fullPage:true});
+await page.locator('.ws-nav-item[data-route="sessions"]').click();assert.equal(await page.locator('body').getAttribute('data-screen'),'sessions');
+assert.ok(await page.locator('#usage-sessions tr').count()>0);
+await page.locator('.ws-nav-item[data-route="work"]').click();
+await page.locator('#usage-work-create-title').fill('Demo redesign check');await page.locator('#usage-work-create').click();
+await page.waitForFunction(()=>!document.getElementById('usage-work-selected').hidden);
+await page.screenshot({path:fileURLToPath(new URL('work-en.png',report)),fullPage:true});
+await page.keyboard.press('Control+k');assert.ok(await page.locator('.ws-palette').isVisible());
+await page.locator('.ws-palette input').fill('Data');await page.locator('.ws-command').click();
+assert.equal(await page.locator('body').getAttribute('data-screen'),'settings');assert.notEqual(await page.locator('#usage-archive-controls').getAttribute('open'),null);
+await page.locator('#lang-toggle').click();await page.waitForFunction(()=>document.documentElement.lang==='tr');await page.waitForSelector('.ws-nav-item');
+assert.equal(await page.locator('body').getAttribute('data-screen'),'settings');
+await page.locator('.ws-nav-item[data-route="overview"]').click();await page.waitForSelector('.ws-chart canvas');
+await page.screenshot({path:fileURLToPath(new URL('overview-tr.png',report)),fullPage:true});
+await page.screenshot({path:fileURLToPath(new URL('preview.png',report)),fullPage:false});
+await page.locator('.ws-chart canvas').click({position:{x:340,y:46}});
+await page.waitForFunction(()=>document.body.dataset.screen==='sessions');assert.notEqual(await page.locator('#usage-project').inputValue(),'all');
+await page.setViewportSize({width:390,height:844});
+await page.screenshot({path:fileURLToPath(new URL('narrow-tr.png',report)),fullPage:true});
+const width=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));assert.ok(width.scroll<=width.viewport,JSON.stringify(width));
+assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
+await writeFile(new URL('ui-check.json',report),JSON.stringify({routes:true,demo_work_create:true,command_palette:true,language:true,chart_filters_sessions:true,narrow_width:width,script_errors:errors,external_requests:external},null,2));
+console.log('UI checks passed');
+} finally { await browser.close(); }

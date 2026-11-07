@@ -11,6 +11,12 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
+**Yerel masaüstü adayı 0.8.0, yayımlanmadı:** PLER.exe ve demo kendi masaüstü penceresinde
+açılır. Electron/Python pakete dahildir; tarayıcı/WebView kurulumu gerekmez. Pencere kapanınca
+arka plan işlemi durur. Site hâlâ tarayıcılı 0.2.31 dağıtır. Verilen yeni ZIP'i ayrı klasöre
+çıkarın; güncelleyici 1→2 ilk geçişi elle yapılır. Mevcut veri klasörü korunur.
+Terminal/wheel tarayıcı girişi devam eder. [Teslim sırası ve son test](docs/DESKTOP.md).
+
 [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 paketini indir, ZIP dosyasının tamamını klasöre çıkar ve `PLER.exe` dosyasını aç. Python pakete dahildir. `PLER-Demo.cmd` yalnız uydurma kayıtları açar; kendi seçili yerel kayıtların için demoyu kapatıp `PLER.exe` dosyasını aç. `PLER.cmd` terminal girişidir.
 
 İlk iş grubunu oluşturmak, boş kayıt durumunu anlamak, gizlilik, kaldırma ve yerel veri saklama için uygulamadaki **Yardım** bölümünü aç. Destek: plersolutions1st@gmail.com. Beta imzasızdır; temiz makine kabulü açıktır. Windows taşınabilir 0.2.31 paketi **Güncellemeler → Güncellemeleri kontrol et → İndir ve güncelle** akışını; imzalı sürüm doğrulaması, özel yedek ve güvenli yeniden açılışla ekler. Açılışta kontrol, sen seçene kadar kapalıdır. 0.2.30 ve öncesinden ilk geçiş elle yapılır; Python wheel/macOS/Linux kurulumları bu güncelleyiciyle değiştirilmez. Ayrıntı: [UPDATES.md](docs/UPDATES.md).

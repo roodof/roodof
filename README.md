@@ -11,6 +11,12 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 ## Windows beta quick start
 
+**Local desktop candidate 0.8.0, not published:** PLER.exe and demo open a dedicated desktop
+window with bundled Electron/Python; closing it stops the backend. No browser/WebView installation
+is needed. The site still distributes browser-based 0.2.31. Extract the supplied desktop ZIP into
+a new folder; the first transition from updater 1 to 2 is manual. Existing data stays separate.
+Terminal/wheel browser mode remains available. [Delivery order and final test](docs/DESKTOP.md).
+
 Download the Windows x64 package from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the whole ZIP and open `PLER.exe`. Python is included. `PLER-Demo.cmd` opens invented data only; close the demo and open `PLER.exe` to use your selected local records. `PLER.cmd` is the terminal entry point.
 
 Open **Help** in the app for the first work-group walkthrough, empty-record guidance, privacy, removal and local-data retention. Support: plersolutions1st@gmail.com. The beta is unsigned; clean-machine acceptance remains open. Windows portable 0.2.31 adds **Updates → Check for updates → Download and update** with signed release verification, a private backup and safe restart. Checking on launch is off until you opt in. A first manual upgrade from 0.2.30 or earlier is required; wheel/macOS/Linux installs are not modified by this updater. See [UPDATES.md](docs/UPDATES.md).

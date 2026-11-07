@@ -27,9 +27,9 @@ from .paths import cache_folder,local_path
 
 ORIGIN='https://pler-local-usage.oguzay5555.chatgpt.site'
 FEED='/updates/windows-x64/early-beta.json'
-COMPATIBILITY=dict(updater=1,schema=2,work=3,backup=1)
-MAX_PACKAGE=128*1024*1024
-MAX_EXPANDED=512*1024*1024
+COMPATIBILITY=dict(updater=2,schema=2,work=3,backup=1)
+MAX_PACKAGE=256*1024*1024
+MAX_EXPANDED=768*1024*1024
 MAX_FEED=32768
 BUSY={'checking','downloading','preparing','backing_up','restarting','activating'}
 
@@ -271,7 +271,7 @@ def unpack(package,destination,payload):
                 if kind not in (0,stat.S_IFDIR if info.is_dir() else stat.S_IFREG) or info.external_attr&0x400:
                     raise UpdateError('invalid_package')
                 if info.is_dir():continue
-                if len(parts)<2 or info.file_size>128*1024*1024:raise UpdateError('invalid_package')
+                if len(parts)<2 or info.file_size>256*1024*1024:raise UpdateError('invalid_package')
                 expanded+=info.file_size
                 if expanded>MAX_EXPANDED:raise UpdateError('invalid_package')
                 relative='/'.join(parts[1:]);files[relative]=info

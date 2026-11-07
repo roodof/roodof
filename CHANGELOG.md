@@ -1,5 +1,49 @@
 # Changes
 
+## 0.8.0 — Monochrome design foundation (local candidate)
+
+- DESIGN.md records product-specific surface, typography, density, motion and state contracts, with the six requested repository references archived by URL and SHA256.
+- Replace stacked workbench styles with a token-generated monochrome foundation shared by all five screens. Standard panels use16px padding, controls32px and record rows64px; native desktop follows the dark theme.
+- Real React/Motion islands provide spring/layoutId navigation and filter indicators. Existing controller and Tabulator retain data order, permissions and writes.
+- Add tactile control feedback, bounded row entry, drawer/dialog/disclosure entry, keyboard palette navigation and a refresh-safe initial skeleton. Reduced motion is respected.
+- The design contract runs during every frontend build: token/document consistency, allowed colors, density, motion and normal-text contrast. No new public release or clean-Windows acceptance.
+
+
+## 0.7.0 — Sessions UX, first priority pass (local candidate)
+
+- Recognizable rows keep agent/date visible and use a linked work title when available; work titles are searchable. Prompts and replies are still excluded.
+- One controller sort applies to the full snapshot before paging. Grid headers only move/resize columns. Language changes retain the selected sort.
+- Larger type, stronger contrast, compact list controls, stable essential columns, a single empty result and a visible horizontal-scroll cue.
+- Inspector shows identity and metrics first; work-to-session navigation preselects the work. Corrected obsolete navigation copy and success styling.
+- Report download now lives in Settings with its own explicit scope; technical notes remain in disclosures. No publication or clean-Windows acceptance in this pass.
+
+
+## 0.6.0 — local Tabulator sessions, not published
+
+- Replace the visible sessions table with bundled Tabulator 6.7.1; configurable/resizable/movable columns.
+- Existing controller retains filter/export scope and verdict writes; failed saves keep prior values.
+- Localized columns, responsive inspector view and existing session keyboard actions.
+
+## 0.5.0 — local session workbench, not published
+
+- Session-first compact desktop view, one-click agent/date filters and real row selection.
+- Nonmodal right inspector keeps the session list interactive; previous/next and arrow navigation.
+- Actual saved verdict and work-link actions retained; detailed fields disclosed on demand.
+
+## 0.4.0 — local workspace redesign, not published
+
+- Dedicated Overview, Sessions, My work, Quota and Data sections; bilingual sidebar and keyboard section search.
+- Interactive recorded-project distribution with ECharts, Lucide icons and reduced-motion-aware Motion transitions.
+- Progressive disclosure of export controls and coverage limits; original accounting and action controls preserved.
+- Everything is bundled locally; no CDN or new data service. Clean Windows acceptance remains the final task.
+
+## 0.3.0 — local desktop candidate, not published
+
+- PLER.exe/demo open a dedicated Electron window; closing it stops the local backend.
+- Access keys use a private process environment; isolated rendering, permission and navigation boundaries.
+- Desktop updater 2 preserves window mode and gates health on document load. Initial upgrade
+  from 0.2.31 is manual. Clean Windows acceptance remains the final pending task.
+
 ## Unreleased
 
 - Require the launch Site’s offline signature/package/wheel/EN/TR consistency gate in the normal build before publication; current .31 artifacts remain unchanged. Prepare preregistered work/follow-up pilot tasks and comprehension/effort forms without claiming participant results.

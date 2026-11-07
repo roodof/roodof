@@ -1,5 +1,5 @@
 """What PLER promises: normal usage analysis calls no service/model and only reads logs.
-Exceptions are the fixed WSL status query and explicit/opted-in signed application updates.
+Exceptions are the fixed WSL status query, bundled local desktop window and explicit/opted-in signed updates.
 
 The source is checked statically (no module that can open a connection or start a process is imported), and a
 whole run is checked at runtime (a scan and every page request, with outgoing connections and new processes
@@ -28,7 +28,7 @@ FORBIDDEN = {'socket', 'ssl', 'subprocess', 'multiprocessing', 'asyncio', 'ctype
              'ftplib', 'smtplib', 'poplib', 'imaplib', 'telnetlib', 'xmlrpc', 'requests', 'httpx', 'aiohttp', 'urllib3'}
 ONLY_IN = {'http.server': 'server.py', 'webbrowser': 'cli.py'}
 UPDATE_IMPORTS={'updates.py':{'subprocess','ssl','urllib.request'},
-                'update_worker.py':{'ctypes','subprocess','ssl','http.client'},'update_crypto.py':{'ctypes'},'update_bootstrap.py':{'subprocess'}}
+                'update_worker.py':{'ctypes','subprocess','ssl','http.client'},'update_crypto.py':{'ctypes'},'update_bootstrap.py':{'subprocess'},'desktop.py':{'subprocess'}}
 PROCESS_CALLS = {'system', 'popen', 'startfile', 'spawnl', 'spawnv', 'execv', 'execl', 'fork'}
 
 

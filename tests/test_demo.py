@@ -76,7 +76,7 @@ class DemoTests(unittest.TestCase):
 
     def test_cli_demo_reads_only_the_demo_folder_and_marks_the_page(self):
         captured = {}
-        def fake_serve(port, browser, lang, dashboard=None):
+        def fake_serve(port, browser, lang, dashboard=None, desktop=False):
             captured.update(port=port, browser=browser, dashboard=dashboard)
             return 0
         # The real demo folder is in PLER's cache folder, outside the system temporary folder, whose

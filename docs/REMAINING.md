@@ -1,5 +1,24 @@
 # PLER — güncel kalan işler
 
+**7 Kasım, tasarım temeli:** Yerel aday **0.8.0**. Tek token kaynağından tek renkli arayüz, yaylı gezinme/filtre
+göstergeleri, iskelet ve klavye paleti; her derlemede tasarım sözleşmesi. Son paket ve kontroller
+[tasarım temeli raporunda](../../reports/design-foundation-v1/REPORT.md). Public .31 değişmedi. Temiz Windows kabulü EN SON görevdir.
+
+**7 Kasım, UX ilk öncelik grubu:** Yerel aday **0.7.0**. Oturum kimliği, tek tam-veri sıralaması,
+okunabilirlik, panel genişliği ve işe bağlama geçişi düzeltildi. 28 maddelik değerlendirmenin
+uygulanan/kısmi/açık karşılıkları [UX takip kaydında](UX-REVIEW-2026-11-07.md). Sonraki öncelikler:
+kalıcı görünüm tercihleri, çoklu oturum bağlama ve kalan hak odaklı kota ekranı. Public .31 değişmedi.
+
+
+**7 Kasım:** Kullanıcı arayüzü sadeleştirme ve önerilen görsel bileşenleri kullanma yetkisi verdi.
+Yerel yeni aday 0.4.0; genel bakış/oturum/iş/kota/veri alanları ayrıldı. Yeni UI bileşenleri yerel
+paketlenir; motor ve kullanıcı veri biçimleri değişmez. Temiz Windows kabulü EN SON görev kalır.
+
+**6 Kasım kullanıcı yönlendirmesi:** PLER kendi masaüstü penceresine geçirilir. Yerel aday
+0.3.0; public .31 değiştirilmez. Bu teslimde **temiz Windows testi en son görevdir**;
+geliştirme/paketleme ve geliştirici kontrolleri ardından çalıştırılır. Önceki .31 demo gözlemleri
+masaüstü kabulü değildir. [Yeni görev sırası](DESKTOP.md). Diğer pilot/imza/lisans açıkları korunur.
+
 2 Kasım 2026; güncel yayımlanan uygulama **0.2.31**. Windows x64 portable güncelleyici uygulandı, yalıtılmış veride sınandı ve mevcut herkese açık siteye yayımlandı. İlk kez 0.2.30 veya öncesinden bir elle geçiş gerekir. Canlı EN/TR sayfaları, ZIP/wheel baytları ve imzalı sürüm bilgisi gerçek paket runtime'ıyla [doğrulandı](../../reports/updater-v1/live-check.json). [Çalışma raporu](../../reports/updater-v1/REPORT.md), [yayın kaydı](../../reports/updater-v1/publication.json), [güncelleyici sözleşmesi](UPDATES.md). Parser `accounting-2026-11-01.1`, kullanım şeması 2, iş bileşeni 3 ve yedek 1 korunur. Önceki 0.2.30 yayını ve eski indirme dosyaları korunur; tarihli eski hazırlama raporları geçmiş kanıttır. Kişilere mesaj veya pilot daveti gönderilmedi. Bu kayıt aktif iş listesidir; [QUALITY.md](../QUALITY.md), [ACCOUNTING.md](../ACCOUNTING.md), [RELEASE.md](RELEASE.md), [ACCEPTANCE.md](ACCEPTANCE.md) ve [PILOT.md](PILOT.md) tamamlayıcı kayıtlardır.
 
 Kullanıcının son satın alma değerlendirmesinden yedi başlık kayda alındı. Bunların dışında, önceki çalışmalardan kalan altı başlık aşağıda ayrı tutulur. Bunların hepsi kod hatası veya yayın engeli değildir: ürün geliştirmesi, doğrulama, kapsam kararı ve mevcut kayıttan çıkarılamayan bilgi ayrılır. Her başlığın tamamlanma durumu ayrıca yazılıdır; bir özelliğin uygulanması gerçek kullanıcı faydasının veya ödeme isteğinin kanıtı değildir.

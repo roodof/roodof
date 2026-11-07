@@ -1,4 +1,13 @@
-# Windows portable updates — updater format 1
+# Windows portable updates — desktop format 2; historical format 1
+
+Local desktop candidate 0.3.0 uses updater compatibility 2. Usage/work/backup formats stay
+unchanged. Electron requires bounded 256 MiB compressed, 768 MiB expanded and 256 MiB member
+limits. Public feeds and old releases are unchanged. Transition from 0.2.31 requires manual
+extraction into a new folder. Desktop restart keeps --desktop, candidate probes require the
+desktop executable, and health is unavailable until the new window reports its document loaded.
+Clean Windows update/rollback acceptance is the final pending task.
+
+Below is the original format 1 lifecycle, retained in format 2 unless noted above.
 
 0.2.31 adds a user-triggered update check and **Download and update** inside the Windows x64 portable app. Automatic checking on launch is an explicit choice, initially off; the app installs only after a user click. Versions without this updater need one manual upgrade. Python wheels and other platforms remain outside this installer.
 

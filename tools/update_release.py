@@ -91,7 +91,7 @@ def main():
                      published_at=now.isoformat(),expires_at=(now+timedelta(days=90)).isoformat(),
                      url='https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-'+args.version+'-windows-x64.zip',
                      sha256=hashlib.sha256(args.package.read_bytes()).hexdigest(),size=args.package.stat().st_size,
-                     compatibility=dict(updater=1,schema=2,work=3,backup=1),notes=dict(en=args.notes_en,tr=args.notes_tr))
+                     compatibility=dict(updater=2,schema=2,work=3,backup=1),notes=dict(en=args.notes_en,tr=args.notes_tr))
         validate_payload(payload)
         public,signature=sign(protect(private.read_bytes(),True),canonical(payload))
         envelope=dict(payload=payload,key_id=crypto.key_id(public),signature=base64.b64encode(signature).decode('ascii'))
