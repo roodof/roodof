@@ -107,7 +107,11 @@ export function mountUsageTime({ tr, before }) {
       grid[weekday][at.getHours()] += tokens; gridCalls[weekday][at.getHours()] += calls;
     }
     const end = new Date(cutoff.getFullYear(), cutoff.getMonth(), cutoff.getDate());
-    let start = days ? new Date(end.getFullYear(), end.getMonth(), end.getDate() - days + 1) : first ? new Date(first.getFullYear(), first.getMonth(), first.getDate()) : end;
+    // A rolling N-day interval can touch N+1 local dates. Keep both partial boundary days.
+    const since = data?.dated_usage?.since ? new Date(data.dated_usage.since) : days ? new Date(cutoff.getTime() - days * 864e5) : first || end;
+    let start = new Date(since.getFullYear(), since.getMonth(), since.getDate());
+    // Hour buckets are rounded down on the server; never discard a retained boundary bucket.
+    if (first && first < start) start = new Date(first.getFullYear(), first.getMonth(), first.getDate());
     if (start > end) start = end;
     const keys = [];
     for (let at = start; at <= end; at = new Date(at.getFullYear(), at.getMonth(), at.getDate() + 1)) keys.push(dayKey(at));

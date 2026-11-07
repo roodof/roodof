@@ -1,0 +1,45 @@
+import {_electron} from 'playwright';
+import {readFile,writeFile,mkdir,rm,appendFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+const root=fileURLToPath(new URL('../../reports/session-titles-v1/',import.meta.url));
+const address=(await readFile(path.join(root,'access.tmp'),'utf8')).trim();
+const control=path.resolve(root,'control-'+randomUUID());
+await mkdir(control);await writeFile(path.join(control,'running'),'1');
+const stateFile=path.join(root,'window.json');await writeFile(stateFile,JSON.stringify({width:1366,height:900,lang:'tr',tour:true}));
+const env={...process.env,PLER_DESKTOP_URL:address,PLER_DESKTOP_SESSION:control,PLER_DESKTOP_PARENT:String(process.pid),PLER_DESKTOP_STATE:stateFile};
+delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;delete env.NODE_PATH;
+let app;const errors=[];
+try{
+ app=await _electron.launch({executablePath:path.join(root,'final/PLER-0.9.3-windows-x64/desktop/PLER-Desktop.exe'),args:[],env,timeout:20000});
+ const page=await app.firstWindow();page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));
+ await page.waitForFunction(()=>typeof window.plerGetViewPreferences==='function'&&usageState.data?.has_snapshot&&!usageState.loading);
+ await page.locator('[data-route=sessions]').click();await page.waitForSelector('.tabulator-row');
+ const codex='API hız sınırını düzenle',claude='Ödeme ekranını düzelt';
+ assert.ok(await page.getByRole('button',{name:codex,exact:false}).count());
+ assert.ok(await page.getByRole('button',{name:claude,exact:false}).count());
+ await page.locator('#usage-session-search').fill('Ödeme ekranını');
+ await page.waitForFunction(()=>filteredUsageSessions().length===1);
+ await page.getByRole('button',{name:claude,exact:false}).click();
+ assert.equal(await page.locator('#usage-session-title').textContent(),claude);
+ await page.locator('#usage-close-session').click();
+ await page.locator('#usage-session-search').fill('');
+ const fallback=await page.evaluate(()=>usageState.data.sessions.find(s=>!s.title));
+ assert.ok(fallback);assert.ok(await page.locator(`.tabulator-row[data-session-id="${fallback.id}"]`).count()||await page.evaluate(()=>usageSessionName(usageState.data.sessions.find(s=>!s.title)).includes(' · ')));
+ const exportData=await page.evaluate(()=>api('/api/usage/export?days=0&agent=all&project=all&lang=tr'));
+ assert.ok(!JSON.stringify(exportData).includes(codex));assert.ok(!JSON.stringify(exportData).includes(claude));
+ await appendFile(path.join(root,'invented/codex/session_index.jsonl'),JSON.stringify({id:'demo-codex-api',thread_name:'API oturumu yeniden adlandırıldı'})+'\n');
+ await page.evaluate(()=>refreshUsage());
+ await page.waitForFunction(()=>!usageState.loading&&usageState.data.sessions.some(s=>s.title==='API oturumu yeniden adlandırıldı'));
+ await page.screenshot({path:path.join(root,'sessions.png')});
+ assert.deepEqual(errors,[]);
+ await writeFile(path.join(root,'ui-check.json'),JSON.stringify({packaged_native_window:true,claude_title:true,codex_title:true,title_search:true,detail_title:true,project_date_fallback:true,refresh_reads_rename:true,exports_exclude_titles:true,script_errors:errors},null,2));
+ await page.evaluate(()=>post('/api/quit',{}));
+ console.log('Native session title checks passed');
+}finally{
+ if(app)await app.close();
+ assert.equal(path.dirname(control),path.resolve(root));assert.ok(path.basename(control).startsWith('control-'));
+ await rm(control,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+}

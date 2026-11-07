@@ -1,3 +1,4 @@
+import {getView,saveView} from './view-preferences.js';
 import {enterRows} from './feedback.js';
 import {TabulatorFull as Tabulator} from 'tabulator-tables';
 
@@ -24,8 +25,8 @@ export function mountSessionsGrid({tr,list,inspector}) {
  const filterAgent=value=>{$('usage-agent').value=value;$('usage-agent').dispatchEvent(new Event('change',{bubbles:true}));};
  const project=cell=>{
   const row=cell.getRow().getData(),wrap=node('div','grid-project'),label=node('div','grid-identity');
-  const button=node('button','grid-project-name',row.workTitles[0]||row.project);button.type='button';
-  button.title=text('Open session','Oturumu aç')+' · #'+row.id.slice(0,8);button.setAttribute('aria-label',button.textContent+' · '+row.agentName+' · '+safeDate(row.ended)+' · '+text('Open session','Oturumu aç'));
+  const button=node('button','grid-project-name',row.title||row.workTitles[0]||row.project+' · '+safeDate(row.started||row.ended));button.type='button';
+  button.title=button.textContent;button.setAttribute('aria-label',button.textContent+' · '+row.agentName+' · '+safeDate(row.ended)+' · '+text('Open session','Oturumu aç'));
   button.addEventListener('click',e=>{e.stopPropagation();open(row.id);});
   const meta=node('div','grid-session-meta');
   const agent=node('button','grid-agent-filter '+(row.agent==='codex'?'is-codex':'is-claude'),row.agentName);agent.type='button';agent.title=text('Show only ','Yalnızca ')+row.agentName;
@@ -33,7 +34,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
   const time=node('time','',safeDate(row.ended));if(row.ended)time.dateTime=row.ended;
   meta.append(agent,node('span','grid-meta-divider','·'),time);
   label.append(button,meta);
-  if(row.workTitles.length)label.append(node('span','grid-project-path',row.project+(row.workTitles.length>1?' · +'+(row.workTitles.length-1)+' '+text('work','iş'):'')));
+  if(row.title||row.workTitles.length)label.append(node('span','grid-project-path',row.project+(row.workTitles.length>1?' · +'+(row.workTitles.length-1)+' '+text('work','iş'):'')));
   wrap.append(label);return wrap;
  };
  const review=cell=>{
@@ -59,21 +60,28 @@ export function mountSessionsGrid({tr,list,inspector}) {
   {title:text('Model calls','Model çağrıları'),field:'calls',width:140,visible:true,hozAlign:'right',formatter:cell=>cell.getValue()==null?text('Unknown','Bilinmiyor'):formatNum(cell.getValue())},
   {title:text('Session code','Oturum kodu'),field:'id',width:140,visible:false,formatter:cell=>node('code','grid-code',cell.getValue().slice(0,8))}
  ];
- let ready=false,signature='',lastWidth=0;
+ let ready=false,signature='',lastWidth=0,adjustingWidth=false;
+ const savedColumns=getView().columns;
+ let projectWidth=savedColumns.find(c=>c.field==='project')?.width;
  const grid=new Tabulator(host,{
   height:470,layout:'fitColumns',rowHeight:64,index:'id',data:[],columns:fields.map(f=>({...f})),movableColumns:true,
-  columnDefaults:{resizable:true,vertAlign:'middle',headerSort:false},placeholder:'',
+  columnDefaults:{minWidth:80,resizable:true,vertAlign:'middle',headerSort:false},placeholder:'',
   persistence:{columns:true},persistenceID:'pler-sessions-columns-v4',persistenceMode:'local',
-  persistenceWriterFunc:(id,type,data)=>{try{if(type==='columns')localStorage.setItem(id+'-'+type,JSON.stringify(data.map(c=>({field:c.field,...(c.field!=='project'?{width:c.width}:{}),visible:c.visible}))));}catch{}},
-  persistenceReaderFunc:(id,type)=>{try{
-   const data=JSON.parse(localStorage.getItem(id+'-'+type));if(type!=='columns'||!Array.isArray(data))return false;
-   return data.filter(c=>fields.some(f=>f.field===c.field)).map(c=>({field:c.field,...(c.field!=='project'&&Number.isFinite(c.width)&&c.width>=80&&c.width<=1000?{width:c.width}:{}),visible:c.field==='project'?true:c.visible!==false}));
-  }catch{return false;}},
+  persistenceWriterFunc:(id,type,data)=>{
+   if(type!=='columns')return;
+   saveView({columns:data.map(c=>({field:c.field,visible:c.visible,...(c.field==='project'?(projectWidth?{width:projectWidth}:{}):{width:c.width})}))});
+  },
+  persistenceReaderFunc:(_id,type)=>{
+   if(type!=='columns'||!savedColumns.length)return false;
+   // Keep the preferred identity width separate so narrowing a window cannot overwrite it.
+   return savedColumns.map(c=>c.field==='project'?{field:c.field,visible:true}:c);
+  },
   rowFormatter:row=>{row.getElement().dataset.sessionId=row.getData().id;},renderVertical:'virtual'
  });
  function resize(){
   if(!ready||!host.offsetWidth)return;
   const room=innerHeight-host.getBoundingClientRect().top-62;grid.setHeight(Math.max(245,Math.min(760,room)));const changed=Math.abs(lastWidth-host.clientWidth)>2;lastWidth=host.clientWidth;grid.redraw(changed);
+  if(projectWidth){const width=Math.min(projectWidth,Math.max(260,host.clientWidth-300));const column=grid.getColumn('project');if(Math.abs(column.getWidth()-width)>1){adjustingWidth=true;column.setWidth(width);adjustingWidth=false;}}
   requestAnimationFrame(()=>{const holder=host.querySelector('.tabulator-tableholder');hint.hidden=!holder||holder.scrollWidth<=holder.clientWidth+2;});
  }
  function syncSelection(){
@@ -93,7 +101,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
    else if(s.errors||s.aborted){status=text('Errors / stops','Hata / kesinti');kind='limited';}
    else if(s.checks?.test?.last==='failed'){status=text('Test failed','Test kaldı');kind='failed';}
    else if(s.checks?.test?.last==='passed'){status=text('Test passed','Test geçti');kind='passed';}
-   return {id:s.id,project:s.project,agent:s.agent,agentName:s.agent==='codex'?'Codex':'Claude Code',ended:s.ended,tokens:s.total_tokens,verdict:s.verdict||'',status,statusKind:kind,models:s.models.map(m=>m.model==='unknown'?text('Unknown','Bilinmiyor'):m.model).join(', '),calls:s.calls_complete?s.calls:null,workTitles:titles.get(s.id)||[]};
+   return {id:s.id,title:s.title,started:s.started,project:s.project,agent:s.agent,agentName:s.agent==='codex'?'Codex':'Claude Code',ended:s.ended,tokens:s.total_tokens,verdict:s.verdict||'',status,statusKind:kind,models:s.models.map(m=>m.model==='unknown'?text('Unknown','Bilinmiyor'):m.model).join(', '),calls:s.calls_complete?s.calls:null,workTitles:titles.get(s.id)||[]};
   });
   count.textContent=sessions.length===data.length?text(`${formatNum(sessions.length)} sessions`,`${formatNum(sessions.length)} oturum`):text(`${formatNum(data.length)} of ${formatNum(sessions.length)} sessions`,`${formatNum(sessions.length)} oturumdan ${formatNum(data.length)} gösteriliyor`);
   const next=JSON.stringify(data);
@@ -105,13 +113,21 @@ export function mountSessionsGrid({tr,list,inspector}) {
    const label=node('label'),input=node('input');input.type='checkbox';input.checked=grid.getColumn(field.field)?.isVisible()??field.visible!==false;input.disabled=field.field==='project';
    input.addEventListener('change',()=>{const col=grid.getColumn(field.field);input.checked?col.show():col.hide();resize();});label.append(input,node('span','',field.title));menu.append(label);
   }
-  const reset=node('button','grid-reset',text('Reset view','Görünümü sıfırla'));reset.type='button';reset.addEventListener('click',()=>{grid.setColumns(fields.map(f=>({...f})));renderMenu();resize();});menu.append(reset);
+  const reset=node('button','grid-reset',text('Reset view','Görünümü sıfırla'));reset.type='button';reset.addEventListener('click',()=>{projectWidth=undefined;saveView({columns:[]});grid.setColumns(fields.map(f=>({...f})));renderMenu();resize();});menu.append(reset);
  }
  options.addEventListener('toggle',()=>{if(options.open&&ready)renderMenu();});
  document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});
  grid.on('tableBuilt',()=>{ready=true;legacy.hidden=true;document.body.classList.add('tabulator-sessions');refresh();resize();});
  grid.on('rowClick',(event,row)=>{if(event.target.closest('button,select,input,a'))return;open(row.getData().id);row.getElement().querySelector('button')?.focus({preventScroll:true});});
- grid.on('columnResized',()=>{if(options.open)renderMenu();resize();});
+ grid.on('columnResized',column=>{
+  if(adjustingWidth)return;
+  const field=column.getField(),width=column.getWidth();
+  if(field==='project')projectWidth=width;
+  saveView({columns:grid.getColumnLayout().map(c=>({...c,...(c.field==='project'?{width:projectWidth}:c.field===field?{width}:{} )}))});
+  // fitColumns reuses definition widths on resize, so update the user's explicit choice too.
+  const updated=field==='project'?Promise.resolve():column.updateDefinition({width});
+  updated.then(()=>{if(options.open)renderMenu();resize();});
+ });
  new MutationObserver(refresh).observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-pressed']});
  new MutationObserver(syncSelection).observe(inspector,{attributes:true,attributeFilter:['open']});
  const showSession=window.plerShowSession;window.plerShowSession=(...args)=>{showSession(...args);syncSelection();requestAnimationFrame(resize);};

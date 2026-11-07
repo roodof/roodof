@@ -1,5 +1,28 @@
 # Changes
 
+## 0.9.3 — Oturum başlıkları
+
+- Claude Code kayıtlı özel başlığı/indeks özeti ve Codex yerel sohbet başlığı listede ve ayrıntıda gösterilir.
+- Başlık araması ve işlere oturum bağlama seçicisi aynı isimleri kullanır; başlık yoksa proje/tarih gösterilir.
+- Başlıklar yalnız canlı görünümde tutulur; muhasebe önbelleği, arşiv ve standart JSON raporuna eklenmez. Kaynak yenilenince ad değişiklikleri tekrar okunur.
+- PLER ikonu: PLER.exe, masaüstü penceresi ve görev çubuğu aynı ikonu kullanır; sabitlenen görev çubuğu düğmesi kararlı PLER.exe başlatıcısını açar. Kaynak assets/icon/*.svg, üretici tools/build_icon.py.
+
+
+## 0.9.2 — Remember the working view (local candidate)
+
+- Keep column order, visibility and user widths; agent/period/project, sort and quality filters; and the last open section across normal desktop restarts.
+- Extend the existing local window-state file with a bounded view record. Only known field names, enum filters and opaque project IDs are accepted; damaged state falls back to defaults.
+- Restore view choices into each fresh renderer profile. Preserve the preferred identity-column width while temporarily adapting it to smaller windows; update explicit resized widths before layout redraws.
+- Verify native close/reopen in fresh profiles, language retention, resetting columns and corrupt-file fallback. Public releases and data formats are unchanged.
+
+
+## 0.9.1 — Review fixes (local candidate)
+
+- Quota gauges prioritize reset/stale/conflicting states, withhold old percentages and refresh their state as time passes or the page reopens.
+- Daily charts include both partial boundary dates of rolling intervals; the first included day is no longer dropped from totals or sparklines.
+- Multi-session linking blocks Escape/backdrop dismissal while writes run, guards repeat submission, and stops remaining writes on programmatic shutdown.
+
+
 ## 0.9.0 — Visual upgrade: time, limits, work and window (local candidate)
 
 - Usage: a usage-over-time card with daily Claude Code/Codex bars, a weekday × hour rhythm map, a sliding-digit stat row that follows the pointed day, and a trend line in the total card. The engine adds UTC-hour buckets of the same dated responses (usage/timeline.py), so the chart always equals the dated total; whole-session totals are never spread over time.

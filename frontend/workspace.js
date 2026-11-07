@@ -1,3 +1,4 @@
+import {getView,saveView,installViewPreferences} from './view-preferences.js';
 import {mountSessionsGrid} from './sessions-grid.js';
 import {mountNavigation,mountSegments} from './primitives.jsx';
 import {enterPage,installFeedback} from './feedback.js';
@@ -64,7 +65,7 @@ let current='overview',chart=null,lastData=null,linkingWork=null;
 // Mounted further down, once the work page is rearranged; redraw() may run before that.
 let workView=null,tour=null;
 function show(name,focus=false) {
-  if(!pages[name])name='sessions';current=name;
+  if(!Object.hasOwn(pages,name))name='sessions';current=name;
   if($('notice').dataset.kind==='success')notice('');
   if(name!=='sessions'&&$('usage-session-dialog').open)$('usage-session-dialog').close();
   for(const [id,page] of Object.entries(pages))page.hidden=id!==name;
@@ -75,6 +76,7 @@ function show(name,focus=false) {
   if(name==='settings')$('usage-archive-controls').open=true;
   document.querySelector('.workspace-head .eyebrow').textContent=words.workspace+' / '+words[name];
   document.body.dataset.screen=name;
+  saveView({screen:name});
   try{sessionStorage.setItem('pler-screen',name);}catch{}
   enterPage(pages[name]);
   if(focus){h1.tabIndex=-1;h1.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
@@ -103,7 +105,7 @@ function commands(){choices.replaceChildren();for(const [name,node] of routes){i
 search.addEventListener('input',commands);search.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();choices.querySelector('button')?.focus();}if(event.key==='Enter'){event.preventDefault();choices.querySelector('button')?.click();}});
 find.addEventListener('click',()=>{search.value='';commands();palette.showModal();search.focus();});
 document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(!palette.open)find.click();else palette.close();}});
-let saved;try{saved=sessionStorage.getItem('pler-screen');}catch{}show(saved||'sessions');redraw();
+let saved;try{saved=sessionStorage.getItem('pler-screen');}catch{}show(routes.some(([id])=>id===saved)?saved:getView().screen);redraw();
 
 // A working session browser, not another dashboard landing page.
 document.body.classList.add('session-workbench');
@@ -134,9 +136,9 @@ if(dl&&!dl.closest('details')){
  detail.append(provenance);
  if(session){
   const namedWork=usageState.data?.work_items?.items.find(w=>w.session_ids.includes(session.id));
-  if(namedWork)$('usage-session-title').textContent=namedWork.title;
+  if(!session.title&&namedWork)$('usage-session-title').textContent=namedWork.title;
   const identity=el('div','wb-session-identity');
-  if(namedWork)identity.append(el('span','',session.project));
+  identity.append(el('span','',session.project));
   identity.append(el('strong','',session.agent==='codex'?'Codex':'Claude Code'),el('span','',usageDate(session.started)+' → '+usageDate(session.ended)),el('code','','#'+usageSessionCode(session)));
   detail.prepend(identity);
   const metrics=el('div','wb-session-metrics');
@@ -199,3 +201,5 @@ for(const key of ['work_scope','work_api_note','work_privacy']){const paragraph=
 $('usage-work-items').append(workScope);
 const workGlyph=el('div','ws-empty-glyph');workGlyph.append(icon(Layers));$('usage-work-empty').before(workGlyph);
 new MutationObserver(()=>{workGlyph.hidden=$('usage-work-empty').hidden;}).observe($('usage-work-empty'),{attributes:true,attributeFilter:['hidden']});workGlyph.hidden=$('usage-work-empty').hidden;
+
+installViewPreferences();

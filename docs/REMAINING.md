@@ -1,4 +1,23 @@
+# 0.9.3 güncel not
+
+Oturum isimleri: Claude Code custom-title / sessions-index özeti ve Codex session_index başlığı tamamlandı. Başlık yoksa mevcut iş adı veya proje/tarih kullanılır. Web ChatGPT geçmişi dahil değildir. Başlıklar kalıcı muhasebe/rapor verisine eklenmez. Çok büyük/okunamayan indekslerde ve Claude baş/son 64 KiB dışında kalan özel adlarda yedek görünüm kullanılır. Silinmiş kaynakların başlıkları arşivde saklanmaz. Temiz Windows kabulü SON görevdir.
+
 # PLER — güncel kalan işler
+
+**7 Kasım — 0.9.2 görünüm tercihleri:** Sütun sırası/görünürlüğü/genişliği, ajan/dönem/proje,
+sıralama/veri kalitesi filtresi ve son bölüm normal masaüstü kapat/aç işleminde korunur.
+Mevcut desktop-window.json dosyası sınırlı view alanıyla genişletildi; kayıt/veri biçimleri değişmedi.
+Yeni boş profillerle gerçek masaüstü yeniden açılışı, dar pencere, sütun sıfırlama ve bozuk kayıt
+kontrolleri geçti. Yerel aday reports/view-preferences-v1/delivery/PLER-0.9.2-windows-x64.zip.
+Temiz Windows kabulü SON görev kalır; ilk kullanım ve ücretli/ücretsiz sınırı sonraki ayrı işlerdir.
+
+
+**7 Kasım — 0.9.1 inceleme düzeltmeleri:** Sıfırlanan/eski kotanın güncel yüzde gibi görünmesi,
+zaman grafiğinin ilk kısmi günü atlaması ve çoklu bağlamanın Escape/dışarı tıklamayla kapanması
+düzeltildi. Altı yeni regresyon kontrolü ve çalışan UI'da saat ilerletme/bağlama doğrulaması var.
+Yerel aday reports/review-fixes-v1/delivery/PLER-0.9.1-windows-x64.zip; public .31 değişmedi.
+Temiz Windows kabulü en son görev olarak açık kalır.
+
 
 **7 Kasım, görsel yükseltme:** Yerel aday **0.9.0**. Kullanımda zaman grafiği ve çalışma saatleri haritası,
 kotada gösterge ve dolma tahmini, İşlerim'de kartlar ve çoklu oturum bağlama, bildirimler, ilk açılış turu;

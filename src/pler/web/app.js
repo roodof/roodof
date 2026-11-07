@@ -223,7 +223,7 @@ const I18N=/*I18N*/{
 "sessions_eyebrow": "Sessions",
 "sessions_title": "Look into your sessions.",
 "search_label": "Search sessions",
-"search_placeholder": "Project, model or session code",
+"search_placeholder": "Session title, project or model",
 "sort_label": "Sort",
 "sort_tokens": "Most tokens",
 "sort_recent": "Most recently active",
@@ -814,7 +814,7 @@ const I18N=/*I18N*/{
 "sessions_eyebrow": "Oturumlar",
 "sessions_title": "Oturumlarını incele.",
 "search_label": "Oturum ara",
-"search_placeholder": "Proje, model veya oturum kodu",
+"search_placeholder": "Oturum adı, proje veya model",
 "sort_label": "Sıralama",
 "sort_tokens": "En çok token kullanan",
 "sort_recent": "En son etkin",
@@ -1172,7 +1172,7 @@ async function closeApp(){
   catch(error){notice(error.message);}
 }
 const usageState={data:null,revision:0,pageSize:20,timer:null,clock:null,stopped:false,loading:false,exporting:false,downloadUrl:null};
-try{const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null');sessionStorage.removeItem('pler-view');if(saved&&['0','7','30','90'].includes(saved.days)&&['all','codex','claude-code'].includes(saved.agent)&&typeof saved.project==='string'&&/^(all|[a-f0-9]{24})$/.test(saved.project)){usageState.restore=saved;usageState.workRestore=saved.work;$('usage-period').value=saved.days;$('usage-agent').value=saved.agent;if(typeof saved.search==='string')$('usage-session-search').value=saved.search.slice(0,160);if(['tokens','recent','started','issues'].includes(saved.sort))$('usage-session-sort').value=saved.sort;$('usage-quality-only').checked=saved.quality===true;$('usage-export-mask').checked=saved.mask!==false;}}catch(_){}
+try{const stored=sessionStorage.getItem('pler-ui-view-v1')||new URLSearchParams(location.search).get('view')||localStorage.getItem('pler-ui-view-v1')||'null';const saved=JSON.parse(sessionStorage.getItem('pler-view')||'null')||JSON.parse(stored)?.filters;sessionStorage.removeItem('pler-view');if(saved&&['0','7','30','90'].includes(saved.days)&&['all','codex','claude-code'].includes(saved.agent)&&typeof saved.project==='string'&&/^(all|[a-f0-9]{24})$/.test(saved.project)){usageState.restore=saved;usageState.workRestore=saved.work;$('usage-period').value=saved.days;$('usage-agent').value=saved.agent;if(typeof saved.search==='string')$('usage-session-search').value=saved.search.slice(0,160);if(['tokens','recent','started','issues'].includes(saved.sort))$('usage-session-sort').value=saved.sort;$('usage-quality-only').checked=saved.quality===true;$('usage-export-mask').checked=saved.mask!==false;}}catch(_){}
 const usageAgents={'claude-code':'Claude Code',codex:'Codex'};
 const usageTokens=[['input',t('token_input')],['cache_read',t('token_cache')],['cache_write',t('token_write')],['output',t('token_output')]];
 const usagePct=value=>value==null?t('unknown'):new Intl.NumberFormat(LOCALE,{style:'percent',maximumFractionDigits:1}).format(value);
@@ -1537,12 +1537,17 @@ async function setVerdict(id,verdict){
   }catch(error){if(!usageState.stopped)notice(error.message);}
   finally{usageState.verdictSaving=false;}
 }
+function usageSessionName(session){
+  if(session.title)return session.title;
+  const at=session.started||session.ended;
+  return session.project+(at?' · '+usageDate(at):'');
+}
 function filteredUsageSessions(){
   if(!usageState.data)return [];
   const all=usageState.data.sessions,query=$('usage-session-search').value.trim().toLocaleLowerCase(LOCALE);
   const works=usageState.data.work_items?.readable===true?usageState.data.work_items.items:[],titles=new Map();
   if(query)for(const item of works)for(const id of item.session_ids){if(!titles.has(id))titles.set(id,[]);titles.get(id).push(item.title);}
-  const sessions=all.filter(session=>(!$('usage-quality-only').checked||sessionHasQualityLimits(session))&&[session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model),...(titles.get(session.id)||[])].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
+  const sessions=all.filter(session=>(!$('usage-quality-only').checked||sessionHasQualityLimits(session))&&[session.title||'',session.project,usageAgents[session.agent]||session.agent,'#'+usageSessionCode(session),...session.models.map(model=>model.model),...(titles.get(session.id)||[])].some(value=>value.toLocaleLowerCase(LOCALE).includes(query)));
   const order=$('usage-session-sort').value;
   const stamp=value=>value?Date.parse(value):-Infinity;
   const byTime=(a,b,key)=>stamp(b[key])-stamp(a[key])||b.total_tokens-a.total_tokens||a.id.localeCompare(b.id);
@@ -1555,9 +1560,9 @@ function renderUsageSessions(){
   const visible=sessions.slice(0,usageState.pageSize);
   $('usage-session-count').textContent=t('sessions_count',{shown:number(visible.length),sessions:count(sessions.length,'session')})+(query?t('searching',{sessions:count(all.length,'session')}):'');
   $('usage-sessions').replaceChildren(...visible.map(session=>{
-    const row=node('tr'),first=node('td'),button=node('button','text-button',session.project),code=usageSessionCode(session);
+    const row=node('tr'),first=node('td'),button=node('button','text-button',usageSessionName(session)),code=usageSessionCode(session);
     row.setAttribute('data-session-id',session.id);
-    button.setAttribute('aria-label',session.project+' · '+(usageAgents[session.agent]||session.agent)+' · '+code+t('open_detail'));button.addEventListener('click',()=>openUsageSession(session));
+    button.setAttribute('aria-label',usageSessionName(session)+' · '+(usageAgents[session.agent]||session.agent)+' · '+code+t('open_detail'));button.addEventListener('click',()=>openUsageSession(session));
     first.append(button,node('small','task-subject',(usageAgents[session.agent]||session.agent)+' · #'+code));
     if(session.source_note)first.append(node('small','session-issues',session.source_note));
     if(session.models.length)first.append(node('small','session-model',session.models.map(model=>model.model).join(', ')));
@@ -1600,7 +1605,7 @@ function renderGitActivity(content,activity){
 }
 function openUsageSession(session){
   usageState.sessionRequest=(usageState.sessionRequest||0)+1;
-  $('usage-session-title').textContent=session.project;const content=$('usage-session-detail'),dl=node('dl');
+  $('usage-session-title').textContent=usageSessionName(session);const content=$('usage-session-detail'),dl=node('dl');
   const fields=[[t('field_agent'),usageAgents[session.agent]||session.agent],[t('field_code'),'#'+usageSessionCode(session)],[t('start'),usageDate(session.started)],[t('last_activity'),usageDate(session.ended)],[t('field_span'),usageDuration(session.span_seconds)],[t('field_active'),usageDuration(session.active_ms==null?null:session.active_ms/1000)],[t('field_total'),number(session.total_tokens)],[t('field_api'),session.api_priced_share?usageUsd(session.api_usd)+(session.api_priced_share<0.9995?' ('+usagePct(session.api_priced_share)+')':''):t('unknown')],...usageTokens.map(([key,label])=>[label,number(session.tokens[key])]),[t('field_reasoning'),number(session.tokens.reasoning)],[t('field_calls'),session.calls_complete?number(session.calls):t('unknown')],[t('field_prompts'),number(session.prompts)],[t('field_issues'),session.errors+' / '+session.aborted],[t('field_tools'),number(session.tool_calls)],[t('field_files'),number(session.edited_files)],...(session.checks?.test?[[t('field_tests'),checkDetail(session.checks.test)]]:[]),...(session.checks?.build?[[t('field_builds'),checkDetail(session.checks.build)]]:[])];
   fields.forEach(([label,value])=>dl.append(node('dt','',label),node('dd','',value)));
   const verdict=node('div','verdict-dialog');verdict.append(node('span','',t('field_verdict')),verdictToggle(session));

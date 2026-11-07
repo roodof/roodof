@@ -96,12 +96,15 @@ shutil.copytree(desktop_source, desktop, ignore=shutil.ignore_patterns('default_
 (desktop/'electron.exe').rename(desktop/'PLER-Desktop.exe')
 desktop_app = desktop/'resources/app'
 desktop_app.mkdir(parents=True)
-for name in ('main.cjs', 'policy.cjs', 'window-state.cjs'):
+for name in ('main.cjs', 'policy.cjs', 'window-state.cjs', 'view-preferences.cjs'):
     shutil.copy2(PRODUCT/'desktop'/name, desktop_app/name)
+# Window, taskbar and pinned-shortcut icon; the same file is compiled into PLER.exe below.
+shutil.copy2(PRODUCT/'assets/icon/pler.ico', desktop_app/'pler.ico')
 (desktop_app/'package.json').write_text(json.dumps(dict(name='pler-desktop', productName='PLER',
     version=__version__, main='main.cjs')), 'utf-8')
 subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64',
-                '/reference:System.Windows.Forms.dll', '/out:'+str(out/'PLER.exe'),
+                '/reference:System.Windows.Forms.dll', '/win32icon:'+str(PRODUCT/'assets/icon/pler.ico'),
+                '/out:'+str(out/'PLER.exe'),
                 str(PRODUCT/'tools/windows/Launcher.cs')], check=True, capture_output=True, text=True)
 (out/'README.txt').write_text(
     'PLER '+__version__+' - Windows x64 '+('early beta' if public_beta else 'local candidate')+'\n\n'

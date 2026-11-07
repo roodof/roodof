@@ -39,3 +39,15 @@ test('write keeps only geometry and language, and read survives a broken file', 
   assert.equal(write(null, { x: 0, y: 0, width: 1, height: 1 }, false), false);
   fs.rmSync(folder, { recursive: true, force: true });
 });
+
+test('view preferences survive a new read while unknown/private fields are removed', () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'pler-view-'));
+  try {
+    const file = path.join(folder,'desktop-window.json');
+    const view={screen:'work',filters:{days:'90',agent:'claude-code',project:'a'.repeat(24),sort:'issues',quality:true},columns:[{field:'project',width:480,visible:true},{field:'tokens',width:180,visible:false}],credential:'never persist'};
+    assert.equal(write(file,{x:10,y:20,width:1100,height:800},false,'tr',true,view),true);
+    const restored=read(file,screen);assert.equal(restored.lang,'tr');assert.equal(restored.tour,true);assert.equal(restored.view.screen,'work');assert.equal(restored.view.filters.project,'a'.repeat(24));assert.equal(restored.view.columns[0].width,480);
+    assert.ok(!fs.readFileSync(file,'utf8').includes('credential'));
+    fs.writeFileSync(file,'{broken');assert.equal(read(file,screen).view,undefined);
+  } finally { fs.rmSync(folder,{recursive:true,force:true}); }
+});

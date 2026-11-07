@@ -17,15 +17,17 @@ export function mountWork({ tr }) {
   const lang = tr ? 'tr-TR' : 'en-US';
   const words = tr ? {
     cards: 'İşlerin', newWork: 'Yeni iş', sessions: n => n + ' oturum', noSessions: 'Henüz oturum yok', tokens: 'token',
-    link: 'Oturumları bağla', search: 'Proje, model, tarih veya #kod ara…', empty: 'Eşleşen oturum yok.', linked: 'bağlı',
+    link: 'Oturumları bağla', search: 'Oturum adı, proje veya model ara…', empty: 'Eşleşen oturum yok.', linked: 'bağlı',
     selected: n => n + ' oturum seçildi', none: 'Bağlamak için oturum seç', confirm: n => n + ' oturumu bağla', cancel: 'Vazgeç',
     linking: (i, n) => `Bağlanıyor ${i}/${n}…`, done: n => n + ' oturum işe bağlandı.', stopped: 'Bağlama durdu; bağlananlar kaydedildi.',
+    whileLinking: 'Bağlama sürüyor; işlem bitene kadar pencere açık kalır.',
     pickerTitle: title => '“' + title + '” işine oturum bağla', hint: '↑ ↓ gezin · Enter seç · Esc kapat'
   } : {
     cards: 'Your work', newWork: 'New work', sessions: n => n + (n === 1 ? ' session' : ' sessions'), noSessions: 'No sessions yet', tokens: 'tokens',
-    link: 'Link sessions', search: 'Search project, model, date or #code…', empty: 'No matching sessions.', linked: 'linked',
+    link: 'Link sessions', search: 'Search session title, project or model…', empty: 'No matching sessions.', linked: 'linked',
     selected: n => n + (n === 1 ? ' session selected' : ' sessions selected'), none: 'Choose sessions to link', confirm: n => 'Link ' + n + (n === 1 ? ' session' : ' sessions'), cancel: 'Cancel',
     linking: (i, n) => `Linking ${i}/${n}…`, done: n => n + (n === 1 ? ' session linked.' : ' sessions linked.'), stopped: 'Linking stopped; the links made so far are saved.',
+    whileLinking: 'Linking is in progress; this window stays open until it finishes.',
     pickerTitle: title => 'Link sessions to “' + title + '”', hint: '↑ ↓ move · Enter choose · Esc close'
   };
   const number = value => Number(value).toLocaleString(lang);
@@ -95,44 +97,58 @@ export function mountWork({ tr }) {
   linkButton.append(icon(Link2, 15), el('span', '', words.link));
   const dialog = el('dialog', 'ws-link-dialog'); document.body.append(dialog);
   const pickerRoot = createRoot(dialog);
+  let linking = false;
+  dialog.addEventListener('cancel', event => { if (linking) event.preventDefault(); });
   dialog.addEventListener('close', () => flushSync(() => pickerRoot.render(null)));
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('click', event => { if (event.target === dialog && !linking) dialog.close(); });
 
   function Picker({ work, rows }) {
     const [chosen, setChosen] = useState(() => new Set()), [busy, setBusy] = useState('');
     const linked = new Set(work.session_ids);
-    const toggle = id => { if (busy || linked.has(id)) return; setChosen(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; }); };
+    const toggle = id => { if (busy || linking || linked.has(id)) return; setChosen(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; }); };
     async function confirm() {
+      if (linking || !chosen.size || !dialog.open) return;
+      linking = true;
+      dialog.setAttribute('aria-busy', 'true');
       const ids = [...chosen]; let done = 0;
-      for (const session of ids) {
-        setBusy(words.linking(done + 1, ids.length));
-        const ok = await performWorkAction({ action: 'link', id: work.id, session }, { focus: 'work' });
-        if (!ok) break;
-        done++;
+      try {
+        for (const session of ids) {
+          // Also stop remaining writes if the application closes this dialog programmatically.
+          if (!dialog.open) break;
+          setBusy(words.linking(done + 1, ids.length));
+          const ok = await performWorkAction({ action: 'link', id: work.id, session }, { focus: 'work' });
+          if (!ok) break;
+          done++;
+        }
+        if (done === ids.length) toast.success(words.done(done)); else if (done) toast.warning(words.stopped);
+      } catch {
+        toast.error(words.stopped);
+      } finally {
+        linking = false;
+        dialog.removeAttribute('aria-busy');
+        setBusy('');
+        if (dialog.open) dialog.close();
       }
-      setBusy('');
-      dialog.close();
-      if (done === ids.length) toast.success(words.done(done)); else if (done) toast.warning(words.stopped);
     }
     return <Command className="ws-cmdk" label={words.pickerTitle(work.title)} loop>
-      <div className="ws-cmdk-head"><strong>{words.pickerTitle(work.title)}</strong><kbd>Esc</kbd></div>
-      <Command.Input className="ws-cmdk-input" placeholder={words.search} autoFocus />
+      <div className="ws-cmdk-head"><strong>{words.pickerTitle(work.title)}</strong><kbd>{busy ? '…' : 'Esc'}</kbd></div>
+      <Command.Input className="ws-cmdk-input" placeholder={words.search} disabled={Boolean(busy)} autoFocus />
       <Command.List className="ws-cmdk-list">
         <Command.Empty className="ws-cmdk-empty">{words.empty}</Command.Empty>
         {rows.map(row => {
           const isLinked = linked.has(row.id), isChosen = chosen.has(row.id), code = '#' + row.id.slice(0, 8);
-          return <Command.Item key={row.id} value={row.id} disabled={isLinked} onSelect={() => toggle(row.id)}
-            keywords={[row.project, agentName(row.agent), code, typeof usageDate === 'function' ? usageDate(row.ended) : '', ...row.models.map(model => model.model)]}
+          return <Command.Item key={row.id} value={row.id} disabled={isLinked || Boolean(busy)} onSelect={() => toggle(row.id)}
+            keywords={[row.title||'', row.project, agentName(row.agent), code, typeof usageDate === 'function' ? usageDate(row.ended) : '', ...row.models.map(model => model.model)]}
             className={'ws-cmdk-item' + (isChosen ? ' chosen' : '')} data-agent={row.agent}>
             <span className="ws-cmdk-check" aria-hidden="true">{isChosen || isLinked ? <CheckIcon /> : null}</span>
-            <span className="ws-cmdk-main"><strong>{row.project}</strong><small>{agentName(row.agent)} · {typeof usageDate === 'function' ? usageDate(row.ended) : ''} · <code>{code}</code></small></span>
+            <span className="ws-cmdk-main"><strong>{row.title || (typeof usageSessionName === 'function' ? usageSessionName(row) : row.project)}</strong><small>{agentName(row.agent)} · {typeof usageDate === 'function' ? usageDate(row.ended) : ''} · <code>{code}</code></small></span>
             <span className="ws-cmdk-side">{isLinked ? <em>{words.linked}</em> : <>{typeof usageShort === 'function' ? usageShort(row.total_tokens) : number(row.total_tokens)} <small>{words.tokens}</small></>}</span>
           </Command.Item>;
         })}
       </Command.List>
       <div className="ws-cmdk-foot">
         <span>{busy || (chosen.size ? words.selected(chosen.size) : words.none)}</span>
-        <span className="ws-cmdk-hint">{words.hint}</span>
+        <span className="ws-cmdk-hint">{busy ? words.whileLinking : words.hint}</span>
         <button type="button" className="secondary" onClick={() => dialog.close()} disabled={Boolean(busy)}>{words.cancel}</button>
         <button type="button" className="primary" onClick={confirm} disabled={!chosen.size || Boolean(busy)}>{words.confirm(chosen.size || 0)}</button>
       </div>
@@ -141,6 +157,7 @@ export function mountWork({ tr }) {
   function CheckIcon() { return <span ref={element => { if (element && !element.firstChild) element.append(icon(Check, 13)); }} />; }
 
   linkButton.addEventListener('click', () => {
+    if (linking) return;
     const work = typeof selectedWork === 'function' ? selectedWork() : null;
     if (!work) return;
     const rows = (usageState.data?.sessions || []).slice(0, 400);

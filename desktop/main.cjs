@@ -3,12 +3,31 @@ const { app, BrowserWindow, dialog, shell, session, nativeTheme, screen } = requ
 const { randomUUID } = require('node:crypto');
 const { accessURL, localURL, externalURL } = require('./policy.cjs');
 const windowState = require('./window-state.cjs');
+const { normalizeView } = require('./view-preferences.cjs');
 
 app.setName('PLER');
 nativeTheme.themeSource = 'dark';
 let window;
 const fs = require('node:fs');
 const path = require('node:path');
+// One taskbar identity: the running window, a pinned button and Start shortcuts group as PLER.
+const APP_ID = 'PLER.Desktop';
+if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
+const iconFile = path.join(__dirname, 'pler.ico');
+const icon = fs.existsSync(iconFile) ? iconFile : undefined;
+
+// A pinned taskbar button must start the stable PLER.exe launcher, never this inner window
+// process (it needs a private session from the launcher). The topmost launcher within a few
+// folders is used, so an updated version inside the installation still pins the stable one.
+function launcherPath() {
+  let found = null, folder = path.dirname(process.execPath);
+  for (let level = 0; level < 4; level += 1) {
+    folder = path.dirname(folder);
+    const candidate = path.join(folder, 'PLER.exe');
+    if (fs.existsSync(candidate)) found = candidate;
+  }
+  return found;
+}
 const control = process.env.PLER_DESKTOP_SESSION;
 const parent = Number(process.env.PLER_DESKTOP_PARENT);
 const startup = process.env.PLER_DESKTOP_URL;
@@ -43,12 +62,17 @@ async function open(value) {
     ? { titleBarStyle: 'hidden', titleBarOverlay: { color: '#101012', symbolColor: '#b0b0bb', height: 36 } } : {};
   window = new BrowserWindow({
     title: 'PLER', width: remembered.width, height: remembered.height, x: remembered.x, y: remembered.y,
-    minWidth: windowState.LIMITS.minWidth, minHeight: windowState.LIMITS.minHeight, ...titleBar,
+    minWidth: windowState.LIMITS.minWidth, minHeight: windowState.LIMITS.minHeight, ...titleBar, icon,
     backgroundColor: '#101012', show: false, autoHideMenuBar: true,
     webPreferences: { session: isolated, nodeIntegration: false, contextIsolation: true,
       sandbox: true, webSecurity: true, webviewTag: false, devTools: false }
   });
   window.setMenu(null);
+  const launcher = process.platform === 'win32' ? launcherPath() : null;
+  if (launcher) {
+    window.setAppDetails({ appId: APP_ID, appIconPath: icon || launcher, appIconIndex: 0,
+      relaunchCommand: '"' + launcher + '"', relaunchDisplayName: 'PLER' });
+  }
   window.webContents.on('will-navigate', (event, target) => {
     if (!localURL(target, url.origin)) {
       event.preventDefault();
@@ -60,7 +84,7 @@ async function open(value) {
   });
   window.webContents.setWindowOpenHandler(({ url: target }) => {
     if (localURL(target, url.origin)) {
-      const child = new BrowserWindow({ parent: window, width: 900, height: 750,
+      const child = new BrowserWindow({ parent: window, width: 900, height: 750, icon,
         autoHideMenuBar: true, webPreferences: { session: isolated, nodeIntegration: false,
           contextIsolation: true, sandbox: true, webSecurity: true, devTools: false } });
       child.setMenu(null);
@@ -76,8 +100,8 @@ async function open(value) {
     return { action: 'deny' };
   });
   if (remembered.maximized) window.maximize();
-  let language = remembered.lang, toured = remembered.tour, saved = false;
-  // On close, ask the page for two plain values (language, tour seen), then save and close for real.
+  let language = remembered.lang, toured = remembered.tour, view = remembered.view, saved = false;
+  // On close, collect language, tour and bounded view choices, then save and close for real.
   // A page that does not answer within 600 ms closes anyway with what is already known.
   window.on('close', event => {
     if (saved) return;
@@ -85,12 +109,12 @@ async function open(value) {
     let finished = false;
     const finish = () => {
       if (finished) return; finished = true; saved = true;
-      windowState.write(stateFile, window.getNormalBounds(), window.isMaximized(), language, toured);
+      windowState.write(stateFile, window.getNormalBounds(), window.isMaximized(), language, toured, view);
       window.destroy();
     };
     const timer = setTimeout(finish, 600);
-    window.webContents.executeJavaScript('({lang:document.documentElement.lang,tour:document.documentElement.dataset.tourSeen==="1"})')
-      .then(value => { if (value?.lang === 'en' || value?.lang === 'tr') language = value.lang; toured = toured || value?.tour === true; })
+    window.webContents.executeJavaScript('({lang:document.documentElement.lang,tour:document.documentElement.dataset.tourSeen==="1",view:typeof window.plerGetViewPreferences==="function"?window.plerGetViewPreferences():null})')
+      .then(value => { if (value?.lang === 'en' || value?.lang === 'tr') language = value.lang; toured = toured || value?.tour === true; if (value?.view) view = normalizeView(value.view); })
       .catch(() => {}).finally(() => { clearTimeout(timer); finish(); });
   });
   window.once('ready-to-show', () => { window.show(); window.focus(); });
@@ -101,6 +125,7 @@ async function open(value) {
   const query = new URLSearchParams();
   if (remembered.lang) query.set('lang', remembered.lang);
   if (remembered.tour) query.set('tour', 'seen');
+  if (remembered.view) query.set('view', JSON.stringify(remembered.view));
   first.search = query.toString() ? '?' + query : '';
   await window.loadURL(first.href);
   fs.writeFileSync(path.join(control, 'ready'), '1');

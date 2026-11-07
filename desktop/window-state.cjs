@@ -1,9 +1,10 @@
 'use strict';
-// Remembered window size, position, maximized state, interface language and whether the first-run
+// Remembered window size, position, maximized state, interface language, bounded view preferences and whether the first-run
 // tour was seen. Nothing else is kept:
-// no address, credential, path or record. A damaged or foreign value is ignored, never trusted.
+// filter enums, an opaque project ID and column geometry. A damaged or foreign value is ignored.
 const fs = require('node:fs');
 const path = require('node:path');
+const { normalizeView } = require('./view-preferences.cjs');
 
 const DEFAULTS = { width: 1240, height: 850 };
 const LIMITS = { minWidth: 420, minHeight: 480, max: 20000 };
@@ -32,6 +33,7 @@ function restore(raw, workAreas) {
   result.maximized = raw.maximized === true;
   if (raw.lang === 'en' || raw.lang === 'tr') result.lang = raw.lang;
   result.tour = raw.tour === true;
+  if (raw.view && typeof raw.view === 'object' && !Array.isArray(raw.view)) result.view = normalizeView(raw.view);
   return result;
 }
 
@@ -42,10 +44,10 @@ function read(file, workAreas) {
   } catch { return restore(null, workAreas); }
 }
 
-function write(file, bounds, maximized, lang, tour = false) {
+function write(file, bounds, maximized, lang, tour = false, view) {
   if (!file) return false;
   const value = { x: Math.round(bounds.x), y: Math.round(bounds.y), width: Math.round(bounds.width),
-    height: Math.round(bounds.height), maximized: Boolean(maximized), ...(lang === 'en' || lang === 'tr' ? { lang } : {}), tour: tour === true };
+    height: Math.round(bounds.height), maximized: Boolean(maximized), ...(lang === 'en' || lang === 'tr' ? { lang } : {}), tour: tour === true, ...(view && typeof view === 'object' ? {view: normalizeView(view)} : {}) };
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     const temporary = file + '.tmp';

@@ -153,7 +153,7 @@ def _git_insight(outcome, lang, usage_complete):
                  evidence=outcome)]
 
 
-def session_view(session, lang='en', git=None, project_names=None, verdicts=None):
+def session_view(session, lang='en', git=None, project_names=None, verdicts=None, titles=None):
     inputs = sum(session.tokens[k] for k in ('input', 'cache_read', 'cache_write'))
     span = (session.ended - session.started).total_seconds() if session.started and session.ended else None
     active = session.active_ms
@@ -161,6 +161,7 @@ def session_view(session, lang='en', git=None, project_names=None, verdicts=None
     # code identifies the row's source too, without disclosing either value.
     code = session_code(session)
     return dict(id=code, agent=session.agent, verdict=(verdicts or {}).get(code),
+                title=(titles or {}).get(code),
                 project_id=_id('project', session.project), project=(project_names or {}).get(session.project,_project(session.project, lang)),
                 started=_iso(session.started), ended=_iso(session.ended),
                 span_seconds=span if span is not None and span >= 0 else None,
@@ -252,7 +253,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                      'archive_files','old_parser_files','unverified_files','evicted_files','errors')}
     archive_public['sessions']=sum(getattr(s,'source_state','live')!='live' for s in rows)
     verdicts=sources.get('verdicts') or {}
-    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts) for s in rows),
+    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts,sources.get('session_titles')) for s in rows),
                            key=lambda row:(row['total_tokens'],row['ended'] or ''),reverse=True)
     # Work subtotals round only after summing the original recorded price values.
     # The ordinary session row's display amount is already rounded to cents.
@@ -420,7 +421,7 @@ class UsageDashboard:
             project_names=labels([s.project for s in self.sessions],lang=lang)
             for session in self.sessions:
                 if session_code(session)==identity:
-                    return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'))
+                    return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'),self.sources.get('session_titles'))
         return None
 
     def _read_plan_choice(self):
@@ -581,6 +582,9 @@ class UsageDashboard:
             sessions, sources = self.reader()
             checkpoint()
             sources = dict(sources)
+            if not sources.get('demo'):
+                from .usage.session_titles import load as load_titles
+                sources['session_titles'] = load_titles(sessions)
             if (sources.get('archive') or {}).get('stale_snapshot'):
                 with self.lock:
                     if generation==self.generation: self._replace_after_settings()
