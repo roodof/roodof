@@ -6,6 +6,8 @@ import tempfile
 import threading
 import time
 
+from .paths import cache_folder
+
 
 def executable_path():
     return Path(__file__).resolve().parents[2] / 'desktop' / 'PLER-Desktop.exe'
@@ -26,6 +28,10 @@ class Window:
         # carries the credential; the temporary directory holds only nonsecret lifetime markers.
         env.update(PLER_DESKTOP_URL=server.access_url, PLER_DESKTOP_SESSION=str(self.control),
                    PLER_DESKTOP_PARENT=str(os.getpid()))
+        # Window size, position and interface language only; kept with PLER's other local data.
+        folder = cache_folder()
+        if folder is not None:
+            env['PLER_DESKTOP_STATE'] = str(folder / 'desktop-window.json')
         server.desktop_ready = threading.Event()
         try:
             self.process = subprocess.Popen(

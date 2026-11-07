@@ -25,6 +25,7 @@ from .usage.projects import ProjectRoots, label, labels
 from .usage.records import total, timestamp
 from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
+from .usage.timeline import hourly as hourly_usage
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
 from .usage import work_items as work_rules
@@ -240,9 +241,10 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     outcome=git_outcome(rows,sources)
     reedit=subsequent_edits(sessions,rows,timestamp(sources.get('observed_at')) or now)
     observed=timestamp(sources.get('observed_at')) or now
-    dated=dated_usage([s for s in sessions if (agent=='all' or s.agent==agent) and
-                      (project=='all' or _id('project',s.project)==project)],
-                      observed-timedelta(days=days) if days else None,observed)
+    scoped=[s for s in sessions if (agent=='all' or s.agent==agent) and (project=='all' or _id('project',s.project)==project)]
+    dated=dated_usage(scoped,observed-timedelta(days=days) if days else None,observed)
+    # Same responses as the dated total, in UTC hours; the page groups them into local days.
+    timeline=hourly_usage(scoped,observed-timedelta(days=days) if days else None,observed)
     archive=sources.get('archive') or {}
     boolean_fields=('enabled','available','retention_enabled','stored_files_known')
     archive_public={key:archive.get(key,False if key in boolean_fields else 0) for key in
@@ -276,7 +278,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 verdicts=dict(verdict_summary(public_sessions,verdicts),readable=not sources.get('verdicts_error')),
                 work_items=work,
                 plans=plans,
-                git_outcome=outcome,reedit=reedit,dated_usage=dated,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
+                git_outcome=outcome,reedit=reedit,dated_usage=dated,timeline=timeline,archive=archive_public,lang=lang,demo=bool(sources.get('demo')),
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),

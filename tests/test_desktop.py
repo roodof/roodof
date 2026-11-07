@@ -31,6 +31,23 @@ class DesktopTests(unittest.TestCase):
                 Window(Mock())
             spawn.assert_not_called()
 
+    def test_window_state_file_lives_in_the_cache_folder_or_is_not_offered(self):
+        server = Mock(access_url='http://127.0.0.1:49152/#access=' + 'b'*64)
+        child = Mock(); child.poll.return_value = None
+        with tempfile.TemporaryDirectory() as folder:
+            exe = Path(folder)/'PLER-Desktop.exe'; exe.write_bytes(b'invented')
+            cache = Path(folder)/'cache'
+            for configured, expected in ((cache, str(cache/'desktop-window.json')), (None, None)):
+                with patch('pler.desktop.executable_path', return_value=exe), \
+                     patch('pler.desktop.cache_folder', return_value=configured), \
+                     patch('pler.desktop.subprocess.Popen', return_value=child) as spawn, \
+                     patch('pler.desktop.threading.Thread'):
+                    window = Window(server)
+                    env = spawn.call_args[1]['env']
+                    self.assertEqual(env.get('PLER_DESKTOP_STATE'), expected)
+                    self.assertNotIn('access=', env.get('PLER_DESKTOP_STATE') or '')
+                    window.session.cleanup()
+
     def test_private_environment_and_marker_lifetime_never_put_credentials_in_files_or_argv(self):
         server = Mock(access_url='http://127.0.0.1:49152/#access=' + 'a'*64)
         child = Mock(); child.poll.return_value = None

@@ -1,6 +1,10 @@
 import {mountSessionsGrid} from './sessions-grid.js';
 import {mountNavigation,mountSegments} from './primitives.jsx';
 import {enterPage,installFeedback} from './feedback.js';
+import {mountUsageTime} from './usage-time.js';
+import {mountQuota} from './quota-view.jsx';
+import {mountWork} from './work-view.jsx';
+import {mountTour} from './tour.js';
 import { init, use } from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, AriaComponent } from 'echarts/components';
@@ -51,10 +55,14 @@ const chartLink=el('button','secondary',words.allSessions);chartLink.append(icon
 const chartNode=el('div','ws-chart-canvas');chartNode.setAttribute('role','img');chartNode.setAttribute('aria-label',words.chartLabel);
 const chartEmpty=el('div','ws-chart-empty');chartEmpty.append(icon(ChartNoAxesCombined),el('strong','',words.chartEmpty),el('p','',words.chartEmptyNote));chartCard.append(chartHead,chartNode,chartEmpty);
 pages.overview.insertBefore(chartCard,$('usage-dated'));
+const timeCard=mountUsageTime({tr,before:chartCard});
+const quotaView=mountQuota({tr,page:pages.quota});
 const options=document.querySelector('.export-options');const exportDetails=el('details','ws-export-options');exportDetails.append(el('summary','',words.export));exportDetails.append(options);pages.settings.append(exportDetails);
 const coverage=el('details','ws-coverage');const coverageSummary=el('summary','',tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings');coverage.append(coverageSummary);$('usage-data-guidance').before(coverage);coverage.append($('usage-data-guidance'));
 const h1=document.querySelector('.workspace-head h1');const intro=document.querySelector('.usage-intro');
 let current='overview',chart=null,lastData=null,linkingWork=null;
+// Mounted further down, once the work page is rearranged; redraw() may run before that.
+let workView=null,tour=null;
 function show(name,focus=false) {
   if(!pages[name])name='sessions';current=name;
   if($('notice').dataset.kind==='success')notice('');
@@ -70,7 +78,8 @@ function show(name,focus=false) {
   try{sessionStorage.setItem('pler-screen',name);}catch{}
   enterPage(pages[name]);
   if(focus){h1.tabIndex=-1;h1.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}
-  if(name==='overview')requestAnimationFrame(()=>chart?.resize());
+  if(name==='overview')requestAnimationFrame(()=>{chart?.resize();timeCard?.resize();});
+  if(name==='quota')requestAnimationFrame(()=>quotaView?.resize());
 }
 $('usage-quality-show').addEventListener('click',()=>show('sessions'),true);
 function redraw() {
@@ -78,6 +87,7 @@ function redraw() {
   coverage.hidden=$('usage-data-guidance').hidden;
   const warningCount=$('usage-data-guidance-items').children.length;coverageSummary.textContent=(tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings')+(warningCount?' · '+warningCount:'');
   if(data?.sources?.unreadable)coverage.open=true;
+  timeCard.update(data,$('usage-totals'));if(data?.has_snapshot){quotaView.update(data);workView?.update();tour?.maybeStart(data);}
   if(!data?.has_snapshot){chartCard.hidden=true;return;}chartCard.hidden=false;
   const palette=getComputedStyle(document.body);const token=name=>palette.getPropertyValue('--ui-'+name).trim();
   const rows=(data.projects||[]).slice(0,6);chartEmpty.hidden=rows.length>0;chartNode.hidden=!rows.length;
@@ -164,6 +174,9 @@ addSessions.addEventListener('click',()=>{const work=selectedWork();if(!work)ret
 $('usage-work-no-members').after(addSessions);
 const workMembers=el('section','wb-work-sessions');workMembers.append(el('h3','',tr?'Bağlı oturumlar':'Linked sessions'),$('usage-work-counts'),$('usage-work-usage'),$('usage-work-quality'),$('usage-work-members'),$('usage-work-more'),$('usage-work-no-members'),addSessions);
 $('usage-work-rename-form').after(workMembers);
+workView=mountWork({tr});
+tour=mountTour({tr,show});
+redraw();
 // A compact, actionable badge keeps quota warnings discoverable in other sections.
 function syncQuotaBadge(){const box=$('usage-quota-alert'),count=box.hidden?0:box.children.length;navigation.setWarning(count,box.textContent);}
 new MutationObserver(syncQuotaBadge).observe($('usage-quota-alert'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});syncQuotaBadge();

@@ -1,5 +1,9 @@
 # PLER — güncel kalan işler
 
+**7 Kasım, görsel yükseltme:** Yerel aday **0.9.0**. Kullanımda zaman grafiği ve çalışma saatleri haritası,
+kotada gösterge ve dolma tahmini, İşlerim'de kartlar ve çoklu oturum bağlama, bildirimler, ilk açılış turu;
+masaüstü başlık çubuğu ve pencere/dil/tur hatırlama. [Rapor](../../reports/ui-upgrade-v1/REPORT.md). Public .31 değişmedi. Temiz Windows kabulü EN SON görevdir.
+
 **7 Kasım, tasarım temeli:** Yerel aday **0.8.0**. Tek token kaynağından tek renkli arayüz, yaylı gezinme/filtre
 göstergeleri, iskelet ve klavye paleti; her derlemede tasarım sözleşmesi. Son paket ve kontroller
 [tasarım temeli raporunda](../../reports/design-foundation-v1/REPORT.md). Public .31 değişmedi. Temiz Windows kabulü EN SON görevdir.

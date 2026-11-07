@@ -1,5 +1,15 @@
 # Changes
 
+## 0.9.0 — Visual upgrade: time, limits, work and window (local candidate)
+
+- Usage: a usage-over-time card with daily Claude Code/Codex bars, a weekday × hour rhythm map, a sliding-digit stat row that follows the pointed day, and a trend line in the total card. The engine adds UTC-hour buckets of the same dated responses (usage/timeline.py), so the chart always equals the dated total; whole-session totals are never spread over time.
+- Limits: one gauge per quota window with a time track to the reset, the forecast fill time and pace; explanatory notes move into Base UI popovers.
+- My work: work items as cards (FormKit auto-animate), several sessions linked at once through a cmdk picker (each link is the same checked write), sonner toasts for confirmations.
+- Desktop window: on Windows the title bar blends into the app; window size, position, maximized state, language and the first-run tour are remembered in the PLER cache folder (no address, key or record).
+- First-run tour (driver.js), five steps, shown once; never shown to automated checks.
+- Data colors: agent-claude/agent-codex and a heat ramp from Radix Colors bronze dark. Bundled licenses are now collected from what esbuild actually bundles; sonner's injected style and cmdk's unused Radix dialog are kept out so the strict style-src policy holds.
+- No new public release or clean-Windows acceptance.
+
 ## 0.8.0 — Monochrome design foundation (local candidate)
 
 - DESIGN.md records product-specific surface, typography, density, motion and state contracts, with the six requested repository references archived by URL and SHA256.

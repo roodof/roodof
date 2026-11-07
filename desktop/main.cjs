@@ -1,7 +1,8 @@
 'use strict';
-const { app, BrowserWindow, dialog, shell, session, nativeTheme } = require('electron');
+const { app, BrowserWindow, dialog, shell, session, nativeTheme, screen } = require('electron');
 const { randomUUID } = require('node:crypto');
 const { accessURL, localURL, externalURL } = require('./policy.cjs');
+const windowState = require('./window-state.cjs');
 
 app.setName('PLER');
 nativeTheme.themeSource = 'dark';
@@ -11,7 +12,9 @@ const path = require('node:path');
 const control = process.env.PLER_DESKTOP_SESSION;
 const parent = Number(process.env.PLER_DESKTOP_PARENT);
 const startup = process.env.PLER_DESKTOP_URL;
+const stateFile = process.env.PLER_DESKTOP_STATE;
 delete process.env.PLER_DESKTOP_URL;
+delete process.env.PLER_DESKTOP_STATE;
 delete process.env.PLER_DESKTOP_SESSION;
 delete process.env.PLER_DESKTOP_PARENT;
 const timeout = setTimeout(() => app.exit(1), 30000);
@@ -33,8 +36,14 @@ async function open(value) {
       details.url.startsWith('blob:' + url.origin + '/') || details.url.startsWith('data:');
     callback({ cancel: !permitted });
   });
+  // Size, position and language from the last run; the address and its key are never stored.
+  const remembered = windowState.read(stateFile, screen.getAllDisplays().map(display => display.workArea));
+  // On Windows the system title bar becomes part of the dark app; the page leaves room for its buttons.
+  const titleBar = process.platform === 'win32'
+    ? { titleBarStyle: 'hidden', titleBarOverlay: { color: '#101012', symbolColor: '#b0b0bb', height: 36 } } : {};
   window = new BrowserWindow({
-    title: 'PLER', width: 1240, height: 850, minWidth: 420, minHeight: 480,
+    title: 'PLER', width: remembered.width, height: remembered.height, x: remembered.x, y: remembered.y,
+    minWidth: windowState.LIMITS.minWidth, minHeight: windowState.LIMITS.minHeight, ...titleBar,
     backgroundColor: '#101012', show: false, autoHideMenuBar: true,
     webPreferences: { session: isolated, nodeIntegration: false, contextIsolation: true,
       sandbox: true, webSecurity: true, webviewTag: false, devTools: false }
@@ -66,10 +75,34 @@ async function open(value) {
     } else if (externalURL(target)) shell.openExternal(target).catch(() => {});
     return { action: 'deny' };
   });
+  if (remembered.maximized) window.maximize();
+  let language = remembered.lang, toured = remembered.tour, saved = false;
+  // On close, ask the page for two plain values (language, tour seen), then save and close for real.
+  // A page that does not answer within 600 ms closes anyway with what is already known.
+  window.on('close', event => {
+    if (saved) return;
+    event.preventDefault();
+    let finished = false;
+    const finish = () => {
+      if (finished) return; finished = true; saved = true;
+      windowState.write(stateFile, window.getNormalBounds(), window.isMaximized(), language, toured);
+      window.destroy();
+    };
+    const timer = setTimeout(finish, 600);
+    window.webContents.executeJavaScript('({lang:document.documentElement.lang,tour:document.documentElement.dataset.tourSeen==="1"})')
+      .then(value => { if (value?.lang === 'en' || value?.lang === 'tr') language = value.lang; toured = toured || value?.tour === true; })
+      .catch(() => {}).finally(() => { clearTimeout(timer); finish(); });
+  });
   window.once('ready-to-show', () => { window.show(); window.focus(); });
   window.on('closed', () => app.quit());
   window.webContents.on('render-process-gone', () => app.exit(1));
-  await window.loadURL(url.href);
+  // The page reads ?lang= before its own saved choice; the remembered language survives the fresh session.
+  const first = new URL(url.href);
+  const query = new URLSearchParams();
+  if (remembered.lang) query.set('lang', remembered.lang);
+  if (remembered.tour) query.set('tour', 'seen');
+  first.search = query.toString() ? '?' + query : '';
+  await window.loadURL(first.href);
   fs.writeFileSync(path.join(control, 'ready'), '1');
   clearTimeout(timeout);
 }

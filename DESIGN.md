@@ -21,6 +21,13 @@ colors:
   danger: "#eb998d"
   primary-bg: "#eeeeef"
   primary-fg: "#18181b"
+  agent-claude: "#e07a55"
+  agent-codex: "#e4e4e7"
+  heat-1: "#302a27"
+  heat-2: "#493e3a"
+  heat-3: "#6f5f58"
+  heat-4: "#a18072"
+  heat-5: "#d4b3a5"
 typography:
   heading:
     fontFamily: Manrope
@@ -82,6 +89,14 @@ work takes precedence over promotional copy. A test result describes a recorded 
 The user selected Linear/Vercel/Raycast craft: compact controls, precise alignment, shallow
 surface layers and physical selection feedback. These are PLER decisions inspired by those
 products, not claims to reproduce their official internal design tokens.
+
+## Data colors
+
+Charts may tell the two agents apart: Claude Code uses the clay of the PLER mark (`agent-claude`),
+Codex a light neutral (`agent-codex`). These appear only in data marks and agent legends, never in
+navigation or status. Intensity maps (when you work) use a single warm ramp, `heat-1` to `heat-5`,
+taken from the Radix Colors bronze dark scale (steps 4, 6, 8, 9, 11; github.com/radix-ui/colors, MIT),
+so each step is perceptually even on the dark canvas. Status colors keep their meaning.
 
 ## Surface hierarchy and density
 

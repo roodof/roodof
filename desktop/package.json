@@ -5,7 +5,7 @@
   "description": "PLER desktop window",
   "main": "main.cjs",
   "scripts": {
-    "test": "node --test policy.test.cjs"
+    "test": "node --test policy.test.cjs window-state.test.cjs"
   },
   "devDependencies": {
     "electron": "45.2.3"

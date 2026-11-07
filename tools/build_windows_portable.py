@@ -96,7 +96,7 @@ shutil.copytree(desktop_source, desktop, ignore=shutil.ignore_patterns('default_
 (desktop/'electron.exe').rename(desktop/'PLER-Desktop.exe')
 desktop_app = desktop/'resources/app'
 desktop_app.mkdir(parents=True)
-for name in ('main.cjs', 'policy.cjs'):
+for name in ('main.cjs', 'policy.cjs', 'window-state.cjs'):
     shutil.copy2(PRODUCT/'desktop'/name, desktop_app/name)
 (desktop_app/'package.json').write_text(json.dumps(dict(name='pler-desktop', productName='PLER',
     version=__version__, main='main.cjs')), 'utf-8')
