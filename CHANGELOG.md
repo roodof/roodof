@@ -6,6 +6,7 @@
 - Aynı veya uygulama içinden güncellenmiş daha yeni sürüm korunur ve açılır; eski sürüm PLER kapalıyken değiştirilir (açıksa kapatma istenir). Uygulama içi güncelleyici aynı yapıda çalışır.
 - Ayarlar > Uygulamalar'dan kaldırma geçmişi varsayılan olarak korur; isteğe bağlı silinir. Ajan kayıtları değişmez.
 - Electron 45 bildirimler için Başlat menüsüne exe ürün adıyla ("Electron") ve iç pencere dosyasını hedefleyen ikinci bir kısayol yazıyordu (portable paketlerde de). İç exe artık PLER adını taşır, sabit bildirim kimliği kullanılır ve iç pencere doğrudan açılırsa PLER.exe başlatıcısına devreder.
+- Uygulama içi güncellemeden sonra Ayarlar > Uygulamalar'daki sürüm numarası eski kalıyordu. PLER.exe her açılışta, yalnız kendi kurulumunu gösteren mevcut kaydın sürümünü günceller; portable klasör kayıt yazmaz.
 
 ## 0.9.20 — Yükleme animasyonu düzeltmesi (yerel aday)
 

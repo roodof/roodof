@@ -55,6 +55,26 @@ internal static class Launcher {
             Selected(folder, old); WritePointer(folder, old); File.Delete(pending);
         }
     }
+    // PLER-Setup lists the installed version under Settings > Apps. An in-app update switches the
+    // version without the installer, so keep that one value current. Only an entry that already
+    // points at this installation is touched; a portable folder writes nothing.
+    private static void SyncListedVersion(string folder, string version) {
+        try {
+            if (version == null) {
+                Match found = Regex.Match(File.ReadAllText(Path.Combine(folder, "manifest.json")), @"""version""\s*:\s*""([0-9.]{1,20})""");
+                if (!found.Success) return;
+                version = VersionWord(found.Groups[1].Value);
+            }
+            using (Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                       @"Software\Microsoft\Windows\CurrentVersion\Uninstall\PLER", true)) {
+                if (key == null) return;
+                string location = key.GetValue("InstallLocation") as string;
+                if (location == null || !string.Equals(Path.GetFullPath(location).TrimEnd('\\'),
+                        Path.GetDirectoryName(folder), StringComparison.OrdinalIgnoreCase)) return;
+                if (key.GetValue("DisplayVersion") as string != version) key.SetValue("DisplayVersion", version);
+            }
+        } catch { }
+    }
     // Quote a Windows argv value without passing through cmd or another shell.
     private static string Quote(string value) {
         StringBuilder result = new StringBuilder("\"");
@@ -78,7 +98,9 @@ internal static class Launcher {
             string folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Recover(folder);
             using (FileStream lease = Lease(folder, false)) {
-            string selected = Selected(folder, Pointer(folder));
+            string current = Pointer(folder);
+            string selected = Selected(folder, current);
+            if (!check) SyncListedVersion(folder, current);
             string runtime = Path.Combine(selected, "runtime", "python.exe");
             string entry = Path.Combine(selected, "app", "start.py");
             if (!File.Exists(runtime) || !File.Exists(entry))
