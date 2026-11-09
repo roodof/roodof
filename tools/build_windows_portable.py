@@ -94,6 +94,37 @@ shutil.copytree(PRODUCT/'src'/'pler', app/'pler', ignore=shutil.ignore_patterns(
 desktop = out/'desktop'
 shutil.copytree(desktop_source, desktop, ignore=shutil.ignore_patterns('default_app.asar'))
 (desktop/'electron.exe').rename(desktop/'PLER-Desktop.exe')
+# Electron names the Start shortcut it keeps for notifications after this file's ProductName, so the
+# version strings say PLER instead of Electron (same byte layout; the value ends at its first NUL).
+import ctypes
+from ctypes import wintypes
+kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+kernel.LoadLibraryExW.restype = wintypes.HMODULE
+kernel.FindResourceW.restype = ctypes.c_void_p
+kernel.FindResourceW.argtypes = (wintypes.HMODULE, ctypes.c_void_p, ctypes.c_void_p)
+kernel.LoadResource.restype = ctypes.c_void_p
+kernel.LoadResource.argtypes = (wintypes.HMODULE, ctypes.c_void_p)
+kernel.LockResource.restype = ctypes.c_void_p
+kernel.LockResource.argtypes = (ctypes.c_void_p,)
+kernel.SizeofResource.argtypes = (wintypes.HMODULE, ctypes.c_void_p)
+kernel.FreeLibrary.argtypes = (wintypes.HMODULE,)
+kernel.BeginUpdateResourceW.restype = wintypes.HANDLE
+kernel.UpdateResourceW.argtypes = (wintypes.HANDLE, ctypes.c_void_p, ctypes.c_void_p, wintypes.WORD, ctypes.c_void_p, wintypes.DWORD)
+kernel.EndUpdateResourceW.argtypes = (wintypes.HANDLE, wintypes.BOOL)
+module = kernel.LoadLibraryExW(str(desktop/'PLER-Desktop.exe'), None, 0x2)  # LOAD_LIBRARY_AS_DATAFILE
+found = kernel.FindResourceW(module, 1, 16)  # RT_VERSION, id 1
+version_info = ctypes.string_at(kernel.LockResource(kernel.LoadResource(module, found)), kernel.SizeofResource(module, found))
+kernel.FreeLibrary(module)
+for key in ('ProductName', 'FileDescription'):
+    old = (key + '\0').encode('utf-16-le')
+    at = version_info.find(old)
+    value = version_info.find('Electron\0'.encode('utf-16-le'), at)
+    if at < 0 or value < 0 or value - at > len(old) + 4:
+        raise SystemExit('Unexpected Electron version information.')
+    version_info = version_info[:value] + 'PLER\0\0\0\0\0'.encode('utf-16-le') + version_info[value + 18:]
+update = kernel.BeginUpdateResourceW(str(desktop/'PLER-Desktop.exe'), False)
+if not update or not kernel.UpdateResourceW(update, 16, 1, 0x0409, version_info, len(version_info)) or not kernel.EndUpdateResourceW(update, False):
+    raise SystemExit('Could not update the desktop version information.')
 desktop_app = desktop/'resources/app'
 desktop_app.mkdir(parents=True)
 for name in ('main.cjs', 'policy.cjs', 'window-state.cjs', 'view-preferences.cjs', 'budget-notifications.cjs', 'source-folders.cjs', 'recovery-folders.cjs', 'preload.cjs'):

@@ -12,7 +12,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 // One taskbar identity: the running window, a pinned button and Start shortcuts group as PLER.
 const APP_ID = 'PLER.Desktop';
-if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
+// Notifications need a Start shortcut carrying this ID and toast CLSID. A fixed CLSID matches the
+// shortcut PLER-Setup writes; otherwise Electron makes a random one each run and its own extra shortcut.
+const TOAST_CLSID = '{1322F0A3-7DC3-4840-9336-2EFD311DF888}';
+if (process.platform === 'win32') {
+  app.setAppUserModelId(APP_ID);
+  if (typeof app.setToastActivatorCLSID === 'function') app.setToastActivatorCLSID(TOAST_CLSID);
+}
 const iconFile = path.join(__dirname, 'pler.ico');
 const icon = fs.existsSync(iconFile) ? iconFile : undefined;
 
@@ -137,7 +143,13 @@ async function open(value) {
 }
 
 if (!control || !path.isAbsolute(control) || !Number.isSafeInteger(parent) || parent <= 0) {
-  app.exit(1);
+  // Started directly, e.g. from the Start shortcut Electron keeps for notifications: this window
+  // process has no private session, so hand over to the stable PLER.exe launcher and stop.
+  const launcher = process.platform === 'win32' ? launcherPath() : null;
+  if (launcher) {
+    try { require('node:child_process').spawn(launcher, [], { detached: true, stdio: 'ignore' }).unref(); } catch {}
+  }
+  app.exit(launcher ? 0 : 1);
 } else {
   fs.mkdirSync(path.join(control, 'profile'), { recursive: true });
   app.setPath('userData', path.join(control, 'profile'));
