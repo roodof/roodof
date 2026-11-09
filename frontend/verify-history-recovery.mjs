@@ -1,0 +1,60 @@
+import {chromium} from 'playwright';
+import {readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const root=fileURLToPath(new URL('../../reports/history-recovery-v1/preview/',import.meta.url));
+const startup=(await readFile(path.join(root,'access.tmp'),'utf8')).trim();
+const browser=await chromium.launch({channel:'msedge',headless:true});
+const errors=[],remote=[],results=[];
+try{
+ for(const lang of ['tr','en']){
+  const page=await browser.newPage({viewport:{width:1440,height:1080},reducedMotion:'reduce'});
+  page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).origin!==new URL(startup).origin)remote.push(new URL(r.url()).origin);});
+  const url=new URL(startup);url.searchParams.set('lang',lang);await page.goto(url.href);
+  await page.waitForFunction(()=>usageState.data?.has_snapshot&&!usageState.loading);
+  if(await page.locator('#first-use').isVisible())await page.locator('.first-use-actions .primary').click();
+  await page.locator('[data-route=settings]').click();
+  const panel=page.locator('#history-recovery');await panel.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>!document.getElementById('history-recovery').getAttribute('aria-busy')||document.getElementById('history-recovery').getAttribute('aria-busy')==='false');
+  await page.locator('#recovery-file').setInputFiles(path.join(root,'broken.zip'));
+  await page.locator('#recovery-inspect').click();await page.waitForFunction(()=>document.getElementById('recovery-status').dataset.state==='error');
+  await page.locator('#recovery-file').setInputFiles(path.join(root,'trusted-backup.zip'));
+  await page.locator('#recovery-inspect').click();await page.locator('#recovery-details').waitFor({state:'visible'});
+  await page.locator('#recovery-parent').fill(root);await page.locator('#recovery-plan').click();
+  await page.waitForFunction(()=>document.getElementById('recovery-target').textContent.includes('PLER-history-'));
+  assert.equal(await page.locator('#recovery-restore').isDisabled(),true);
+  await page.locator('#recovery-confirm').check();assert.equal(await page.locator('#recovery-restore').isDisabled(),false);
+  await page.locator('#recovery-parent').fill(path.join(root,'current'));
+  assert.equal(await page.locator('#recovery-restore').isDisabled(),true);
+  await page.locator('#recovery-plan').click();await page.waitForFunction(()=>document.getElementById('recovery-status').dataset.state==='error');
+  await page.locator('#recovery-parent').fill(root);await page.locator('#recovery-plan').click();
+  await page.waitForFunction(()=>document.getElementById('recovery-target').textContent.includes('PLER-history-'));
+  await page.locator('#recovery-confirm').check();
+  await page.locator('#recovery-file').setInputFiles(path.join(root,'broken.zip'));
+  assert.equal(await page.locator('#recovery-restore').isDisabled(),true);
+  assert.equal(await page.locator('#recovery-details').isVisible(),false);
+  await page.locator('#recovery-file').setInputFiles(path.join(root,'trusted-backup.zip'));await page.locator('#recovery-inspect').click();
+  await page.locator('#recovery-details').waitFor({state:'visible'});await page.locator('#recovery-plan').click();
+  await page.waitForFunction(()=>document.getElementById('recovery-target').textContent.includes('PLER-history-'));
+  await panel.screenshot({path:path.join(root,'review-'+lang+'.png')});
+  await page.setViewportSize({width:390,height:1000});await panel.scrollIntoViewIfNeeded();
+  const bounds=await page.evaluate(()=>{
+   const p=document.getElementById('history-recovery').getBoundingClientRect();
+   const label=document.querySelector('#history-recovery .recovery-consent').getBoundingClientRect();
+   return {overflow:document.documentElement.scrollWidth>window.innerWidth+1,label_inside:label.right<=p.right+1,checkbox:document.getElementById('recovery-confirm').getBoundingClientRect().width};
+  });assert.equal(bounds.overflow,false);assert.equal(bounds.label_inside,true);assert.equal(bounds.checkbox,14);
+  await panel.screenshot({path:path.join(root,'narrow-'+lang+'.png')});
+  await page.locator('#recovery-confirm').check();const before=await page.evaluate(()=>JSON.stringify(usageState.data.totals));
+  await page.locator('#recovery-restore').click();await page.locator('#recovery-success').waitFor({state:'visible'});
+  const after=await page.evaluate(()=>JSON.stringify(usageState.data.totals));assert.equal(before,after);
+  assert.equal(await page.locator('#recovery-open').isDisabled(),true);
+  await page.reload();await page.waitForFunction(()=>usageState.data?.has_snapshot&&!usageState.loading);
+  await page.locator('[data-route=settings]').click();await page.locator('#recovery-success').waitFor({state:'visible'});
+  results.push({lang,broken_refused:true,preview:true,explicit_confirmation:true,changed_file_and_location_guard:true,restore:true,reload_retains_result:true,current_totals_unchanged:true,browser_cannot_switch:true,...bounds});
+  await page.close();
+ }
+ assert.deepEqual(errors,[]);assert.deepEqual(remote,[]);
+ await writeFile(path.join(root,'ui-check.json'),JSON.stringify({results,script_errors:errors,external_requests:remote},null,2));
+ console.log(JSON.stringify({languages:2,widths:[1440,390],results,script_errors:errors,external_requests:remote}));
+}finally{await browser.close();}

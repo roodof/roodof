@@ -1,9 +1,9 @@
 """The usage page on http://127.0.0.1:<port>, reachable from this computer only.
 
-It serves three fixed files and a JSON view of the usage summary. No request can name a file, folder or
-command; the actions are "read the logs again", metadata settings, your own verdict, Claude plan or work links,
-prepare/check a private metadata backup and "close". An uploaded backup is checked in memory only;
-recovery into a new folder is a CLI action. Only explicitly requested/opted-in updates contact the fixed release service. Selected WSL log roots allow only the fixed
+It serves fixed assets and a JSON usage view. Authenticated actions update explicit annotations,
+manage selected source folders, and review/restore trusted backups into new local folders.
+No arbitrary command or original log write is exposed. Desktop recovery can switch history only
+after the owner drains the previous readers. Only explicitly requested/opted-in updates contact the fixed release service. Selected WSL log roots allow only the fixed
 local running-distribution status query; no Git or agent program runs.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -64,6 +64,11 @@ class Server(ThreadingHTTPServer):
         self.token = secrets.token_hex(32)
         self.access_url = self.origin + '/#access=' + self.token
         self.dashboard = dashboard or UsageDashboard()
+        from .paths import cache_folder
+        from .recovery import Manager as Recovery
+        self.recovery = Recovery(current=cache_folder(), install=self.updates.root)
+        self.desktop_switch = False
+        self.next_data_dir = None
         def update_shutdown():
             time.sleep(1.0)  # let the open page observe the authenticated restarting status
             self.shutdown()
@@ -116,6 +121,7 @@ class Server(ThreadingHTTPServer):
             self._interrupt(request)
 
     def server_close(self):
+        if hasattr(self, 'recovery'):self.recovery.close()
         if hasattr(self,'updates'):self.updates.close()
         if hasattr(self, 'dashboard'):
             self.dashboard.close()
@@ -197,6 +203,13 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(401,dict(error=say(lang,'error.read_token'),code='connection_required'));return
                 if request.query:raise ValueError(say(lang,'error.query'))
                 self._send(200,self.server.updates.view())
+            elif request.path=='/api/usage/recovery':
+                if not self._token():
+                    self._send(401,dict(ok=False,reason='connection_required'));return
+                if request.query:raise ValueError(say(lang,'error.query'))
+                result=self.server.recovery.state()
+                result.update(desktop=self.server.desktop_switch,demo=bool(self.server.dashboard.sources.get('demo')))
+                self._send(200,result)
             elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups','/api/usage/budgets','/api/usage/sources','/api/usage/diagnostics','/api/usage/reconnections'):
                 if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
@@ -278,6 +291,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._post()
         with self.server._action_lock:
             from .updates import BUSY
+            if self.server.recovery.switching:
+                if not self._local():return
+                if not self._token():
+                    self._send(403,dict(ok=False,reason='connection_required'));return
+                self._send(409,dict(ok=False,reason='busy'));return
             if self.server.updates.state in BUSY-{'checking'} and urlsplit(self.path).path not in ('/api/updates/check','/api/updates/install','/api/updates/preferences'):
                 if not self._local():return
                 if not self._token():
@@ -292,7 +310,7 @@ class Handler(BaseHTTPRequestHandler):
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
                          '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/work/details','/api/usage/work/followup','/api/usage/backup','/api/usage/backup/check','/api/usage/budgets','/api/usage/budgets/ack',
-                         '/api/usage/sources','/api/usage/reconnections','/api/quit','/api/updates/check','/api/updates/install','/api/updates/preferences'):
+                         '/api/usage/sources','/api/usage/reconnections','/api/usage/recovery','/api/usage/recovery/preview','/api/quit','/api/updates/check','/api/updates/install','/api/updates/preferences'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
@@ -301,6 +319,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route=='/api/usage/reconnections':
             self._reconnection_action()
+            return
+        if route in ('/api/usage/recovery','/api/usage/recovery/preview'):
+            self._recovery_action(route)
             return
         if route == '/api/usage/sources':
             self._source_action()
@@ -457,6 +478,53 @@ class Handler(BaseHTTPRequestHandler):
             return body
         except (UnicodeError,RecursionError,TypeError,OverflowError):
             raise ValueError() from None
+
+    def _recovery_action(self,route):
+        from .usage import backup
+        if not self.server._backup_lock.acquire(blocking=False):
+            self._send(409,dict(ok=False,reason='busy'));return
+        selected=None
+        try:
+            if self.server.dashboard.sources.get('demo'):
+                raise backup.BackupError('demo')
+            if route.endswith('/preview'):
+                sizes=self.headers.get_all('Content-Length') or []
+                if (urlsplit(self.path).query or len(sizes)!=1 or not re.fullmatch('[0-9]{1,9}',sizes[0])
+                        or self.headers.get('Transfer-Encoding') is not None
+                        or self.headers.get_content_type()!='application/octet-stream'):
+                    raise backup.BackupError('invalid')
+                size=int(sizes[0])
+                if not 0<size<=backup.MAX_BUNDLE_BYTES:raise backup.BackupError('limit')
+                raw=self.rfile.read(size)
+                if len(raw)!=size:raise backup.BackupError('invalid')
+                result=self.server.recovery.inspect(raw)
+            else:
+                body=self._annotation_json(4096)
+                action=body.get('action')
+                fields={'destination':{'ticket','expected','parent'},'restore':{'ticket','expected','confirmed'},
+                        'discard':{'ticket','expected'},'open':{'token','confirmed'},'previous':{'confirmed'}}.get(action)
+                if fields is None or set(body)!={'action',*fields}:raise backup.BackupError('invalid')
+                for key,length in (('ticket',48),('token',48),('expected',64)):
+                    if key in body and (not isinstance(body[key],str) or not re.fullmatch('[a-f0-9]{%d}'%length,body[key])):
+                        raise backup.BackupError('invalid')
+                if 'confirmed' in body and body['confirmed'] is not True:raise backup.BackupError('invalid')
+                if action in ('open','previous'):
+                    if not self.server.desktop_switch:raise backup.BackupError('desktop_required')
+                    # After the response, the owner closes every old reader and lease before reopening.
+                    selected=self.server.recovery.select(body)
+                    self.server.next_data_dir=selected
+                    result=dict(ok=True,switching=True)
+                else:
+                    result=self.server.recovery.act(body)
+            self._send(200,result)
+        except backup.BackupError as error:
+            self._send(409 if error.code in ('conflict','busy','demo','desktop_required') else 400,dict(ok=False,reason=error.code))
+        except (OSError,ValueError,TypeError,KeyError,MemoryError):
+            self._send(400,dict(ok=False,reason='invalid'))
+        finally:
+            self.server._backup_lock.release()
+            if selected is not None:
+                threading.Thread(target=self.server.shutdown,daemon=True).start()
 
     def _reconnection_action(self):
         try:

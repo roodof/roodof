@@ -1,4 +1,5 @@
 import {mountFirstUse} from './first-use.js';
+import {mountHistoryRecovery} from './history-recovery.js';
 import {mountBudgets} from './session-budgets.js';
 import {mountSourceFolders} from './source-folders.js';
 import {mountReconnections} from './session-reconnections.js';
@@ -242,6 +243,7 @@ budgetUI=mountBudgets({tr,settings:pages.settings,before:content});
 mountSourceFolders({tr,settings:pages.settings,show});
 reconnectionUI=mountReconnections({tr,settings:pages.settings,show});
 diagnosticUI=mountDiagnostics({tr,settings:pages.settings,show});
+mountHistoryRecovery({tr,settings:pages.settings,show});
 ui.subscribe(['screen'],state=>{if(state.screen!==current)show(state.screen);});
 ui.subscribe(['data','loading','readError','filters','restoring','screen','work'],(_state,topic)=>{if(topic==='work')workDirty=true;redraw();syncLoading();});
 redraw();

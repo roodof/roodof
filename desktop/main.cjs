@@ -69,6 +69,7 @@ async function open(value) {
   });
   window.setMenu(null);
   require('./source-folders.cjs').install({ ipcMain, dialog, window, origin: url.origin });
+  require('./recovery-folders.cjs').install({ ipcMain, dialog, window, origin: url.origin });
   const launcher = process.platform === 'win32' ? launcherPath() : null;
   if (launcher) {
     window.setAppDetails({ appId: APP_ID, appIconPath: icon || launcher, appIconIndex: 0,

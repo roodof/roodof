@@ -1,5 +1,12 @@
 # Changes
 
+## 0.9.13 — Uygulamadan güvenli geçmiş kurtarma (yerel aday)
+
+- Ayarlar’dan güvenilir özel yedeği incele; sayıları ve yeni hedefi gör; açık onayla ayrı klasöre kurtar. Mevcut veri üzerine yazılmaz.
+- Kurtarılan geçmişi masaüstünde aç; eski okuyucular kapandıktan sonra yeni geçmiş yüklenir. Normal masaüstü açılışı seçimi hatırlar; önceki geçmişe dönüş vardır. Açık veri klasörüyle başlayan çalıştırmalarda seçim yalnız o çalıştırmayı kapsar.
+- Bozuk yedek, eski önizleme, mevcut hedef, ağ/yönlendirilmiş konum ve onaysız işlem reddedilir. Önizleme on dakika bellekte tutulur; asıl ajan kayıtları yedekte değildir.
+- Önceki kaynak 0948eb4 / candidate/0.9.12 ile yerel kayda alındı. 400 aynı; sitedeki beta 0.9.11, temiz Windows kabulü SON.
+
 ## 0.9.12 — Kullanıcı kontrollü oturum ayarı aktarımı (yerel aday)
 
 - Ayarlar’da eski/arşivdeki oturumun iş bağlantılarını, değerlendirmesini ve bütçesini seçilen canlı oturuma önizlemeyle taşı. Çakışan değerlendirme ve eşik için açık seçim gerekir.

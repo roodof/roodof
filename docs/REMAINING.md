@@ -20,7 +20,12 @@ Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:
 | R01 / 7 | Site, indirme, README, yardım ve güncelleme bilgisini tek masaüstü yayınında hizala | Frontend + backend + girişimci | Aynı sürüm, güncel gerçek görüntüler, desteklenen platform/kapsam, doğru paket/hash/kanal ve anlaşılır indirme yolu. Mevcut yayın kullanıcı izni olmadan değiştirilmez. | 0.9.11 ile site/indirme/README/yardım eşitlendi ve canlı doğrulandı; Q01 ayrı |
 | R02 / 7 | Ürün lisansı, dağıtım koşulları ve Windows yayıncı imzası kararı | Girişimci + backend | Seçilmiş PLER/destek kimliği korunur; imzalı güncelleme manifesti ile Authenticode ayrı ele alınır. Lisans ve imza kararı kullanıcıyla kesinleşir. | Karar bekliyor |
 | N01 / uygulandı | Oturum bazlı token / dolar bütçe uyarısı | Frontend + backend + girişimci | Kullanıcı uygulamayı onayladı. 80/100 uyarıları, kalıcı tercih, bağımsız izleme ve yerel masaüstü bildirimi; sınırlar aşağıda. | 0.9.5 yerel adayda tamamlandı; SON kabul açık |
+| N02 / uygulandı | Uygulamadan yedek kurtarma ve masaüstü geçmiş seçimi | Frontend + backend | Güvenilir dosyayı incele, yeni konumu gör, açık onayla ayrı klasöre kurtar; masaüstünde aç ve önceki geçmişe dön. Normal açılış seçimi hatırlar; özel veri klasörü kapsamı korunur. | 0.9.13 yerel adayda uygulandı; kaynak kayıtları yerel Git’te; Q01/SON açık |
 | Q01 / SON | Son sabit paketin temiz Windows kabulü; ardından genel yayın kararı | Frontend + backend + girişimci | Açılış, kaynak okuma, klavye, kayıt/geri yükleme, güncelleme/geri dönüş, kapanış ve kaldırma aynı son adayda doğrulanır. | Kullanıcı isteğiyle SON görev, bekliyor |
+
+## 0.9.13 — Kaynak kaydı ve uygulamadan kurtarma
+
+Kullanıcı profesyonel değerlendirmedeki sırayı kabul etti. 0.9.12 kaynakları 0948eb4 ve candidate/0.9.12 ile yerel kayda alındı; push/yayın yapılmadı. 0.9.13 Ayarlar’da güvenilir özel yedeği inceleme, yeni konum planı, açık onayla ayrı klasöre kurtarma ve masaüstünde geçmiş değiştirmeyi ekler. Normal masaüstü seçimi hatırlanır; önceki geçmişe dönüş vardır. Özel veri klasörüyle başlayan çalıştırmanın kapsamı korunur. [Sözleşme](HISTORY-RECOVERY.md), [geliştirici kanıtı](../../reports/history-recovery-v1/REPORT.md). Lisans/Authenticode kararı R02, gerçek kullanıcı E01 ve temiz Windows/gerçek ajan kabulü Q01/SON açık. 400 değişmedi; public beta 0.9.11.
 
 ## 0.9.12 — Taşınan oturumun ayarlarını yeniden bağlama (yerel aday)
 

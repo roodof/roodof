@@ -16,6 +16,7 @@ No model is called and logs are only read. Optional updates contact the release 
 import argparse
 import os
 import sys
+import time
 import webbrowser
 
 from . import __version__
@@ -25,6 +26,38 @@ PORT = 8765
 
 
 def serve(port=PORT, browser=True, lang='en', dashboard=None, desktop=False):
+    if not desktop:
+        return _serve_once(port, browser, lang, dashboard, desktop)[0]
+    from . import desktop_profiles
+    from .paths import cache_folder
+    previous_env = os.environ.get('PLER_CACHE_DIR')
+    anchor = cache_folder() if previous_env is None and dashboard is None else None
+    previous, issue = None, None
+    if anchor is not None:
+        try:
+            choice = desktop_profiles.read(anchor)
+            if choice:
+                os.environ['PLER_CACHE_DIR'] = str(desktop_profiles.folder(choice['selected']))
+                previous = choice['previous']
+        except (OSError, ValueError):
+            issue = 'selection_unavailable'
+    try:
+        while True:
+            current = cache_folder()
+            result, selected = _serve_once(port, browser, lang, dashboard, desktop,
+                                          (anchor, previous, issue))
+            if selected is None:
+                return result
+            os.environ['PLER_CACHE_DIR'] = str(selected)
+            previous, issue, dashboard = current, None, None
+    finally:
+        if previous_env is None:
+            os.environ.pop('PLER_CACHE_DIR', None)
+        else:
+            os.environ['PLER_CACHE_DIR'] = previous_env
+
+
+def _serve_once(port, browser, lang, dashboard, desktop, profile=None):
     from .server import Server
     from .updates import UpdateError
     try:
@@ -33,7 +66,10 @@ def serve(port=PORT, browser=True, lang='en', dashboard=None, desktop=False):
         except OSError:  # a port already in use does not change the selected data or installation
             server = Server(0, dashboard)
     except UpdateError:
-        print(say(lang,'error.update_busy'),file=sys.stderr);return 1
+        print(say(lang,'error.update_busy'),file=sys.stderr);return 1, None
+    server.desktop_switch = desktop
+    if profile:
+        server.recovery.anchor, server.recovery.previous, server.recovery.issue = profile
     if not desktop:
         print(say(lang, 'cli.open', server.access_url), flush=True)
     window = []
@@ -59,10 +95,29 @@ def serve(port=PORT, browser=True, lang='en', dashboard=None, desktop=False):
             instance.close()
         server.dashboard.close(timeout=0)
         server.server_close()
+    if server.next_data_dir is not None:
+        # Folder selection is process-wide: no old request or reader may survive it.
+        deadline = time.monotonic() + 8
+        stopped = server.dashboard.close(timeout=4)
+        for monitor in (server.dashboard.budgets, server.dashboard.demo_budgets):
+            thread = monitor.thread
+            if thread is not None:
+                thread.join(max(0, deadline-time.monotonic()))
+                stopped = stopped and not thread.is_alive()
+        pending = True
+        while time.monotonic() < deadline:
+            with server._requests_lock:
+                pending = bool(server._requests)
+            if not pending:break
+            time.sleep(.05)
+        if not stopped or pending:
+            print('PLER is still closing its readers. Reopen the desktop app to use the selected history.',file=sys.stderr)
+            return 1, None
     print(say(lang, 'cli.closed'))
     if desktop_errors:
         print('The PLER desktop window stopped unexpectedly. Reopen the complete desktop package.', file=sys.stderr)
-        return 1
+        return 1, None
+    return None, server.next_data_dir
 
 
 def main(argv=None):
