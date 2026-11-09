@@ -32,6 +32,7 @@ FILENAME='metadata-archive.json'
 GENERATION='metadata-archive-generation.json'
 LOCKFILE='metadata-archive.lock'
 _LOCK=threading.RLock()
+_HELD=threading.local()
 _WORD=re.compile(r'^[\w./:+<>@-]{1,256}$',re.ASCII)
 _REASONS={'MalformedRows','ReadLimitExceeded','PermissionError','FileNotFoundError','OSError','UnicodeError','ValueError',
           'RuntimeError','InconsistentReasoning'}
@@ -291,6 +292,11 @@ def _locked(base):
     with _LOCK:
         path=cache_file(LOCKFILE,base)
         if path is None: raise OSError('unsafe archive')
+        held=getattr(_HELD,'bases',None)
+        if held is None:held=set();_HELD.bases=held
+        if path.parent in held:
+            yield
+            return
         path.parent.mkdir(parents=True,exist_ok=True)
         if cache_file(path.name,path.parent)!=path: raise OSError('unsafe archive')
         with open(str(path),'a+b') as stream:
@@ -311,8 +317,14 @@ def _locked(base):
                 except OSError:
                     if time.monotonic()>=deadline: raise
                     time.sleep(.01)
-            try: yield
-            finally: release()
+            held.add(path.parent)
+            try:
+                from .reconnections import recover_locked
+                recover_locked(path.parent)
+                yield
+            finally:
+                held.remove(path.parent)
+                release()
 
 
 def _identity(agent,path):

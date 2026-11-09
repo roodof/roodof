@@ -27,9 +27,15 @@ def roots(skipped=None, access=None, manifest=None):
                              explicit=bool(os.environ.get('CODEX_HOME')),manifest=manifest)
 
 
-def files(folders=None, skipped=None, access=None, manifest=None):
+def files(folders=None, skipped=None, access=None, manifest=None, extra=()):
     access=access if access is not None else discovery.WslRoots()
-    return discovery.files(roots(skipped,access,manifest) if folders is None else folders,
+    selected = list(roots(skipped,access,manifest) if folders is None else folders)
+    if folders is None:
+        for root in extra:
+            if manifest is not None: manifest.select(root)
+            safe = discovery.chosen(root,skipped,access,explicit=True)
+            if safe is not None: selected.append(safe)
+    return discovery.files(discovery.unique(selected),
                            lambda name:name.startswith('rollout-') and name.endswith(('.jsonl','.jsonl.zst')),
                            skipped,access,explicit=folders is not None,manifest=manifest)
 

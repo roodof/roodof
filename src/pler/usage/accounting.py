@@ -67,6 +67,8 @@ def owner(candidates):
         if session is chosen: continue  # its own evidence is already there; skipping keeps this linear
         for source,state in getattr(session,'_sources',{}).items():
             chosen.source_evidence(source,**state)
+        chosen._live_covered_archives = (getattr(chosen, '_live_covered_archives', set())
+                                        | getattr(session, '_live_covered_archives', set()))
     if len(unique) > 1:
         for session in unique.values():
             session.attribution_complete = False

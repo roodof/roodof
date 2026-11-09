@@ -2,8 +2,8 @@
 
 Text is explicit private user input, never inferred or copied from an agent transcript.
 Readers add no native source path, provider identity or conversation content to these annotations.
-A link names the same source-sensitive page session code as
-verdicts.py: a moved/unavailable session remains an unresolved link, never an automatic reassignment.
+A link names the same annotation code as verdicts.py. A verified physical move keeps that code;
+an unavailable/unverified source remains unresolved, never reassigned by provider ID alone.
 """
 import copy
 import hashlib
@@ -186,6 +186,12 @@ def _signature(info):
 
 
 def _read(path, memo=None):
+    if path is None:raise OSError('unsafe work items')
+    with archive._locked(path.parent):
+        return _read_unlocked(path,memo)
+
+
+def _read_unlocked(path, memo=None):
     """The validated items. `memo` (a dict) keeps the last bytes and their validated copy: the page reads the file
     on every request, and validating up to 2 MiB of entries costs far more than reading and comparing them."""
     if path is None or cache_file(path.name, path.parent) != path:

@@ -41,7 +41,7 @@ function page(data=snapshot(),lang='en',restore){
   elements['usage-session-dialog'].append(elements['usage-session-detail']);
   let resolve,reject;const reply=new Promise((yes,no)=>{resolve=yes;reject=no;});
   const state={data,stopped:false,loading:false,workRestore:restore},p={elements,state,requests,messages,opened,inspected,runs,getRequests,resolve,reject,reloads:0,nextData:null,Element};
-  const context=vm.createContext({usageState:state,$:id=>elements[id],document,node,number:String,usageUsd:value=>'$'+value,usagePct:value=>value*100+'%',usageAgents:{codex:'Codex','claude-code':'Claude Code'},
+  const context=vm.createContext({usageState:state,usageUI:require('../src/pler/web/ui-state.js').create(),$:id=>elements[id],document,node,number:String,usageUsd:value=>'$'+value,usagePct:value=>value*100+'%',usageAgents:{codex:'Codex','claude-code':'Claude Code'},
     t:(key,values={})=>String(words[lang][key]??words.en[key]).replace(/\{(\w+)\}/g,(all,name)=>name in values?values[name]:all),notice:value=>messages.push(value),
     LANG:lang,URLSearchParams,usageDate:value=>value,syncArchiveButton:()=>{},syncExportButton:()=>{},openUsageSession:row=>opened.push(row.id),inspectUsageSession:id=>inspected.push(id),
     api:route=>{getRequests.push(route);return p.getReply||Promise.resolve(p.followData||followView());},

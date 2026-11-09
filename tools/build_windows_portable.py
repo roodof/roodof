@@ -96,7 +96,7 @@ shutil.copytree(desktop_source, desktop, ignore=shutil.ignore_patterns('default_
 (desktop/'electron.exe').rename(desktop/'PLER-Desktop.exe')
 desktop_app = desktop/'resources/app'
 desktop_app.mkdir(parents=True)
-for name in ('main.cjs', 'policy.cjs', 'window-state.cjs', 'view-preferences.cjs'):
+for name in ('main.cjs', 'policy.cjs', 'window-state.cjs', 'view-preferences.cjs', 'budget-notifications.cjs', 'source-folders.cjs', 'preload.cjs'):
     shutil.copy2(PRODUCT/'desktop'/name, desktop_app/name)
 # Window, taskbar and pinned-shortcut icon; the same file is compiled into PLER.exe below.
 shutil.copy2(PRODUCT/'assets/icon/pler.ico', desktop_app/'pler.ico')

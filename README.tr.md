@@ -11,15 +11,19 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Yerel masaüstü adayı 0.8.0, yayımlanmadı:** PLER.exe ve demo kendi masaüstü penceresinde
-açılır. Electron/Python pakete dahildir; tarayıcı/WebView kurulumu gerekmez. Pencere kapanınca
-arka plan işlemi durur. Site hâlâ tarayıcılı 0.2.31 dağıtır. Verilen yeni ZIP'i ayrı klasöre
-çıkarın; güncelleyici 1→2 ilk geçişi elle yapılır. Mevcut veri klasörü korunur.
-Terminal/wheel tarayıcı girişi devam eder. [Teslim sırası ve son test](docs/DESKTOP.md).
+**Yerel aday 0.9.12:** Ayarlar → Taşınan oturumun ayarlarını yeniden bağla bölümünde eski/arşivdeki kaydın iş bağlantıları, değerlendirmen ve eşiği seçilen canlı oturuma önizlemeyle taşınır. Çakışmaları açıkça seçersin; koşullu geri alma sonraki bağımsız düzenlemeleri korur. Oturum kimliği ve kullanım değişmez. Sitedeki ücretsiz beta 0.9.11 kalır. Önce eski PLER pencerelerini kapat. [Kapsam ve kurtarma](docs/RECONNECTIONS.md).
 
-[PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 paketini indir, ZIP dosyasının tamamını klasöre çıkar ve `PLER.exe` dosyasını aç. Python pakete dahildir. `PLER-Demo.cmd` yalnız uydurma kayıtları açar; kendi seçili yerel kayıtların için demoyu kapatıp `PLER.exe` dosyasını aç. `PLER.cmd` terminal girişidir.
 
-İlk iş grubunu oluşturmak, boş kayıt durumunu anlamak, gizlilik, kaldırma ve yerel veri saklama için uygulamadaki **Yardım** bölümünü aç. Destek: plersolutions1st@gmail.com. Beta imzasızdır; temiz makine kabulü açıktır. Windows taşınabilir 0.2.31 paketi **Güncellemeler → Güncellemeleri kontrol et → İndir ve güncelle** akışını; imzalı sürüm doğrulaması, özel yedek ve güvenli yeniden açılışla ekler. Açılışta kontrol, sen seçene kadar kapalıdır. 0.2.30 ve öncesinden ilk geçiş elle yapılır; Python wheel/macOS/Linux kurulumları bu güncelleyiciyle değiştirilmez. Ayrıntı: [UPDATES.md](docs/UPDATES.md).
+**Ücretsiz Windows masaüstü betası 0.9.11.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
+
+1. Önce uydurma kayıtları incelemek için `PLER-Demo.cmd` dosyasını aç. Kendi kayıtlarını `PLER.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
+2. PLER yerel Claude Code veya Codex kayıtlarını bulunca **Oturumları aç** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
+3. **İşlerim** bölümünde adlandırılmış bir iş oluştur, oturum ayrıntısından bu işe bağla. Toplam bağlı oturumların tamamını kapsar; görevin kesin maliyeti değildir.
+4. Oturum ayrıntısında isteğe bağlı token veya API liste fiyatı karşılığı bütçe koy. PLER çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
+
+**0.2.31 veya öncesinden geçiş:** eski uygulamayı kapat, masaüstü ZIP paketini yeni bir klasöre çıkar. Eski tarayıcı sürümünün güncelleyicisi masaüstüne geçişi kuramaz. Denetlenmiş özel yedeğini koru; kayıtlı PLER verisi uygulama klasöründen ayrı kalır. Masaüstü güncelleyici biçimi 2, gelecekteki uyumlu sürümler için korunur.
+
+Beta ücretsizdir; PLER hesabı veya ödeme kaydı gerekmez. Türkçe ve İngilizce yardım pakete dahildir. Destek: plersolutions1st@gmail.com. Çalıştırılabilir dosya imzasızdır; temiz Windows ve gerçek kullanıcı kabulü en sondaki açık görevdir. [Masaüstü kapsamı](docs/DESKTOP.md) · [Güncelleme ayrıntıları](docs/UPDATES.md).
 
 ## Kurulum
 

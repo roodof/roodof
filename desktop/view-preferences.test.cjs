@@ -14,3 +14,9 @@ test('corrupt, future and oversized preferences fall back to usable defaults',()
   const value=normalizeView(raw);assert.equal(value.screen,'sessions');assert.equal(value.filters.days,'30');assert.equal(value.filters.project,'all');assert.deepEqual(value.columns,[]);
  }
 });
+
+test('first-use completion is a strict boolean and survives normalization',()=>{
+ assert.equal(normalizeView({...wanted,setupDone:true}).setupDone,true);
+ assert.equal(normalizeView({...wanted,setupDone:'true'}).setupDone,undefined);
+ assert.equal(normalizeView(normalizeView({...wanted,setupDone:true})).setupDone,true);
+});

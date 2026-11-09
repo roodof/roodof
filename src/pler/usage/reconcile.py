@@ -99,6 +99,20 @@ def _superseded(rows,live):
     return own is not None and any(found is not None and own[0]<=found[0] and own[1]<=found[1] for found in live)
 
 
+def _budget_evidence(rows):
+    """Coverage for alerts must also preserve each response's price/model attribution."""
+    proof = _evidence(rows)
+    if proof is None: return None
+    found, model = set(proof[1]), None
+    for row in rows:
+        payload = row.get('payload') if isinstance(row.get('payload'), dict) else {}
+        if row.get('type') == 'turn_context' and isinstance(payload.get('model'), str):
+            model = payload['model']
+        elif row.get('type') == 'token_usage_record' and isinstance(payload.get('usage'), dict):
+            found.add(('budget_model', payload.get('response_id'), model))
+    return proof[0], found
+
+
 def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
     sessions,streams,issues,projects = {},[],[],defaultdict(set)
     live_streams=[]
@@ -200,6 +214,21 @@ def codex_sessions(paths,cache,reader,decode,access=None,archive=None):
             session.seen(timestamp(meta.get('timestamp')))
         streams.append((path,session,rows))
         if not archived: live_streams.append((path,session,rows))
+    # Annotation/budget provenance only: keep accounting and archive reporting unchanged.
+    # A complete identified archive copy can be covered by a currently read live file.
+    live_names = {str(path) for path, _, _ in live_streams}
+    archived_streams = [(path, session, rows) for path, session, rows in streams if str(path) not in live_names]
+    if archived_streams:
+        live_proofs = defaultdict(list)
+        for _, _, rows in live_streams:
+            proof = _budget_evidence(rows)
+            if proof is not None:
+                for identity in proof[0]: live_proofs[identity].append(proof)
+        for path, session, rows in archived_streams:
+            own = _budget_evidence(rows)
+            if (own is not None and not any(row.get('type') in ('pler_incomplete_log','pler_archive_ambiguous') for row in rows)
+                    and any(own[0] <= p[0] and own[1] <= p[1] for p in live_proofs.get(next(iter(own[0])), ()))):
+                session._live_covered_archives = getattr(session, '_live_covered_archives', set()) | {str(path)}
     for identity,session in sessions.items():
         # Subagent threads of one Codex session share its session_id and name the root or a sibling
         # thread as parent. That lineage stays inside the merged session; only outside parents count.

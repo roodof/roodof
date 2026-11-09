@@ -28,9 +28,15 @@ def roots(skipped=None, access=None, manifest=None):
     return discovery.folders(bases,('projects',),skipped,access,explicit=bool(configured),manifest=manifest)
 
 
-def files(folders=None, skipped=None, access=None, manifest=None):
+def files(folders=None, skipped=None, access=None, manifest=None, extra=()):
     access=access if access is not None else discovery.WslRoots()
-    return discovery.files(roots(skipped,access,manifest) if folders is None else folders,
+    selected = list(roots(skipped,access,manifest) if folders is None else folders)
+    if folders is None:
+        for root in extra:
+            if manifest is not None: manifest.select(root)
+            safe = discovery.chosen(root,skipped,access,explicit=True)
+            if safe is not None: selected.append(safe)
+    return discovery.files(discovery.unique(selected),
                            lambda name:name.endswith('.jsonl'),skipped,access,explicit=folders is not None,manifest=manifest)
 
 
@@ -233,6 +239,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
     """Merge copies before attribution; source order never determines a project's usage."""
     from collections import defaultdict
     sessions, replies, prompts, answers = {}, defaultdict(list), defaultdict(list), {}
+    archive_coverage = {}
     projects, branches, source_paths = defaultdict(set), defaultdict(set), defaultdict(set)
     if access is not None: access.read_phase()
     live=discovery.unique(paths)
@@ -288,6 +295,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
         affected,name,current=[],str(path),None
         for index,row in enumerate(rows):
             if row.get('type')=='pler_file_issue':
+                archive_coverage[str(path)] = False
                 note_file_issue(skipped,path,row['reason'])
                 for session in affected:
                     session.tokens_complete=False;session.issues.add('invalid_records')
@@ -311,6 +319,7 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             if kind=='user' and isinstance(row.get('results'),list):
                 for result in row['results']: answers.setdefault(result['id'],result['error'])
             if kind=='pler_archive_ambiguous':
+                archive_coverage[name] = False
                 session.tokens_complete=False;session.calls_complete=False;session.counts_complete=False
                 session.issues.update(('archive_unverified','unidentified_records'))
             elif kind=='cost-state' and type(row.get('totalCostUSD')) in (int,float):
@@ -324,13 +333,19 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
                 message=row['message']
                 key=(message.get('id'),row.get('requestId'))
                 if any(v is not None and not isinstance(v,str) for v in key):
+                    archive_coverage[name] = False
                     note_file_issue(skipped,path,'MalformedRows');session.tokens_complete=False;continue
                 if key==(None,None):
                     key=('anonymous',str(path),index)
                     session.calls_complete=False;session.tokens_complete=False;session.issues.add('unidentified_records')
                 usage=message.get('usage')
                 tokens=_tokens(usage) if usage and message.get('model')!='<synthetic>' else None
+                is_archive = getattr(session, '_sources', {}).get(name, {}).get('state') == 'archive'
+                if is_archive:
+                    archive_coverage.setdefault(name, True)
+                    if tokens is None or key[0] == 'anonymous': archive_coverage[name] = False
                 replies[key].append(dict(session=session,message=message,row=row,at=moment,tokens=tokens,path=str(path),index=index,
+                                         archived=is_archive,
                                          usage_at=event_time(row.get('timestamp'))))
     for identity,session in sessions.items():
         accounting.metadata(session,projects[identity],branches[identity])
@@ -350,6 +365,14 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
         join(values)
         accounting.owner(values).prompts+=1
     for copies in replies.values():
+        if any(c['archived'] for c in copies):
+            def proof(c):
+                return accounting.fingerprint([c['message'].get('model'), c['message'].get('usage'),
+                                               c['tokens'], bool(c['row'].get('isApiErrorMessage'))])
+            witnesses = {proof(c) for c in copies if not c['archived'] and c['tokens'] is not None}
+            for c in copies:
+                if c['archived'] and (c['tokens'] is None or proof(c) not in witnesses):
+                    archive_coverage[c['path']] = False
         join([copy['session'] for copy in copies])
         target=accounting.owner([c['session'] for c in copies])
         target.errors+=any(c['row'].get('isApiErrorMessage') for c in copies)
@@ -429,5 +452,8 @@ def read(paths, skipped=None, cache=None, access=None, archive=None):
             return len(parts)>1 and parts[-2]=='subagents' and parts[-1].startswith('agent-')
         return all(child(value) for value in sources)
     main_groups={root(identity) for identity,session in sessions.items() if not subagent_only(session)}
+    covered = {path for path, complete in archive_coverage.items() if complete}
+    for session in sessions.values():
+        session._live_covered_archives = set(getattr(session, '_sources', {})) & covered
     accounting.history_groups(sessions,root,(identity for identity in sessions if root(identity) not in main_groups))
     return [s for s in sessions.values() if s.calls or s.prompts or s.errors]

@@ -28,6 +28,10 @@ from .usage.period_usage import analyze as dated_usage
 from .usage.timeline import hourly as hourly_usage
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
+from .usage.identities import IdentityError
+from .usage.sources import SourceError
+from . import diagnostics
+from .usage.input_limits import ReadLimitExceeded
 from .usage import work_items as work_rules
 from .usage import plans as plan_rules
 from .usage import followups as followup_rules
@@ -57,6 +61,8 @@ def _iso(value):
 
 def _notes(session, lang):
     notes = []
+    if getattr(session, '_pler_identity_state', None) in ('unverified', 'conflict'):
+        notes.append(say(lang, 'identity.unverified'))
     if any(n.startswith('Older Codex log:') for n in session.notes):
         notes.append(say(lang, 'note.older_codex'))
     if any(n.startswith('codex-auto-review') for n in session.notes):
@@ -153,15 +159,17 @@ def _git_insight(outcome, lang, usage_complete):
                  evidence=outcome)]
 
 
-def session_view(session, lang='en', git=None, project_names=None, verdicts=None, titles=None):
+def session_view(session, lang='en', git=None, project_names=None, verdicts=None, titles=None, title_status=None):
     inputs = sum(session.tokens[k] for k in ('input', 'cache_read', 'cache_write'))
     span = (session.ended - session.started).total_seconds() if session.started and session.ended else None
     active = session.active_ms
-    # Forked/copied logs can carry the same provider session ID. The visible
-    # code identifies the row's source too, without disclosing either value.
+    # Initially source-sensitive; a verified physical move retains the original code.
+    # Provider IDs alone never reassign the user's annotations.
     code = session_code(session)
     return dict(id=code, agent=session.agent, verdict=(verdicts or {}).get(code),
                 title=(titles or {}).get(code),
+                title_info=diagnostics.title_info((title_status or {}).get(code), (titles or {}).get(code), lang),
+                identity_state=getattr(session, '_pler_identity_state', 'original'),
                 project_id=_id('project', session.project), project=(project_names or {}).get(session.project,_project(session.project, lang)),
                 started=_iso(session.started), ended=_iso(session.ended),
                 span_seconds=span if span is not None and span >= 0 else None,
@@ -253,7 +261,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                      'archive_files','old_parser_files','unverified_files','evicted_files','errors')}
     archive_public['sessions']=sum(getattr(s,'source_state','live')!='live' for s in rows)
     verdicts=sources.get('verdicts') or {}
-    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts,sources.get('session_titles')) for s in rows),
+    public_sessions=sorted((session_view(s,lang,_git_for(s,sources),project_names,verdicts,sources.get('session_titles'),sources.get('title_status')) for s in rows),
                            key=lambda row:(row['total_tokens'],row['ended'] or ''),reverse=True)
     # Work subtotals round only after summing the original recorded price values.
     # The ordinary session row's display amount is already rounded to cents.
@@ -270,6 +278,7 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 totals=summary['totals'], agents=summary['agents'], models=summary['models'], projects=projects,
                 project_options=[dict(id=key, name=name) for key, name in options],
                 sessions=public_sessions,
+                identity=sources.get('identity') or dict(state='not_tracked',preserved=0,unverified=0,conflicts=0,limit_reached=False),
                 quota=account_quota, claude_limit_events=summary['claude_limit_events'],
                 outlook=windows, insights=find_insights(rows, windows, since, lang=lang,
                     usage_complete=trust['tokens_complete'] and trust['attribution_complete'])
@@ -283,14 +292,19 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
                 quality_affected_sessions=sum(affected(s['quality']) for s in public_sessions),
                 claude_statusline=bool(sources.get('claude_quota')),
                 unknown_call_sessions=sum(not s.calls_complete or any(n.startswith('Older Codex log:') for n in s.notes) for s in rows),
+                setup=dict(sessions=len(sessions), projects=len({s.project for s in sessions}),
+                           agents=[dict(agent=key, sessions=sum(s.agent==key for s in sessions),
+                                        files=sources.get('claude_files' if key=='claude-code' else 'codex_files',0))
+                                   for key in AGENTS]),
                 sources=dict(claude_files=sources.get('claude_files', 0), codex_files=sources.get('codex_files', 0),
                              unreadable=len(skipped), issues=[dict(reason=reason, files=count) for reason, count in reasons.items()]),
                 privacy=say(lang, 'privacy'), scope=say(lang, 'scope'))
 
 
 class UsageDashboard:
-    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None, work_items=None, plan_choice=None):
+    def __init__(self, reader=None, git_reader=None, verdicts=None, survival=None, work_items=None, plan_choice=None, budgets=None, manage_sources=True):
         self.reader = reader or Rescan()
+        self.manage_sources = manage_sources
         self.verdict_store = verdicts or Folder()
         self.work_store = work_items if work_items is not None else work_rules.Folder()
         self.plan_store = plan_choice if plan_choice is not None else plan_rules.Choice()
@@ -303,12 +317,164 @@ class UsageDashboard:
         self.state = 'idle'
         self.scanned_at = None
         self.error = None
+        self.failure_code = None
         self.thread = None
         self.generation = 0
         self._pending = None
         self._cancel = None
         self._worker_running = False
         self._closed = False
+        from .usage.budgets import Monitor, Store
+        self.budgets = Monitor(budgets)
+        self.demo_budgets = Monitor(Store(memory=True))
+        from .usage.reconnections import Store as ReconnectionStore
+        self.reconnections = (ReconnectionStore(self.work_store.base)
+            if isinstance(self.work_store,work_rules.Folder) and isinstance(self.verdict_store,Folder)
+            and not self.budgets.store.memory and self.work_store.base==self.verdict_store.base==self.budgets.store.base else None)
+        self._reconnect_seen=None
+
+    def _sync_reconnections(self):
+        if self.reconnections is None or self.sources.get('demo'):return
+        if self.reconnections.stamp()!=self._reconnect_seen:
+            state=self.reconnections.state()
+            self.sources.update(work_items=state['documents']['work-items.json'],work_items_error=False,
+                verdicts={k:v['verdict'] for k,v in state['documents']['session-verdicts.json'].items()},verdicts_error=False)
+            self._reconnect_seen=state['record']['id'] if state['record'] else None
+
+    def _reconnect_selection(self,source,target):
+        from .usage.reconnections import ReconnectError
+        if self.state!='ready' or self.scanned_at is None or self._closed:raise ReconnectError('unavailable')
+        if source==target:raise ReconnectError('invalid')
+        old=next((s for s in self.sessions if session_code(s)==source),None)
+        new=next((s for s in self.sessions if session_code(s)==target),None)
+        if old and old.source_state!='archive':raise ReconnectError('source_live')
+        if new is None or new.source_state not in ('live','mixed'):raise ReconnectError('target_missing')
+        if old and old.agent!=new.agent:raise ReconnectError('agent_mismatch')
+        return old,new
+
+    def _reconnect_row(self,row,lang):
+        if row is None:return None
+        return dict(id=session_code(row),agent=row.agent,title=(self.sources.get('session_titles') or {}).get(session_code(row)),
+                    project=labels([row.project],lang=lang).get(row.project,_project(row.project,lang)),
+                    started=_iso(row.started),source_state=row.source_state,total_tokens=total(row.tokens))
+
+    def reconnect_view(self,kind='sources',query='',offset=0,lang='en',source=None):
+        from .usage import reconnections as rules
+        with self.lock:
+            if self.sources.get('demo'):return dict(ok=True,readable=True,demo=True,items=[],total=0,can_undo=False)
+            if self.reconnections is None:return dict(ok=False,readable=False,reason='unavailable',items=[])
+            try:
+                self._sync_reconnections();state=self.reconnections.state()
+                record=state['record'];refs=rules.inventory(state['documents'])
+                by_code={session_code(row):row for row in self.sessions}
+                items=[];needle=query.casefold()
+                if kind=='sources':
+                    for code,info in refs.items():
+                        row=by_code.get(code)
+                        if row is not None and row.source_state!='archive':continue
+                        item=dict(self._reconnect_row(row,lang) or dict(id=code,agent=None,title=None,project=None,started=None,source_state='missing',total_tokens=None),**info)
+                        if not needle or needle in ' '.join([code,item['title'] or '',item['project'] or '',*(w['title'] for w in info['works'])]).casefold():items.append(item)
+                    items.sort(key=lambda row:row['id'])
+                elif kind=='targets':
+                    old=by_code.get(source)
+                    for row in self.sessions:
+                        if row.source_state not in ('live','mixed') or session_code(row)==source or old and old.agent!=row.agent:continue
+                        item=self._reconnect_row(row,lang)
+                        if not needle or needle in ' '.join([item['id'],item['agent'],item['title'] or '',item['project'] or '']).casefold():items.append(item)
+                    items.sort(key=lambda row:(row['started'] or '',row['id']),reverse=True)
+                elif kind!='state':raise rules.ReconnectError('invalid')
+                latest=None if record is None else {k:record[k] for k in ('id','kind','at','source','target','summary')}
+                return dict(ok=True,readable=True,demo=False,revision=state['revision'],items=items[offset:offset+20],
+                    total=len(items),offset=offset,limit=20,latest=latest,can_undo=state['can_undo'],
+                    ready=self.state=='ready' and self.scanned_at is not None,new_model_calls=0)
+            except (OSError,ValueError,TypeError,UnicodeError):return dict(ok=False,readable=False,reason='unreadable',items=[])
+
+    def reconnect_action(self,body,lang='en'):
+        from .usage import reconnections as rules
+        with self.lock:
+            if self.sources.get('demo'):return dict(ok=False,reason='demo')
+            if self.reconnections is None:return dict(ok=False,reason='unavailable')
+            try:
+                action=body['action'];state=self.reconnections.state()
+                if action in ('undo','clear'):
+                    self.reconnections.change(body['expected'],action=action)
+                else:
+                    source,target=body['source'],body['target'];old,new=self._reconnect_selection(source,target)
+                    refs=rules.inventory(state['documents'])
+                    if source not in refs:raise rules.ReconnectError('missing')
+                    expected=rules.digest([state['revision'],self.generation,self.scanned_at,source,target])
+                    if action=='preview':
+                        old_info=refs[source];new_info=refs.get(target,dict(works=[],verdict=None,budget=None))
+                        return dict(ok=True,expected=expected,source=dict(self._reconnect_row(old,lang) or dict(id=source,agent=None,title=None,project=None,source_state='missing'),**old_info),
+                            target=dict(self._reconnect_row(new,lang),**new_info),snapshot_at=self.scanned_at,
+                            verdict_conflict=bool(old_info['verdict'] and new_info['verdict'] and old_info['verdict']!=new_info['verdict']),
+                            budget_conflict=bool(old_info['budget'] and new_info['budget']))
+                    if action!='transfer' or body.get('confirmed') is not True:raise rules.ReconnectError('invalid')
+                    if body['expected']!=expected:raise rules.ReconnectError('conflict')
+                    self.reconnections.change(state['revision'],source,target,body.get('verdict_choice',''),body.get('budget_choice',''),
+                        check=lambda:self._reconnect_selection(source,target))
+                self._sync_reconnections()
+                # Outside the filesystem lock: the monitor takes its own lock before reading preferences.
+                self.budget_monitor().bind(self.sessions,demo=False)
+                return dict(ok=True,**{k:v for k,v in self.reconnect_view('state',lang=lang).items() if k!='ok'})
+            except rules.ReconnectError as error:return dict(ok=False,reason=error.reason)
+            except (OSError,ValueError,TypeError,UnicodeError,KeyError):return dict(ok=False,reason='unreadable')
+
+    def source_view(self):
+        from .usage import sources
+        with self.lock:
+            return sources.view(demo=not self.manage_sources or bool(self.sources.get('demo')))
+
+    def diagnostic_view(self, lang='en'):
+        with self.lock:
+            return diagnostics.view(self.sources, self.state, self.scanned_at, self.failure_code, lang)
+
+    def source_action(self, body):
+        from .usage import sources
+        with self.lock:
+            if not self.manage_sources or self.sources.get('demo'):
+                return dict(ok=False, reason='demo')
+        try:
+            action = body['action']
+            if action in ('check', 'add'):
+                checked = sources.check(body['agent'], body['path'])
+                if action == 'check':
+                    return checked
+                sources.Store().change(body['expected'], body['agent'], checked['roots'])
+            else:
+                sources.Store().change(body['expected'], remove=body['id'])
+            with self.lock:
+                # Stop watches on old bindings immediately; refresh publishes only selected sources.
+                self.budgets.bind([])
+                self.refresh(force=True)
+            return dict(ok=True, state='scanning', **self.source_view())
+        except sources.SourceError as error:
+            return dict(ok=False, reason=error.reason)
+        except (OSError, ValueError):
+            return dict(ok=False, reason='unreadable')
+
+    def budget_monitor(self):
+        return self.demo_budgets if self.sources.get('demo') else self.budgets
+
+    def budget_view(self):
+        with self.lock:
+            value = self.budget_monitor().view()
+            titles = self.sources.get('session_titles') or {}
+            for row in value['items']:
+                row['title'] = titles.get(row['id'])  # live display only; never persisted with preferences
+            return value
+
+    def set_budget(self, identity, metric, limit, expected):
+        try:
+            return self.budget_monitor().configure(identity, metric, limit, expected)
+        except (OSError, ValueError, UnicodeError):
+            return dict(ok=False, reason='unreadable')
+
+    def ack_budget(self, identity, revision, level):
+        try:
+            return self.budget_monitor().acknowledge(identity, revision, level)
+        except (OSError, ValueError, UnicodeError):
+            return dict(ok=False, reason='unreadable')
 
     def refresh(self, force=False):
         with self.lock:
@@ -352,6 +518,8 @@ class UsageDashboard:
         """Cancel future work; wait briefly, never promise to interrupt a blocked OS read."""
         # Set the stop flag before acquiring the snapshot lock: a slow report may hold it.
         self._closed = True
+        self.budgets.close()
+        self.demo_budgets.close()
         event = self._cancel
         if event is not None:
             event.set()
@@ -379,6 +547,7 @@ class UsageDashboard:
             self.generation += 1
             self.sessions, self.sources = [], {}
             self.scanned_at, self.error, self.state = None, None, 'idle'
+            self.failure_code = None
             self.refresh(force=True)
             return dict(ok=True, cleared_files=result.get('cleared_files',0), errors=0, state='scanning')
 
@@ -402,6 +571,7 @@ class UsageDashboard:
         self.generation+=1
         self.sessions,self.sources=[],{}
         self.scanned_at,self.error,self.state=None,None,'idle'
+        self.failure_code = None
         self.refresh(force=True)
 
     def _check_archive_generation(self):
@@ -415,13 +585,15 @@ class UsageDashboard:
     def session(self,identity,lang='en'):
         """An already-read row outside the current filters; never opens a source."""
         with self.lock:
+            try:self._sync_reconnections()
+            except (OSError,ValueError):return None
             self._check_archive_generation()
             if self.scanned_at is not None:
                 self.sources.update(self._read_work_items())
             project_names=labels([s.project for s in self.sessions],lang=lang)
             for session in self.sessions:
                 if session_code(session)==identity:
-                    return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'),self.sources.get('session_titles'))
+                    return session_view(session,lang,_git_for(session,self.sources),project_names,self.sources.get('verdicts'),self.sources.get('session_titles'),self.sources.get('title_status'))
         return None
 
     def _read_plan_choice(self):
@@ -577,18 +749,23 @@ class UsageDashboard:
         if generation is None:
             with self.lock:
                 generation = self.generation
+        stage = 'logs'
         try:
             checkpoint()
             sessions, sources = self.reader()
             checkpoint()
             sources = dict(sources)
+            stage = 'titles'
             if not sources.get('demo'):
-                from .usage.session_titles import load as load_titles
-                sources['session_titles'] = load_titles(sessions)
+                from .usage.session_titles import inspect as inspect_titles
+                sources['session_titles'], sources['title_status'] = inspect_titles(sessions)
+            else:
+                sources['title_status'] = {session_code(s):dict(state='fallback', reason='demo') for s in sessions}
             if (sources.get('archive') or {}).get('stale_snapshot'):
                 with self.lock:
                     if generation==self.generation: self._replace_after_settings()
                 return
+            stage = 'git'
             sources['git_links'] = git_links(sessions)
             checkpoint()
             folders = {path for linked in sources['git_links'].values() for path in linked}
@@ -608,6 +785,7 @@ class UsageDashboard:
                 checkpoint()
                 check_survival(snapshot, self.survival_store)
             # Validate the projection before publishing a replacement snapshot.
+            stage = 'projection'
             checkpoint()
             project_view(sessions, sources, days=0)
             with self.lock:
@@ -618,10 +796,29 @@ class UsageDashboard:
                 sources.update(self._read_plan_choice())
                 sources.update(self._read_work_items(demo=bool(sources.get('demo'))))
                 self.sessions, self.sources = sessions, sources
+                self.budget_monitor().bind(sessions, demo=bool(sources.get('demo')))
                 self.scanned_at = datetime.now(timezone.utc).isoformat()
                 self.state, self.error = 'ready', None
+                self.failure_code = None
         except ScanCancelled:
             raise
+        except ReadLimitExceeded:
+            with self.lock:
+                if generation != self.generation or self._closed:
+                    return
+                self.state, self.error, self.failure_code = 'error', 'error.scan', 'scan_limit'
+        except SourceError:
+            with self.lock:
+                if generation != self.generation or self._closed:
+                    return
+                self.state, self.error = 'error', 'error.log_sources'
+                self.failure_code = 'source_preferences'
+        except IdentityError:
+            with self.lock:
+                if generation != self.generation or self._closed:
+                    return
+                self.state, self.error = 'error', 'error.session_identity'
+                self.failure_code = 'identity_preferences'
         except Exception:
             # Reader errors may contain transcript excerpts or private paths.
             # Keep an earlier usable snapshot; never send a raw exception to UI.
@@ -629,13 +826,16 @@ class UsageDashboard:
                 if generation != self.generation or self._closed:
                     return
                 self.state, self.error = 'error', 'error.scan'
+                self.failure_code = stage + '_failed'
 
     def view(self, days=30, agent='all', project='all', lang='en'):
         with self.lock:
+            try:self._sync_reconnections()
+            except (OSError,ValueError):self.sources.update(work_items_error=True,verdicts_error=True)
             self._check_archive_generation()
             if self.scanned_at is not None:
                 self.sources.update(self._read_work_items())
             value = project_view(self.sessions, self.sources, days, agent, project, lang=lang)
             value.update(state=self.state, scanned_at=self.scanned_at, error=self.error and say(value['lang'], self.error),
-                         has_snapshot=self.scanned_at is not None)
+                         has_snapshot=self.scanned_at is not None, diagnostics=self.diagnostic_view(value['lang']))
             return value

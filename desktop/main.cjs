@@ -1,5 +1,5 @@
 'use strict';
-const { app, BrowserWindow, dialog, shell, session, nativeTheme, screen } = require('electron');
+const { app, BrowserWindow, dialog, shell, session, nativeTheme, screen, Notification, ipcMain } = require('electron');
 const { randomUUID } = require('node:crypto');
 const { accessURL, localURL, externalURL } = require('./policy.cjs');
 const windowState = require('./window-state.cjs');
@@ -64,10 +64,11 @@ async function open(value) {
     title: 'PLER', width: remembered.width, height: remembered.height, x: remembered.x, y: remembered.y,
     minWidth: windowState.LIMITS.minWidth, minHeight: windowState.LIMITS.minHeight, ...titleBar, icon,
     backgroundColor: '#101012', show: false, autoHideMenuBar: true,
-    webPreferences: { session: isolated, nodeIntegration: false, contextIsolation: true,
+    webPreferences: { session: isolated, preload: path.join(__dirname, 'preload.cjs'), nodeIntegration: false, contextIsolation: true,
       sandbox: true, webSecurity: true, webviewTag: false, devTools: false }
   });
   window.setMenu(null);
+  require('./source-folders.cjs').install({ ipcMain, dialog, window, origin: url.origin });
   const launcher = process.platform === 'win32' ? launcherPath() : null;
   if (launcher) {
     window.setAppDetails({ appId: APP_ID, appIconPath: icon || launcher, appIconIndex: 0,
@@ -128,6 +129,8 @@ async function open(value) {
   if (remembered.view) query.set('view', JSON.stringify(remembered.view));
   first.search = query.toString() ? '?' + query : '';
   await window.loadURL(first.href);
+  const budgetNotifications = require('./budget-notifications.cjs').start({ startup, Notification, window, icon });
+  window.once('closed', () => budgetNotifications.close());
   fs.writeFileSync(path.join(control, 'ready'), '1');
   clearTimeout(timeout);
 }

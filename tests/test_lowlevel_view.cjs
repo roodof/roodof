@@ -29,16 +29,18 @@ test('an obsolete failed investigation does not overwrite the latest notice',asy
 });
 test('project selection survives a language reload while the server is still scanning',()=>{
   const project='a'.repeat(24),state={restore:{project}},element={value:'all'};let reads=0;
-  const context=vm.createContext({usageState:state,$:()=>element,loadUsage:()=>reads++});
+  const usageUI=require('../src/pler/web/ui-state.js').create();
+  const context=vm.createContext({usageState:state,usageUI,setUsageFilters:patch=>{usageUI.publish('filters',patch);element.value=usageUI.get().filters.project;},$:()=>element,loadUsage:()=>reads++});
   vm.runInContext(source.slice(source.indexOf('function restoreUsageSelection('),source.indexOf('function renderDatedUsage(')),context);
   assert.equal(context.restoreUsageSelection({has_snapshot:false,project_options:[],filters:{project:'all'}}),false);
   assert.equal(state.restore.project,project);
   assert.equal(context.restoreUsageSelection({has_snapshot:true,project_options:[{id:project}],filters:{project:'all'}}),true);
   assert.equal(reads,1);assert.equal(element.value,project);assert.equal(state.restore,null);
+  assert.equal(usageUI.get().filters.project,project);
 });
 test('a removed project recovers without retrying an unavailable selection',()=>{
   const state={restore:{project:'a'.repeat(24)}};
-  const context=vm.createContext({usageState:state,$:()=>({}),loadUsage:()=>assert.fail('unexpected retry')});
+  const context=vm.createContext({usageState:state,usageUI:require('../src/pler/web/ui-state.js').create(),$:()=>({}),loadUsage:()=>assert.fail('unexpected retry')});
   vm.runInContext(source.slice(source.indexOf('function restoreUsageSelection('),source.indexOf('function renderDatedUsage(')),context);
   assert.equal(context.restoreUsageSelection({has_snapshot:true,project_options:[],filters:{project:'all'}}),false);
   assert.equal(state.restore,null);

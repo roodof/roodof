@@ -29,10 +29,11 @@ def without_work_items(value):
     """Ordinary exports never carry saved session titles or private work content."""
     result=dict(value)
     result.pop('work_items',None)
+    result.pop('diagnostics',None)
     # Keep this boundary explicit if session-level membership is added later.
     if 'sessions' in result:
         result['sessions']=[{key:item for key,item in row.items()
-                             if key not in ('work_items','work_item_ids','work_item_titles','title')}
+                             if key not in ('work_items','work_item_ids','work_item_titles','title','title_info')}
                             for row in result['sessions']]
     return result
 

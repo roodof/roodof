@@ -187,4 +187,4 @@ def _main(argv):
     # those of your own sessions.
     return serve(args.port, not args.no_browser, lang,
                  UsageDashboard(reader, verdicts=Memory(), survival=Saved(made['folder']), work_items=WorkMemory(),
-                                plan_choice=PlanMemory()), desktop=args.desktop)
+                                plan_choice=PlanMemory(), manage_sources=False), desktop=args.desktop)

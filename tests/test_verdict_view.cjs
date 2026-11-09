@@ -9,17 +9,17 @@ function element(cls='',text=''){
     append(...items){this.children.push(...items);},addEventListener(name,handler){this.handlers[name]=handler;}};
 }
 function page({readable=true,reply}={}){
-  const summary=element('verdict-summary'),made=[],posts=[],messages=[];
+  const summary=element('verdict-summary'),made=[],posts=[],messages=[];let renders=0;
   const sessions=[{id:'a'.repeat(24),total_tokens:100,api_usd:1.5,verdict:null},{id:'b'.repeat(24),total_tokens:50,api_usd:0.5,verdict:'wasted'}];
   const state={data:{sessions,verdicts:{readable},demo:false},stopped:false};
-  const context=vm.createContext({usageState:state,$:id=>id==='usage-verdict-summary'?summary:null,
+  const context=vm.createContext({usageState:state,renderUsageSessions:()=>renders++,$:id=>id==='usage-verdict-summary'?summary:null,
     t:(key,values)=>values?key+' '+JSON.stringify(values):key,count:(n,noun)=>n+' '+noun,usageShort:String,usageUsd:value=>'$'+value.toFixed(2),
     usageSessionCode:session=>session.id.slice(0,8),notice:text=>messages.push(text),number:String,usagePct:value=>Math.round(value*100)+'%',
     node:(tag,cls,text)=>{const item=element(cls,text);made.push(item);return item;},
     document:{querySelectorAll:()=>made.filter(item=>item.className.includes('verdict-button'))},
     post:async(path,body)=>{posts.push([path,body]);if(reply)return reply(body);return {ok:true,id:body.id,verdict:body.verdict};}});
   vm.runInContext(code,context);
-  return {context,state,summary,posts,messages,sessions,buttons:()=>made.filter(item=>item.className.includes('verdict-button'))};
+  return {context,state,summary,posts,messages,sessions,get renders(){return renders;},buttons:()=>made.filter(item=>item.className.includes('verdict-button'))};
 }
 const plain=value=>JSON.parse(JSON.stringify(value));  // objects made inside the page context
 const pressed=(buttons,id)=>buttons.filter(item=>item.dataset.verdictId===id&&item.attributes['aria-pressed']==='true').map(item=>item.dataset.verdict);
@@ -33,6 +33,7 @@ test('one click saves a verdict and updates the table row and an open dialog tog
   assert.deepEqual(plain(p.posts),[['/api/usage/verdict',{id:first.id,verdict:'useful'}]]);
   assert.deepEqual(plain(pressed(p.buttons(),first.id)),['useful','useful']);
   assert.equal(first.verdict,'useful');
+  assert.equal(p.renders,1);
   const values=JSON.parse(p.summary.textContent.slice('verdict_summary '.length));
   assert.equal(values.useful,'1 session');assert.equal(values.useful_tokens,'100');assert.equal(values.wasted_usd,'$0.50');assert.equal(values.none,'0 session');
 });

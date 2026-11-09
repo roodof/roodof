@@ -46,9 +46,9 @@ class Rescan:
 
     @staticmethod
     def own_files():
-        from . import archive, preferences
+        from . import archive, preferences, identities, sources
         from ..paths import cache_file
-        names = ('claude.json', 'codex.json', archive.FILENAME, archive.GENERATION, preferences.FILENAME)
+        names = ('claude.json', 'codex.json', archive.FILENAME, archive.GENERATION, preferences.FILENAME, identities.FILENAME, sources.FILENAME)
         signatures = []
         for name in names:
             path = cache_file(name)
@@ -100,8 +100,15 @@ def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
     from . import archive as archive_rules
     from .discovery import Manifest
     claude_manifest,codex_manifest=Manifest(),Manifest()
-    claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest)
-    codex_files = codex.files(codex_folders,skipped,access,codex_manifest)
+    from .sources import Store as SourceStore
+    from ..paths import cache_folder
+    # An explicitly disabled/unsafe cache cannot supply preferences. Keep the existing
+    # cache-free reader usable, without probing or silently rerouting that location.
+    extra = SourceStore().read() if (claude_folders is None or codex_folders is None) and cache_folder() is not None else []
+    claude_files = claude_code.files(claude_folders,skipped,access,claude_manifest,
+                                   extra=[r['path'] for r in extra if r['agent']=='claude-code'])
+    codex_files = codex.files(codex_folders,skipped,access,codex_manifest,
+                             extra=[r['path'] for r in extra if r['agent']=='codex'])
     codex_key=version(codex,records,zstd,unzstd,xxh64,accounting,reconcile,edit_paths,period_usage,archive_rules,input_limits,checks,cache_rules)
     claude_key=version(claude_code,records,accounting,edit_paths,period_usage,archive_rules,input_limits,checks,cache_rules)
     if memo is not None:
@@ -112,6 +119,9 @@ def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
             sessions,details=reused
             return sessions,dict(details,skipped=list(details.get('skipped',())),observed_at=observed_at,
                                  claude_quota=claude_quota() if claude_folders is None else [])
+    from . import identities
+    remember_identity = retain or claude_folders is None or codex_folders is None
+    identity_before = identities.sample([*claude_files, *codex_files]) if remember_identity else {}
     archive=archive_rules.Archive(enabled=retain or claude_folders is None or codex_folders is None)
     cached = FileCache('codex', codex_key) if codex_folders is None else None
     archive.prepare('codex',codex_files,codex_manifest,codex_key,cached,persistent=retain or codex_folders is None)
@@ -129,6 +139,8 @@ def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
         [*codex_files,*(path for agent,path in archive.used if agent=='codex')])
     details=dict(claude_files=len(claude_files), codex_files=len(codex_files), skipped=skipped,archive=archive.finish(),observed_at=observed_at,
                  claude_quota=claude_quota() if claude_folders is None else [],quota_source_groups=quota_groups)
+    if remember_identity and not (details['archive'] or {}).get('stale_snapshot'):
+        details['identity'] = identities.bind(sessions, identity_before, identities.sample([*claude_files, *codex_files]))
     if memo is not None and not (details['archive'] or {}).get('stale_snapshot'):
         memo.keep(inputs,sessions,dict(details,skipped=list(skipped)))
     return sessions,details

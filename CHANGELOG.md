@@ -1,5 +1,73 @@
 # Changes
 
+## 0.9.12 — Kullanıcı kontrollü oturum ayarı aktarımı (yerel aday)
+
+- Ayarlar’da eski/arşivdeki oturumun iş bağlantılarını, değerlendirmesini ve bütçesini seçilen canlı oturuma önizlemeyle taşı. Çakışan değerlendirme ve eşik için açık seçim gerekir.
+- Hedefin diğer iş bağlantıları ve notları korunur. Oturum kimliği, hesaplama ve ajan kayıtları değişmez.
+- Son aktarımı geri alma, sonraki bağımsız düzenlemeleri korur; çelişen değişiklikte durur. Kesilen yazılar metadata erişiminden önce tamamlanır. Özel geri alma kopyası temizlenebilir; rapora/yedeğe girmez.
+- 400 seçicisi aynı. Sitedeki ücretsiz beta 0.9.11; temiz Windows/gerçek kayıt kabulü son görev olarak açık.
+
+
+## 0.9.11 — Ücretsiz masaüstü beta anlatımı
+
+- Türkçe/İngilizce ilk kullanım ve yardım, masaüstü açılışı, kayıt klasörü seçimi, iş bağlama ve oturum uyarı eşikleriyle eşitlendi.
+- Site, indirme ve sürüm bilgisi için masaüstü beta dağıtımı hazırlanıyor. Sayım motoru ve 400 oturum seçicisi aynı; temiz Windows ve gerçek kullanıcı kabulü son görev olarak açık.
+
+## 0.9.10 — Ortak filtre ve ekran durumu (yerel aday)
+
+- Filtreler, görünüm hafızası, rapor kapsamı ve tablo aynı açık bildirimleri kullanır. Bu alanlardaki DOM gözlemcileri kaldırıldı; aynı değer yeniden kaydedilmez.
+- Aynı turdaki filtre değişiklikleri tek GET’e birleşir. Geçersiz kalan eski GET iptal edilir ve geç gelen yanıt son seçimi ezmez; metadata yazıları iptal edilmez. Proje/dil geri yüklemesinde uygulanmamış ara veri yayınlanmaz.
+- Tablo tek filtre/sıralama projection’ı kullanır; gizli legacy tabloda ikinci liste üretilmez. Gizli grafikler yeni veri yokken yeniden çizilmez. İş taslakları, klavye, değerlendirme ve ilk okuma hata yolları korunur.
+- Aynı bölüme tekrar tıklama yeni animasyon/veri işlemi/tercih yazısı başlatmaz. 1.000/5.000 uydurma geçmiş için geliştirici ölçüm bütçesi belgelendi; gerçek büyük kayıt ve temiz Windows kabulü SON görevdir.
+- 400 oturum sınırı ve work-view.jsx byte düzeyinde korundu. Public0.2.31 değişmedi; bu yerel adaydır.
+
+## 0.9.9 — Başlık nedenleri ve okuma tanılaması (yerel aday)
+
+- Oturum ayrıntısında ajan başlığı yerine neden alternatif ad gösterildiği açıklanır: başlık bulunmaması, arşiv, konum/erişim, bozuk/büyük indeks, toplam başlık bütçesi, sınırlı Claude baş/son penceresi ve okuma sırasında değişim ayrı durumdur. Kısmi bilgiyle bulunan başlık en güncel adlandırma gibi sunulmaz.
+- Ayarlar’da filtrelerden bağımsız okuma durumu ve tanılama. Kayıt kaynakları, başlıklar, saklanan geçmiş, Git, kayıtlı tercihler ve görünüm hazırlama sabit kodlarla ayrılır; her açıklama sonraki adımı gösterir. Başarısız yeni okumada önceki başarılı görünüm olduğu belirtilir.
+- İçeriksiz yerel tanılama JSON’u indirilebilir: yalnız sürüm/zaman/durum/sabit kod ve sayılar; konuşma, başlık, sağlayıcı/oturum kimliği, özel yol, ham hata veya erişim anahtarı yok. Otomatik gönderim yok; özel geçmiş yedeğiyle aynı dosya değildir.
+- İlk okumada hiç görünüm oluşmasa da Ayarlar, kayıt klasörleri ve tanılama açılır. Başlık bilgisi/başlık durumları ve tanılama normal rapora, kayıt önbelleğine veya arşive eklenmez; kullanım hesap kuralları aynı.
+- WSL başlık erişimi için seçili kök kapsamı genişletilmez; bazı başlıklar erişim kapsamında olmayabilir. 400 sınırı ve public0.2.31 değişmedi. Gerçek ajan/temiz Windows kabulü SON görev olarak açık.
+
+## 0.9.8 — Uygulamadan kayıt klasörü yönetimi (yerel aday)
+
+- Ayarlar ve ilk kullanım ekranından Claude Code/Codex kaynaklarını seçme, kontrol etme, ekleme ve kaldırma. Masaüstünde yerel klasör seçicisi, tarayıcıda tam yol girişi. Ajan ana klasörü seçilirse yalnız mevcut kayıt alt klasörleri eklenir.
+- Standart ve ortam değişkeniyle seçilen kaynaklar korunur; ek klasörler bunlara katılır. En fazla 12 ek klasör, kalıcı bilgisayar tercihi, eşzamanlı değişiklik kontrolü ve bozuk tercih dosyasını koruma. Kaldırma kaynak dosyalarını veya saklanan geçmişi silmez.
+- WSL yalnız açıkça seçilen ve zaten çalışan dağıtım kökleriyle okunur. Duran/erişilemeyen dağıtım ayrı açıklanır; ağ paylaşımları reddedilir. WSL’ye ait fiziksel dosya taşıma kimliği doğrulanmış sayılmaz. Kullanılamayan önbellekle yalnız WSL okumada kimlik tercihi yazmaya çalışma düzeltildi.
+- Masaüstü köprüsü yalnız klasör seçme işlemini sunar; ana uygulama ve kendi üst çerçevesi doğrulanır. Mevcut süreç/izin sınırları korunur. Klasör seçim dosyası yedeğe dahil değildir; geri yükleme sonrası yeniden seçilir. Özel geçmiş yedeği kaynak yollarını içerebilir.
+- 400 oturum sınırı değişmedi. Temiz Windows kabulü SON görev; bu sürüm yerel adaydır, public 0.2.31 yayını değişmedi.
+
+## 0.9.7 — Doğrulanmış oturum kimliği (yerel aday)
+
+- Aynı yerel dosyanın doğrulanmış yeniden adlandırma/taşınmasında ilk oturum kodu korunur; iş, değerlendirme ve bütçe dosyaları yeniden yazılmaz.
+- Sağlayıcı kimliği, başlangıç zamanı ve dosyanın fiziksel kimliği birlikte kullanılır. Kopya/yeni dosya, çelişen sahiplik ve doğrulanamayan kaynaklar otomatik aktarılmaz.
+- Doğrulanmış canlı dosyanın kapsadığı eski arşiv adı bütçe izlemesini durdurmaz; canlı sayaç eksikse uyarı bekler.
+- Kimlik kaydı ve bütçe ayarları özel yedeğe eklenir. Bozuk kimlik dosyası korunur; varsa önceki görünüm tutulur.
+- 400 oturum sınırı korunur. Temiz Windows kabulü SON görevdir.
+
+## 0.9.6 — Filtre ve klavye davranışı (yerel aday)
+
+- Programatik filtre değişiklikleri görünür dönem/ajan seçimleri, rapor kapsamı ve görünüm hafızasıyla tek sorgu üzerinden eşitlenir.
+- Tablo içindeki ajan düğmesinde Enter, ajanı filtreler; oturum başlığı doğal olarak açılır, yukarı/aşağı gezinme korunur.
+- Panel açılışındaki tablo çizimi klavye odağını korur; gecikmiş kapanış olayı yeni açılmış panelin seçimini temizlemez.
+- Kullanıcı isteğiyle toplu bağlamadaki 400 oturum sınırı aynen korunur. Temiz Windows kabulü SON görevdir.
+
+## 0.9.5 — Oturum bütçe uyarıları (yerel aday)
+
+- Oturum ayrıntısından token veya API fiyat karşılığı dolar eşiği; %80/%100 uyarıları ve Ayarlar’da izleme listesi.
+- PLER açıkken filtrelerden bağımsız, bilinen ilgili canlı kaynakların sınırlı izlemesi; değişmeyen kayıtlar yeniden ayrıştırılmaz.
+- Küçültülmüş pencerede ana süreçten yerel bildirim; gösterilmiş uyarılar normal yeniden açılışta tekrarlanmaz. Tarayıcı izinleri açılmaz.
+- Eksik fiyat/kullanım, saklanan geçmiş, eski gözlem veya kaynak hatasında izleme durumu açık gösterilir. Oturum durdurulmaz; dolar gerçek fatura değildir.
+- Yeni frontend/backend/girişimci gözlemleri kalan işlere işlendi. Temiz Windows kabulü SON görevdir; genel yayın değişmedi.
+
+## 0.9.4 — İlk kullanım
+
+- İlk açılışta Claude Code ve Codex kayıtlarının durumu ve filtreden bağımsız oturum sayıları görünür.
+- Boş, kısmen okunabilen, yalnız saklanan geçmiş ve okuma hatası durumları ayrı anlatılır; yeniden arama ve kaynak yardımı sunulur.
+- Oturumları incele bütün ajan/dönem/proje filtrelerini açar. Tamamlanan başlangıç mevcut yerel görünüm tercihlerinde hatırlanır, Ayarlar'dan tekrar açılabilir.
+- Otomatik arayüz turu yerine Ayarlar'dan isteğe bağlı tur kullanılır.
+
+
 ## 0.9.3 — Oturum başlıkları
 
 - Claude Code kayıtlı özel başlığı/indeks özeti ve Codex yerel sohbet başlığı listede ve ayrıntıda gösterilir.

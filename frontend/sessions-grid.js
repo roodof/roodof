@@ -19,7 +19,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
  const hint=node('span','grid-scroll-hint',text('Scroll sideways for the other columns →','Diğer sütunlar için yana kaydır →'));
  footer.append(hint);host.after(footer);tools.hidden=true;
  const activeId=()=>inspector.open&&typeof workState!=='undefined'?workState.openSession:null;
- const open=id=>{const before=document.activeElement;const session=usageState.data?.sessions.find(s=>s.id===id);if(session)openUsageSession(session);syncSelection();if(before?.closest('#sessions-grid'))before.focus({preventScroll:true});};
+ const open=id=>{const before=document.activeElement;const session=usageState.data?.sessions.find(s=>s.id===id);if(session)openUsageSession(session);if(before?.closest('#sessions-grid'))before.focus({preventScroll:true});};
  const formatNum=n=>Number(n).toLocaleString(tr?'tr-TR':'en-US');
  const safeDate=v=>{if(!v)return text('Not recorded','Kaydedilmedi');const d=new Date(v);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat(tr?'tr-TR':'en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(d):text('Unknown','Bilinmiyor');};
  const filterAgent=value=>{$('usage-agent').value=value;$('usage-agent').dispatchEvent(new Event('change',{bubbles:true}));};
@@ -60,7 +60,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
   {title:text('Model calls','Model çağrıları'),field:'calls',width:140,visible:true,hozAlign:'right',formatter:cell=>cell.getValue()==null?text('Unknown','Bilinmiyor'):formatNum(cell.getValue())},
   {title:text('Session code','Oturum kodu'),field:'id',width:140,visible:false,formatter:cell=>node('code','grid-code',cell.getValue().slice(0,8))}
  ];
- let ready=false,signature='',lastWidth=0,adjustingWidth=false;
+ let ready=false,signature='',lastWidth=0,adjustingWidth=false,focusRequest=0;
  const savedColumns=getView().columns;
  let projectWidth=savedColumns.find(c=>c.field==='project')?.width;
  const grid=new Tabulator(host,{
@@ -78,10 +78,24 @@ export function mountSessionsGrid({tr,list,inspector}) {
   },
   rowFormatter:row=>{row.getElement().dataset.sessionId=row.getData().id;},renderVertical:'virtual'
  });
+ function focusRow(id){
+  const request=++focusRequest;
+  const focus=()=>{const row=grid.getRow(id);if(row)row.getElement().querySelector('.grid-project-name')?.focus({preventScroll:true});};
+  focus();
+  // Tabulator finishes some width-driven row replacements on the next frame.
+  // Retry only lost focus, and never supersede a newer row action or another control.
+  const restore=()=>{if(request===focusRequest&&document.activeElement===document.body)focus();};
+  requestAnimationFrame(()=>{restore();requestAnimationFrame(restore);});
+ }
  function resize(){
   if(!ready||!host.offsetWidth)return;
+  const focused=document.activeElement,focusedId=focused?.closest('.tabulator-row')?.dataset.sessionId;
+  const focusedSelector=focused?.matches('.grid-project-name')?'.grid-project-name':focused?.matches('.grid-agent-filter')?'.grid-agent-filter':focused?.matches('.grid-review')?'.grid-review':null;
   const room=innerHeight-host.getBoundingClientRect().top-62;grid.setHeight(Math.max(245,Math.min(760,room)));const changed=Math.abs(lastWidth-host.clientWidth)>2;lastWidth=host.clientWidth;grid.redraw(changed);
   if(projectWidth){const width=Math.min(projectWidth,Math.max(260,host.clientWidth-300));const column=grid.getColumn('project');if(Math.abs(column.getWidth()-width)>1){adjustingWidth=true;column.setWidth(width);adjustingWidth=false;}}
+  // Opening the inspector changes the grid width and can replace its focused button.
+  // Restore that logical control without taking focus from another part of the page.
+  if(focusedId&&focusedSelector&&document.activeElement===document.body){const row=grid.getRow(focusedId);if(row)row.getElement().querySelector(focusedSelector)?.focus({preventScroll:true});}
   requestAnimationFrame(()=>{const holder=host.querySelector('.tabulator-tableholder');hint.hidden=!holder||holder.scrollWidth<=holder.clientWidth+2;});
  }
  function syncSelection(){
@@ -93,9 +107,10 @@ export function mountSessionsGrid({tr,list,inspector}) {
  }
  function refresh(){
   if(!ready)return;
-  const sessions=filteredUsageSessions(),works=usageState.data?.work_items?.readable===true?usageState.data.work_items.items:[];
+  const projection=window.plerUI.get().sessions;if(!projection)return;
+  const {items:sessions,total,works}=projection;
   const titles=new Map();for(const work of works)for(const id of work.session_ids){if(!titles.has(id))titles.set(id,[]);titles.get(id).push(work.title);}
-  const data=sessions.slice(0,usageState.pageSize).map(s=>{
+  const data=sessions.map(s=>{
    let status=text('Recorded','Kayıtlı'),kind='neutral';
    if(sessionHasQualityLimits(s)){status=text('Partial records','Sınırlı kayıt');kind='limited';}
    else if(s.errors||s.aborted){status=text('Errors / stops','Hata / kesinti');kind='limited';}
@@ -103,9 +118,10 @@ export function mountSessionsGrid({tr,list,inspector}) {
    else if(s.checks?.test?.last==='passed'){status=text('Test passed','Test geçti');kind='passed';}
    return {id:s.id,title:s.title,started:s.started,project:s.project,agent:s.agent,agentName:s.agent==='codex'?'Codex':'Claude Code',ended:s.ended,tokens:s.total_tokens,verdict:s.verdict||'',status,statusKind:kind,models:s.models.map(m=>m.model==='unknown'?text('Unknown','Bilinmiyor'):m.model).join(', '),calls:s.calls_complete?s.calls:null,workTitles:titles.get(s.id)||[]};
   });
-  count.textContent=sessions.length===data.length?text(`${formatNum(sessions.length)} sessions`,`${formatNum(sessions.length)} oturum`):text(`${formatNum(data.length)} of ${formatNum(sessions.length)} sessions`,`${formatNum(sessions.length)} oturumdan ${formatNum(data.length)} gösteriliyor`);
+  count.textContent=total===data.length?text(`${formatNum(total)} sessions`,`${formatNum(total)} oturum`):text(`${formatNum(data.length)} of ${formatNum(total)} sessions`,`${formatNum(total)} oturumdan ${formatNum(data.length)} gösteriliyor`);
   const next=JSON.stringify(data);
-  if(next!==signature){signature=next;grid.replaceData(data).then(()=>{syncSelection();resize();enterRows(grid.getRows('visible').map(r=>r.getElement()));});}else{syncSelection();resize();}
+  const focused=document.activeElement,id=focused?.closest('.tabulator-row')?.dataset.sessionId,selector=focused?.matches('.grid-review')?'.grid-review':focused?.matches('.grid-agent-filter')?'.grid-agent-filter':'.grid-project-name';
+  if(next!==signature){signature=next;grid.replaceData(data).then(()=>{syncSelection();resize();const row=id&&grid.getRow(id);if(row&&document.activeElement===document.body)row.getElement().querySelector(selector)?.focus({preventScroll:true});enterRows(grid.getRows('visible').map(r=>r.getElement()));});}else{syncSelection();resize();}
  }
  function renderMenu(){
   menu.replaceChildren(node('p','grid-menu-note',text('Drag column headings to reorder. Drag their edges to resize.','Sıralamak için sütun başlığını, genişletmek için kenarını sürükle.')));
@@ -128,16 +144,19 @@ export function mountSessionsGrid({tr,list,inspector}) {
   const updated=field==='project'?Promise.resolve():column.updateDefinition({width});
   updated.then(()=>{if(options.open)renderMenu();resize();});
  });
- new MutationObserver(refresh).observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-pressed']});
- new MutationObserver(syncSelection).observe(inspector,{attributes:true,attributeFilter:['open']});
- const showSession=window.plerShowSession;window.plerShowSession=(...args)=>{showSession(...args);syncSelection();requestAnimationFrame(resize);};
+ window.plerUI.subscribe(['sessions'],refresh);
+ window.plerUI.subscribe(['selection'],syncSelection);
+ window.plerUI.useSessionGrid();
+ const showSession=window.plerShowSession;window.plerShowSession=(...args)=>{showSession(...args);requestAnimationFrame(resize);};
  inspector.addEventListener('close',()=>requestAnimationFrame(resize));
  new ResizeObserver(resize).observe(host);
  window.addEventListener('resize',resize);
  host.addEventListener('keydown',event=>{
-  if(!['ArrowUp','ArrowDown','Enter'].includes(event.key)||event.target.closest('select,input'))return;
+  if(!['ArrowUp','ArrowDown','Enter'].includes(event.key)||event.target.isContentEditable||event.target.closest('select,input,textarea'))return;
+  // Let a nested control perform its native Enter action (e.g. filtering by agent).
+  if(event.key==='Enter'&&event.target.closest('button,a,[role="button"],[role="link"],[role="checkbox"],[role="switch"],[role="combobox"]'))return;
   const visible=grid.getRows('active'),current=visible.findIndex(r=>r.getData().id===event.target.closest('.tabulator-row')?.dataset.sessionId);if(current<0)return;event.preventDefault();
-  const row=visible[Math.max(0,Math.min(visible.length-1,current+(event.key==='ArrowDown'?1:event.key==='ArrowUp'?-1:0)))];open(row.getData().id);row.getElement().querySelector('button')?.focus({preventScroll:true});
+  const row=visible[Math.max(0,Math.min(visible.length-1,current+(event.key==='ArrowDown'?1:event.key==='ArrowUp'?-1:0)))];open(row.getData().id);focusRow(row.getData().id);
  });
  const step=delta=>{const rows=grid.getRows('active'),i=rows.findIndex(r=>r.getData().id===activeId());if(i<0)return;const row=rows[Math.max(0,Math.min(rows.length-1,i+delta))];open(row.getData().id);row.scrollTo().catch(()=>{});};
  for(const [i,button] of [...document.querySelectorAll('.wb-inspector-tools button')].entries())button.addEventListener('click',event=>{event.stopImmediatePropagation();step(i===0?-1:1);},true);

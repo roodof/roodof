@@ -1,5 +1,5 @@
-// First-run tour (driver.js): four short steps over the real controls, shown once. In the desktop
-// window, whose browser storage is fresh every launch, the window remembers "seen" (desktop/main.cjs
+// Optional tour (driver.js): short steps over the real controls, opened from Settings. In the desktop
+// window, whose browser storage is fresh every launch, the window remembers the tour status (desktop/main.cjs
 // reads data-tour-seen on close and passes ?tour=seen next time). Escape or a click outside ends it.
 import { driver } from 'driver.js';
 
@@ -16,7 +16,7 @@ export function mountTour({ tr, show }) {
       ['.wb-filterbar', 'Ajan ve dönem', 'Claude Code, Codex ya da ikisi; 7, 30, 90 gün veya tümü. Seçim bütün sayfalara uygulanır.'],
       ['#sessions-grid', 'Bir oturum aç', 'Satıra tıkla: ayrıntılar sağda açılır. ↑ ↓ ile oturumlar arasında gezinebilirsin.'],
       ['[data-route=work]', 'İşine ad ver', 'İşlerim\'de bir iş oluştur ve oturumları bağla; o işin toplam kullanımını gör.'],
-      ['.ws-find', 'Her yere Ctrl K', 'Bölümler arasında klavyeyle geç. Bu turu bir daha göstermeyiz.']
+      ['.ws-find', 'Her yere Ctrl K', 'Bölümler arasında klavyeyle geç. Bu turu Ayarlar bölümünden yeniden açabilirsin.']
     ]
   } : {
     next: 'Next', prev: 'Back', done: 'Start', progress: '{{current}} / {{total}}',
@@ -25,15 +25,14 @@ export function mountTour({ tr, show }) {
       ['.wb-filterbar', 'Agent and period', 'Claude Code, Codex or both; 7, 30, 90 days or all time. The choice applies to every page.'],
       ['#sessions-grid', 'Open a session', 'Click a row: its details open on the right. Move between sessions with ↑ ↓.'],
       ['[data-route=work]', 'Name your work', 'Create a work item in My work and link sessions to it to see its total usage.'],
-      ['.ws-find', 'Ctrl K anywhere', 'Jump between sections from the keyboard. This tour will not show again.']
+      ['.ws-find', 'Ctrl K anywhere', 'Jump between sections from the keyboard. You can open this tour again from Settings.']
     ]
   };
   let started = false;
   return {
-    // Called after each data render; starts once, on the sessions page, when there is something to point at.
-    maybeStart(data) {
-      // Automated checks (navigator.webdriver) never see it, so they can click the page as before.
-      if (seen || started || navigator.webdriver || !data?.has_snapshot || !data.totals?.sessions) return;
+    // Only an explicit user action starts the tour.
+    start(data) {
+      if (!data?.has_snapshot || !data.totals?.sessions) return;
       if (matchMedia('(max-width: 760px)').matches) return;
       started = true;
       show('sessions');

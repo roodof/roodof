@@ -20,7 +20,7 @@ from .. import __version__
 from ..paths import cache_file, cache_folder, local_path, network
 from ..reporting import PARSER_VERSION, SCHEMA_VERSION
 from .. import statusline
-from . import archive, preferences, verdicts, work_items
+from . import archive, preferences, verdicts, work_items, identities, budgets
 from .records import _too_deep
 
 FORMAT = 1
@@ -30,7 +30,9 @@ LIMITS = {archive.FILENAME: archive.MAX_BYTES,
           preferences.FILENAME: preferences.MAX_BYTES,
           verdicts.FILENAME: verdicts.MAX_BYTES,
           statusline.FILE: statusline.MAX_JOURNAL_BYTES,
-          work_items.FILENAME: work_items.MAX_BYTES}
+          work_items.FILENAME: work_items.MAX_BYTES,
+          identities.FILENAME: identities.MAX_BYTES,
+          budgets.FILENAME: budgets.MAX_BYTES}
 MAX_BUNDLE_BYTES = sum(LIMITS.values()) + MAX_MANIFEST_BYTES + 4096
 MAX_ROWS = 500000
 _HEX = re.compile('[a-f0-9]{64}')
@@ -213,6 +215,11 @@ def _validate_files(files):
                 raise BackupError('invalid') from error
             result['work_items']=len(items)
             result['work_links']=sum(len(item['sessions']) for item in items.values())
+        elif name in (identities.FILENAME, budgets.FILENAME):
+            try:
+                (identities.validate if name == identities.FILENAME else budgets.validate_document)(data)
+            except (ValueError, TypeError, UnicodeError, OverflowError) as error:
+                raise BackupError('invalid') from error
         else:
             result['quota_samples'] = _quota(data)
     return result

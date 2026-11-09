@@ -19,10 +19,15 @@ MAX_BYTES = 2 * 1024 * 1024
 CODE = re.compile('[a-f0-9]{24}')
 
 
-def session_code(session):
-    """The page's identity for one session row (agent, source and provider ID); also the verdict key."""
-    value = session.source + '\0' + session.session_id
+def source_code(session, source=None):
+    """Legacy path-sensitive code, also the initial code for a newly observed physical session."""
+    value = (session.source if source is None else source) + '\0' + session.session_id
     return hashlib.sha256((session.agent + ':' + (value or 'unknown')).encode('utf-8')).hexdigest()[:24]
+
+
+def session_code(session):
+    """A verified local move keeps its original annotation code. Unbound sessions retain legacy behavior."""
+    return getattr(session, '_pler_identity', None) or source_code(session)
 
 
 def _valid(entries):
@@ -32,6 +37,12 @@ def _valid(entries):
 
 
 def _entries(path):
+    from .archive import _locked
+    with _locked(path.parent):
+        return _entries_unlocked(path)
+
+
+def _entries_unlocked(path):
     """Read and validate one bounded snapshot, keeping timestamps for a later update."""
     try:
         size = path.stat().st_size

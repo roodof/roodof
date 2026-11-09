@@ -1,6 +1,6 @@
 {
   "name": "pler-workspace",
-  "version": "0.9.3",
+  "version": "0.9.12",
   "private": true,
   "type": "module",
   "scripts": {

@@ -21,7 +21,7 @@ from .dashboard import UnknownProject, UsageDashboard
 from .i18n import LANGUAGES, say
 
 WEB = Path(__file__).with_name('web')
-FILES = {'/app.js': 'text/javascript; charset=utf-8','/updates.js':'text/javascript; charset=utf-8',
+FILES = {'/app.js': 'text/javascript; charset=utf-8','/ui-state.js':'text/javascript; charset=utf-8','/updates.js':'text/javascript; charset=utf-8',
          '/updates.css':'text/css; charset=utf-8','/app.css': 'text/css; charset=utf-8',
          '/workspace.css':'text/css; charset=utf-8','/workspace.js':'text/javascript; charset=utf-8',
          '/workspace-font.woff2':'font/woff2','/sessions-grid.css':'text/css; charset=utf-8'}
@@ -57,7 +57,7 @@ class Server(ThreadingHTTPServer):
         self._backup_lock = threading.Lock()
         # A running server must not mix old Python code with files edited after startup.
         self.assets = {route: (WEB / filename).read_bytes() for route, filename in
-                       (('/', 'index.html'), ('/app.js', 'app.js'),('/updates.js','updates.js'),('/updates.css','updates.css'), ('/app.css', 'app.css'),('/workspace.css','workspace.css'),
+                       (('/', 'index.html'), ('/app.js', 'app.js'),('/ui-state.js','ui-state.js'),('/updates.js','updates.js'),('/updates.css','updates.css'), ('/app.css', 'app.css'),('/workspace.css','workspace.css'),
                         ('/workspace.js','workspace.js'),('/workspace-font.woff2','workspace-font.woff2'),('/sessions-grid.css','sessions-grid.css'))}
         super().__init__(('127.0.0.1', port), Handler)
         self.origin = 'http://127.0.0.1:%d' % self.server_port
@@ -197,11 +197,33 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(401,dict(error=say(lang,'error.read_token'),code='connection_required'));return
                 if request.query:raise ValueError(say(lang,'error.query'))
                 self._send(200,self.server.updates.view())
-            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups'):
+            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups','/api/usage/budgets','/api/usage/sources','/api/usage/diagnostics','/api/usage/reconnections'):
                 if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
                     return
                 query = parse_qs(request.query, keep_blank_values=True)
+                if request.path=='/api/usage/reconnections':
+                    if (set(query)-{'kind','q','offset','lang','source'} or any(len(v)!=1 for v in query.values())
+                            or query.get('lang',['en'])[0] not in LANGUAGES or query.get('kind',['sources'])[0] not in ('sources','targets','state')
+                            or len(query.get('q',[''])[0])>160 or not re.fullmatch('[0-9]{1,6}',query.get('offset',['0'])[0])
+                            or 'source' in query and not re.fullmatch('[a-f0-9]{24}',query['source'][0])):
+                        raise ValueError(say(lang,'error.query'))
+                    self._send(200,self.server.dashboard.reconnect_view(query.get('kind',['sources'])[0],query.get('q',[''])[0],
+                        int(query.get('offset',['0'])[0]),query.get('lang',['en'])[0],query.get('source',[None])[0]))
+                    return
+                if request.path == '/api/usage/diagnostics':
+                    if set(query)-{'lang'} or any(len(v)!=1 for v in query.values()) or query.get('lang',['en'])[0] not in LANGUAGES:
+                        raise ValueError(say(lang, 'error.query'))
+                    self._send(200, self.server.dashboard.diagnostic_view(query.get('lang',['en'])[0]))
+                    return
+                if request.path == '/api/usage/sources':
+                    if request.query: raise ValueError(say(lang, 'error.query'))
+                    self._send(200, self.server.dashboard.source_view())
+                    return
+                if request.path == '/api/usage/budgets':
+                    if request.query: raise ValueError(say(lang, 'error.query'))
+                    self._send(200, self.server.dashboard.budget_view())
+                    return
                 if request.path=='/api/usage/work/followups':
                     if (set(query)-{'work','lang'} or any(len(v)!=1 for v in query.values())
                             or query.get('lang',['en'])[0] not in LANGUAGES
@@ -269,19 +291,28 @@ class Handler(BaseHTTPRequestHandler):
             return
         route = urlsplit(self.path).path
         if route not in ('/api/usage/refresh', '/api/usage/archive/clear', '/api/usage/retention','/api/usage/cache/reset',
-                         '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/work/details','/api/usage/work/followup','/api/usage/backup','/api/usage/backup/check',
-                         '/api/quit','/api/updates/check','/api/updates/install','/api/updates/preferences'):
+                         '/api/usage/verdict','/api/usage/plan','/api/usage/work','/api/usage/work/details','/api/usage/work/followup','/api/usage/backup','/api/usage/backup/check','/api/usage/budgets','/api/usage/budgets/ack',
+                         '/api/usage/sources','/api/usage/reconnections','/api/quit','/api/updates/check','/api/updates/install','/api/updates/preferences'):
             self._send(404, dict(error=say(self._lang(), 'error.no_action')))
             return
         if (self.headers.get('Origin') != self.server.origin
                 or not self._token()):
             self._send(403, dict(error=say(self._lang(), 'error.token')))
             return
+        if route=='/api/usage/reconnections':
+            self._reconnection_action()
+            return
+        if route == '/api/usage/sources':
+            self._source_action()
+            return
         if route.startswith('/api/updates/'):
             self._update_action(route)
             return
         if route in ('/api/usage/backup','/api/usage/backup/check'):
             self._backup(route)
+            return
+        if route in ('/api/usage/budgets', '/api/usage/budgets/ack'):
+            self._budget_action(route)
             return
         if route in ('/api/usage/work','/api/usage/work/details'):
             self._work_item(details=route.endswith('/details'))
@@ -339,6 +370,51 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, dict(closed=True))
             threading.Thread(target=self.server.shutdown, daemon=True).start()
 
+    def _source_action(self):
+        try:
+            body = self._annotation_json(8192)
+            action = body.get('action')
+            fields = ({'action','agent','path'} if action == 'check' else
+                      {'action','agent','path','expected'} if action == 'add' else
+                      {'action','id','expected'} if action == 'remove' else set())
+            if not fields or set(body) != fields:
+                raise ValueError()
+            if action in ('check','add') and (body['agent'] not in ('claude-code','codex')
+                    or not isinstance(body['path'], str) or not 1 <= len(body['path']) <= 1024):
+                raise ValueError()
+            for field in ('expected','id'):
+                if field in body and (not isinstance(body[field], str) or not re.fullmatch('[a-f0-9]{24}', body[field])):
+                    raise ValueError()
+            result = self.server.dashboard.source_action(body)
+            if not result.get('ok'): result['code'] = result.get('reason', 'invalid')
+            self._send(200 if result.get('ok') else 409, result)
+        except (ValueError, TypeError):
+            self._send(400, dict(ok=False, reason='invalid'))
+
+    def _budget_action(self, route):
+        from .usage.budgets import valid_limit
+        try:
+            body = self._annotation_json(256)
+            if (not isinstance(body.get('id'), str) or not re.fullmatch('[a-f0-9]{24}', body['id'])):
+                raise ValueError()
+            if route.endswith('/ack'):
+                if (set(body) != {'id', 'revision', 'level'} or not isinstance(body['revision'], str)
+                        or not re.fullmatch('[a-f0-9]{24}', body['revision'])
+                        or type(body['level']) is not int or body['level'] not in (80, 100)):
+                    raise ValueError()
+                result = self.server.dashboard.ack_budget(body['id'], body['revision'], body['level'])
+            else:
+                if (set(body) != {'id', 'metric', 'limit', 'expected'}
+                        or (body['expected'] is not None and (not isinstance(body['expected'], str)
+                            or not re.fullmatch('[a-f0-9]{24}', body['expected'])))
+                        or not (body['metric'] is None and body['limit'] is None
+                                or valid_limit(body['metric'], body['limit']))):
+                    raise ValueError()
+                result = self.server.dashboard.set_budget(body['id'], body['metric'], body['limit'], body['expected'])
+            self._send(200 if result.get('ok') else 409, result)
+        except (ValueError, TypeError, OverflowError):
+            self._send(400, dict(error=say(self._lang(), 'error.fields')))
+
     def _update_action(self,route):
         from .updates import UpdateError
         try:
@@ -381,6 +457,24 @@ class Handler(BaseHTTPRequestHandler):
             return body
         except (UnicodeError,RecursionError,TypeError,OverflowError):
             raise ValueError() from None
+
+    def _reconnection_action(self):
+        try:
+            body=self._annotation_json(1024)
+            action=body.get('action')
+            if action=='preview':fields={'action','source','target'}
+            elif action=='transfer':fields={'action','source','target','expected','confirmed','verdict_choice','budget_choice'}
+            elif action in ('undo','clear'):fields={'action','expected'}
+            else:raise ValueError()
+            if set(body)!=fields:raise ValueError()
+            for key in ('source','target'):
+                if key in body and (not isinstance(body[key],str) or not re.fullmatch('[a-f0-9]{24}',body[key])):raise ValueError()
+            if 'expected' in body and (not isinstance(body['expected'],str) or not re.fullmatch('[a-f0-9]{64}',body['expected'])):raise ValueError()
+            if action=='transfer' and (body['confirmed'] is not True or any(body[k] not in ('','source','target') for k in ('verdict_choice','budget_choice'))):raise ValueError()
+            result=self.server.dashboard.reconnect_action(body,self._lang())
+            self._send(200 if result.get('ok') else 409,result)
+        except (ValueError,TypeError,KeyError):
+            self._send(400,dict(ok=False,reason='invalid'))
 
     def _work_item(self,details=False):
         """Small, authenticated manual annotations; no request can select a disk path."""

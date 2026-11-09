@@ -1,7 +1,7 @@
-# Masaüstü teslimi — 6 Kasım 2026
+# Masaüstü beta — 8 Kasım 2026
 
 Kullanıcı Windows PLER'i tarayıcı yerine kendi penceresinde istedi. Aynı kaynak ve ölçüm
-motoru korunur. Kaynak sürüm 0.3.0; kamuya açık sürüm hâlâ 0.2.31. Yayın/davet gönderilmez.
+motoru korunur. Kaynak sürüm 0.9.11; ücretsiz masaüstü beta için site, paket ve ilk kullanım eşitleniyor. Önceki kamu sürümü 0.2.31 tarayıcıda açılır; masaüstüne ilk geçiş yeni klasöre elle çıkarılarak yapılır. Yayın sonucu RELEASE.md ve reports/beta-alignment-v1 altında kaydedilir. Kişilere davet gönderilmez.
 
 ## Görev sırası
 
@@ -28,15 +28,13 @@ Ana pencere veya backend kapanınca diğeri de kapanır. Wheel/terminal tarayıc
 
 Electron 45.2.3 kilitlidir; Chromium motorunu taşır ve paket boyutunu artırır.
 Güncelleyici 2 ilk elle geçiş gerektirir; veri şemaları değişmez. Authenticode imzası ve
-temiz ortam kabulü açık. Kaynak siteye, eski indirmelere veya özel anahtarlara dokunulmaz.
+temiz ortam kabulü açık. Önceki indirme dosyaları değişmez. Yayın imzasında mevcut korumalı anahtar kullanılır; anahtar siteye veya pakete konmaz.
 
 desktop/ içinde npm ci, ardından gerekirse node node_modules/electron/install.js çalıştırılır.
 tools/build_windows_portable.py mevcut Python runtime, C# derleyicisi ve kilitli Electron ile
 yeni klasöre özel aday üretir. Gerçek kontroller ve teslim yolu reports/desktop-v1/REPORT.md'de.
 
-Masaüstü oturumu geçicidir: arayüz dili/filtre tercihleri yeniden açılışta sıfırlanabilir.
-Kalıcı PLER geçmişi/iş kayıtları ayrı yerel veri klasöründe korunur. İşletim sistemi
-bildirim izinleri bu adayda kapalıdır; uygulama içi kota uyarıları çalışır.
+Dil, güvenli filtre ve görünüm tercihleri yerel olarak korunur; arama metni kalıcı tercih kaydına yazılmaz. Kaydedilmiş işler ayrı yerel veri klasöründedir; kaydedilmemiş taslakları kapatmadan önce kaydet. Oturum bütçesi isteğe bağlıdır: en fazla 20 seçili oturum yaklaşık 10 saniyede bir izlenir; %80/%100 uyarısı ve masaüstü bildirimi uygulama çalışırken verilir. Ajanı durdurmaz; dolar değeri API liste fiyatı karşılığıdır. Demo kayıtları ve demo işleri geçicidir.
 
 Geliştirme/paketleme ve geliştirici kontrolü 1–4 tamamlandı. Son aday ZIP ve gerçekleşen
 kontroller için ../../reports/desktop-v1/REPORT.md. Son görev 5 hâlâ bekliyor.

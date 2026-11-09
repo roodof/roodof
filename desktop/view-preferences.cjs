@@ -16,6 +16,7 @@ function normalizeView(raw) {
     }
   }
   return {
+    ...(raw.setupDone === true ? {setupDone: true} : {}),
     screen: SCREENS.includes(raw.screen) ? raw.screen : 'sessions',
     filters: {
       days: ['0','7','30','90'].includes(filters.days) ? filters.days : '30',

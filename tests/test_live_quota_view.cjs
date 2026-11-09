@@ -18,7 +18,7 @@ function page({permission='granted',outlook=[],local={},session={},answer='grant
   FakeNotification.permission=permission;
   const state={stopped:false,loading:false,data:{has_snapshot:true,state:'ready',outlook}};
   const doc={activeElement:null,dialogOpen:false,querySelector:()=>doc.dialogOpen?{}:null};
-  const context=vm.createContext({usageState:state,$:id=>ids[id],document:doc,Date:{now:()=>NOW,parse:Date.parse},
+  const context=vm.createContext({usageState:state,usageUI:require('../src/pler/web/ui-state.js').create(),$:id=>ids[id],document:doc,Date:{now:()=>NOW,parse:Date.parse},
     t:(key,values)=>values?key+' '+JSON.stringify(values):key,usageAgents:{'claude-code':'Claude Code',codex:'Codex'},
     usageWindow:minutes=>minutes===300?'5-hour':'weekly',usageDate:value=>value,usageDuration:seconds=>Math.round(seconds/60)+' min',
     node:(tag,cls,text)=>element(tag,cls,text),localStorage:storage(local),sessionStorage:storage(session),Notification:FakeNotification,
