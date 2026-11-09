@@ -10,7 +10,7 @@ export function titleStatus(session,tr){
  detail.append(summary,note,action);return detail;
 }
 
-export function mountDiagnostics({tr,settings,show}){
+export function mountDiagnostics({tr,settings,show,reveal}){
  const text=(local,en)=>tr?local:en;
  const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value!=null)n.textContent=value;return n;};
  const stages={logs:text('Kayıt kaynakları','Log sources'),titles:text('Oturum başlıkları','Session titles'),history:text('Saklanan geçmiş','Retained history'),git:text('Git gözlemi','Git observation'),settings:text('Kayıtlı tercihler','Saved preferences'),summary:text('Görünüm hazırlama','Report preparation')};
@@ -64,7 +64,7 @@ export function mountDiagnostics({tr,settings,show}){
   }catch{message.textContent=text('Tanılama indirilemedi. PLER bağlantısını kontrol edip yeniden dene.','Could not download diagnostics. Check the PLER connection and retry.');}
   finally{busy=false;download.disabled=usageState.stopped;}
  });
- document.addEventListener('pler-open-diagnostics',()=>{show('settings',true);heading.focus({preventScroll:true});panel.scrollIntoView({block:'start',behavior:'instant'});});
+ document.addEventListener('pler-open-diagnostics',()=>{if(reveal)reveal(panel);else show('settings',true);heading.focus({preventScroll:true});panel.scrollIntoView({block:'start',behavior:'instant'});});
  const shortcut=el('button','quiet',text('Sorunu incele','Inspect read issues'));shortcut.type='button';shortcut.id='diagnostics-shortcut';shortcut.hidden=true;shortcut.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('pler-open-diagnostics')));document.querySelector('.workspace-head').after(shortcut);
  return {update:data=>{shortcut.hidden=!(data?.state==='error'||data?.sources?.unreadable);update(data);}};
 }

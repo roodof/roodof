@@ -152,7 +152,7 @@ export function mountUsageTime({ tr, before }) {
     empty.hidden = hasRows; chartNode.hidden = !hasRows; legend.hidden = !hasRows; rhythm.hidden = !hasRows;
     if (!hasRows) return;
     const animation = !reduced(), muted = token('muted'), border = token('border');
-    const text = { color: muted, fontFamily: 'Segoe UI', fontSize: 11 };
+    const text = { color: muted, fontFamily: 'Segoe UI', fontSize: 12 };
     bars = bars || init(chartNode, null, { renderer: 'canvas' });
     bars.setOption({
       animation, animationDuration: 500, animationEasing: 'cubicOut', aria: { enabled: true },

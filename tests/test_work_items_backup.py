@@ -34,7 +34,8 @@ class WorkBackupTests(IsolatedMetadata):
         self.assertNotIn(TITLE,json.dumps(summary))
         restored=self.root/'recovered';backup.restore(data,restored)
         self.assertEqual(work_items.Folder(restored).read(),store.read())
-        self.assertEqual(set(restored.iterdir()),{restored/work_items.FILENAME,restored/'metadata-archive-generation.json'})
+        # The restore holds the folder's fixed archive lock; the one-byte lock file carries no data.
+        self.assertEqual(set(restored.iterdir()),{restored/work_items.FILENAME,restored/'metadata-archive-generation.json',restored/'metadata-archive.lock'})
 
     def test_older_backup_without_optional_work_file_remains_valid_and_restores_no_work(self):
         data=backup.create()

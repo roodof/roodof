@@ -11,7 +11,7 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Yerel aday 0.9.13:** Ayarlar → Yedekten geçmiş kurtar ile güvenilir özel yedeği incele; ayrı konumu gör ve açık geçmişin üzerine yazmadan kurtar. Masaüstünde kurtarılan geçmişi açabilir, önceki geçmişe dönebilirsin. Normal masaüstü açılışı seçimini hatırlar; özel veri klasörüyle başlayan çalıştırmalar yalnız o çalıştırmayı kapsar. Sitedeki ücretsiz beta 0.9.11. [Kurtarma kapsamı](docs/HISTORY-RECOVERY.md).
+**Yerel aday 0.9.20:** Hesap kotaları, kullanım uyarıları ve API fiyat karşılığı tutarlı adlandırıldı. Yardımcı ekranlar ve çevrimdışı yardım ortak okunabilir yazı/boşluk düzeninde. Sitedeki ücretsiz beta0.9.11. [Kavramlar ve okunabilirlik](docs/TERMINOLOGY-READABILITY.md).
 
 
 **Ücretsiz Windows masaüstü betası 0.9.11.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.

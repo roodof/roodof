@@ -50,7 +50,7 @@ function start({ startup, Notification, window, icon, request = localRequest, in
         if ((retries.get(key) || 0) > Date.now() || stopped) continue;
         const tr = new URL(window.webContents.getURL()).searchParams.get('lang') === 'tr';
         const metric = row.metric === 'tokens' ? 'token' : tr ? 'API fiyat karşılığı' : 'API price equivalent';
-        const title = tr ? 'PLER · Oturum bütçe uyarısı' : 'PLER · Session budget alert';
+        const title = tr ? 'PLER · Kullanım uyarısı' : 'PLER · Usage alert';
         const body = tr ? `#${row.id.slice(0, 6)} · ${metric} eşiğinin %${row.pending_level} değerine ulaşıldı. PLER oturumu durdurmaz.`
           : `#${row.id.slice(0, 6)} · ${row.pending_level}% of the ${metric} threshold reached. PLER does not stop the session.`;
         const notification = new Notification({ title, body, icon, silent: false });

@@ -1,5 +1,5 @@
 // The server holds one verified, ten-minute preview. No backup is sent off this computer.
-export function mountHistoryRecovery({tr,settings,show}){
+export function mountHistoryRecovery({tr,settings,show,reveal}){
  const text=(local,en)=>tr?local:en;
  const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value)n.textContent=value;return n;};
  const button=(id,label,cls='secondary')=>{const n=el('button',cls,label);n.type='button';n.id=id;return n;};
@@ -112,6 +112,7 @@ export function mountHistoryRecovery({tr,settings,show}){
  }
  open.addEventListener('click',()=>switchHistory('open'));previous.addEventListener('click',()=>switchHistory('previous'));retry.addEventListener('click',load);
  window.plerUI.subscribe(['loading','stopped'],sync);
- load().then(()=>{if(data?.issue){show('settings',true);title.focus();}});
- return {open(){show('settings',true);title.focus();}};
+ const revealPanel=()=>{if(reveal)reveal(panel);else show('settings',true);title.focus();};
+ load().then(()=>{if(data?.issue)revealPanel();});
+ return {open:revealPanel};
 }

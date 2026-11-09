@@ -49,3 +49,19 @@
 .tabulator-sessions #usage-search-empty{margin:0;padding:12px;background:var(--ui-surface);font-size:12px;border:0}
 .tabulator-sessions #usage-more{margin:8px 12px 10px;font-size:12px}
 @media(max-width:760px){.tabulator-sessions #usage-session-section .session-controls{grid-template-columns:minmax(120px,1fr) auto;padding:10px}.tabulator-sessions .session-controls>div:first-child{grid-column:1/-1}.grid-column-menu{width:240px}.workspace-redesign .grid-options>summary{font-size:11px;padding-inline:8px}.tabulator-sessions .tabulator-row .tabulator-cell{padding-inline:10px}}
+
+/* Finding a session is the primary task; column controls stay secondary. */
+.tabulator-sessions .session-controls>div>label{position:static;display:block;width:auto;height:auto;overflow:visible;clip:auto;margin-bottom:5px;font-size:12px;color:var(--ui-secondary)}
+.tabulator-sessions #usage-session-section .session-controls{grid-template-columns:minmax(150px,1fr) 175px auto;gap:10px}
+.tabulator-sessions .session-controls input,.tabulator-sessions .session-controls select,.workspace-redesign .grid-options>summary{min-height:38px}
+.tabulator-sessions .session-controls .session-search{position:relative;min-width:0}
+.tabulator-sessions #usage-session-search{padding-right:45px;font-size:14px}
+.session-search-key{position:absolute;right:10px;bottom:10px;pointer-events:none}
+.session-search:focus-within .session-search-key{opacity:0}
+.tabulator-sessions .sessions-grid.tabulator{font-size:13px}
+.grid-session-meta,.grid-project-path{font-size:12px}
+.grid-number{font-size:14px}
+.grid-status{font-size:11px}
+.tabulator-sessions .tabulator .tabulator-header{font-size:12px}
+.tabulator-sessions #usage-session-section .quality-filter{font-size:12px}
+@media(max-width:760px){.tabulator-sessions #usage-session-section .session-controls{grid-template-columns:minmax(120px,1fr) auto}.tabulator-sessions .session-controls>div:first-child{grid-column:1/-1}.tabulator-sessions #usage-session-search{font-size:13px}}

@@ -124,7 +124,7 @@ export function mountQuota({ tr, page }) {
           progress: { show: item.used !== null, roundCap: true, width: 10, itemStyle: { color } },
           axisLine: { roundCap: true, lineStyle: { width: 10, color: [[1, token('raised')]] } },
           pointer: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, anchor: { show: false },
-          title: { show: true, offsetCenter: [0, '34%'], color: token('muted'), fontSize: 11, fontFamily: 'Segoe UI' },
+          title: { show: true, offsetCenter: [0, '34%'], color: token('muted'), fontSize: 12, fontFamily: 'Segoe UI' },
           detail: { valueAnimation: animation, offsetCenter: [0, '-2%'], color: token('text'), fontSize: 28, fontWeight: 600, fontFamily: 'Segoe UI',
             formatter: value => item.used === null ? '—' : (tr ? '%' : '') + Number(value).toLocaleString(lang, { maximumFractionDigits: 1 }) + (tr ? '' : '%') },
           data: [{ value: item.used ?? 0, name: item.used === null ? '' : words.used }]

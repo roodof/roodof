@@ -126,6 +126,29 @@ snapshot. Old data stays visible during refresh, and empty-state actions use exi
 
 ## Hard exclusions
 
+First use has one next-step button, selected from completed record-read state. Reading stays locked;
+ready sessions, missing records and read issues lead to sessions, sources and diagnostics respectively.
+Retry/help/skip stay in a disclosure, with readable sessions retained as an explicit error alternative.
+
+An empty search shows its actual period/agent/project scope and a relevant next action. Broadening
+changes one constraint and keeps the user's text and other choices. Empty virtual table space is
+removed; two visible actions lead to optional alternatives. Missing sources, unreadable records,
+unusable files and failed reads have distinct copy. Never imply an unverified source is missing.
+
+Settings use three task tabs: record sources, usage alerts, backup/support. Existing form nodes
+stay mounted across tabs; operational tools open independently and shortcuts reveal their target.
+Session work linking starts collapsed, keeps linked names visible, and shows only the selected
+existing/new-work form. Native disclosure semantics, keyboard tabs, preserved drafts and truthful
+saved state take precedence over decorative motion. These controls keep the existing token palette.
+
+The session task is **find → understand recorded usage → set an alert**. Search keeps a visible
+label and `/` keyboard access. New views start with session, token total and record status;
+explicitly saved columns remain authoritative. The inspector leads with recorded tokens,
+API price coverage and a three-part input/cache/output strip. Missing and partial values are
+labelled rather than estimated. Alert editing opens on request; saved alert status stays visible.
+Methods, model breakdown and full record fields follow the primary actions. Small operational
+copy uses at least 12px in this flow. Virtual row selection must touch rendered rows only.
+
 No purple/indigo/pink gradients, neon blobs, hero cards, giant metrics without a decision,
 32–40px standard card padding, thick borders, heavy card shadows, static selected-state jumps,
 fake prompts/log contents, invented session names, invented savings or dead demonstration controls.
@@ -142,3 +165,9 @@ fake prompts/log contents, invented session names, invented savings or dead demo
 Source URLs and SHA256s are saved in docs/design-references/sources.json and patterns.json.
 `frontend/tokens.json` emits CSS variables at build time. `frontend/workspace.css` and
 `frontend/sessions-grid.css` consume those variables. This replaces the old stacked overrides.
+
+## UX5/6 — terminology and supporting-screen type
+
+Account limits / Hesap kotaları are provider-set limits from the latest local samples, not a live account query. Usage alert / Kullanım uyarısı is a user-set per-session token or USD threshold; it does not change provider limits or stop an agent. API price equivalent / API fiyat karşılığı is priced recorded usage, not a bill or subscription spend. Use the app dictionary for shared frontend names; keep CLI, native notifications and offline help aligned. Actual unit API prices and monthly plan prices retain their separate meanings.
+
+Supporting surfaces inherit `--ui-body-size:13px`, `--ui-label-size:12px`, `--ui-section-size:15px`, `--ui-copy-line:1.6`, `--ui-section-gap:16px` and `--ui-control-gap:8px` from the workspace. No 10/11 px explanation, path or metadata labels. Large data values, icons and page headings keep their distinct roles. Source folders, saved alerts, inspector, recovery, history, diagnostics, reconnection, updates and offline help share these roles. Paths wrap; quota status badges may wrap rather than squeeze headings. Help has no sidebar and retains local assets only. Keep the current 25 color tokens unchanged.

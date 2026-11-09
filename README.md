@@ -11,7 +11,7 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 ## Windows beta quick start
 
-**Local candidate 0.9.13:** Settings → Recover history from a backup verifies a trusted private backup, previews a separate destination and restores without replacing open history. Open the recovered history in the desktop app and return to the previous one. Normal desktop launches remember your choice; explicit data-folder launches remain scoped to that run. Public free beta remains 0.9.11. [Recovery scope](docs/HISTORY-RECOVERY.md).
+**Local candidate 0.9.20:** Account limits, usage alerts and API price equivalent now use consistent names. Supporting screens and offline help share readable type and spacing. Public free beta remains0.9.11. [Terminology and readability](docs/TERMINOLOGY-READABILITY.md).
 
 
 **Free Windows desktop beta 0.9.11.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.

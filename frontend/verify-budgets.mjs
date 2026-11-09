@@ -11,7 +11,7 @@ const headers={'X-PLER-Token':new URL(startup).hash.slice(8),Origin:new URL(star
 async function get(){const r=await fetch(new URL('/api/usage/budgets',startup),{headers});assert.ok(r.ok);return r.json();}
 async function change(body){const r=await fetch(new URL('/api/usage/budgets',startup),{method:'POST',headers,body:JSON.stringify(body)});assert.ok(r.ok);return r.json();}
 async function ready(page){await page.waitForFunction(()=>usageState.data?.has_snapshot&&!usageState.loading&&typeof window.plerOpenBudgetSession==='function');if(await page.locator('#first-use').isVisible())await page.locator('.first-use-actions .primary').click();await page.waitForFunction(()=>!usageState.loading);}
-async function openAgent(page,agent){await page.evaluate(a=>openUsageSession(usageState.data.sessions.find(s=>s.agent===a)),agent);await page.locator('#budget-limit').waitFor();}
+async function openAgent(page,agent){await page.evaluate(a=>openUsageSession(usageState.data.sessions.find(s=>s.agent===a)),agent);await page.locator('.budget-editor>summary').click();await page.locator('#budget-limit').waitFor();}
 async function waitRow(id,predicate,timeout=25000){const end=Date.now()+timeout;while(Date.now()<end){const row=(await get()).items.find(r=>r.id===id);if(row&&predicate(row))return row;await new Promise(r=>setTimeout(r,250));}throw new Error('Budget observation timed out');}
 const browser=await chromium.launch({channel:'msedge',headless:true});
 let codexId,claudeId;
@@ -22,16 +22,16 @@ try{
  for(const row of (await get()).items)await change({id:row.id,metric:null,limit:null,expected:row.revision});
  const page=await browser.newPage({viewport:{width:1366,height:900},reducedMotion:'reduce'});page.on('pageerror',e=>errors.push(e.message));await page.goto(url.href);await ready(page);
  ({codexId,claudeId}=await page.evaluate(()=>({codexId:usageState.data.sessions.find(s=>s.agent==='codex').id,claudeId:usageState.data.sessions.find(s=>s.agent==='claude-code').id})));
- await openAgent(page,'codex');await page.locator('#budget-limit').fill('100000');await page.getByRole('button',{name:'Eşiği kaydet',exact:true}).click();
+ await openAgent(page,'codex');await page.locator('#budget-limit').fill('100000');await page.getByRole('button',{name:'Uyarıyı kaydet',exact:true}).click();
  await waitRow(codexId,r=>r.state==='watching'&&r.amount===79000&&r.level===0);
  await page.waitForTimeout(5200);assert.match(await page.locator('#session-budget .budget-amount').textContent(),/79.000/);
  // A rejected save keeps the editor and saved threshold intact.
  await page.route('**/api/usage/budgets?*',route=>route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({ok:false,reason:'conflict'})}));
- await page.locator('#budget-limit').fill('120000');await page.getByRole('button',{name:'Eşiği kaydet',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.budget-message')?.textContent.includes('Kaydedilemedi'));
+ await page.locator('#budget-limit').fill('120000');await page.getByRole('button',{name:'Uyarıyı kaydet',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.budget-message')?.textContent.includes('Kaydedilemedi'));
  assert.equal((await get()).items.find(r=>r.id===codexId).limit,100000);assert.equal(await page.locator('#budget-limit').inputValue(),'120000');await page.unrouteAll();
  await page.screenshot({path:path.join(root,'inspector-tr.png')});
  await page.keyboard.press('Escape');await page.locator('[data-route=settings]').click();await page.locator('.budget-watch-open').first().focus();await page.waitForTimeout(5500);assert.equal(await page.locator('.budget-watch-open').first().evaluate(n=>n===document.activeElement),true);
- await openAgent(page,'claude-code');await page.locator('#budget-metric').selectOption('usd');assert.match(await page.locator('.budget-metric-note').textContent(),/Gerçek fatura/);await page.locator('#budget-limit').fill('0.01');await page.getByRole('button',{name:'Eşiği kaydet',exact:true}).click();await waitRow(claudeId,r=>r.metric==='usd'&&r.amount>0);
+ await openAgent(page,'claude-code');await page.locator('#budget-metric').selectOption('usd');assert.match(await page.locator('.budget-metric-note').textContent(),/Gerçek fatura/);await page.locator('#budget-limit').fill('0.01');await page.getByRole('button',{name:'Uyarıyı kaydet',exact:true}).click();await waitRow(claudeId,r=>r.metric==='usd'&&r.amount>0);
  await page.keyboard.press('Escape');await page.locator('[data-route=settings]').click();await page.screenshot({path:path.join(root,'watch-list-tr.png')});
  await page.locator('#lang-toggle').click();await page.waitForSelector('html[lang=en]');await ready(page);await openAgent(page,'claude-code');assert.match(await page.locator('#session-budget').textContent(),/API price equivalent/);await page.screenshot({path:path.join(root,'inspector-en.png')});
  await page.keyboard.press('Escape');await page.locator('[data-route=settings]').click();

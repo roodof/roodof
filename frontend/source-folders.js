@@ -1,5 +1,5 @@
 // Paths are displayed only in this local settings panel, never in reports.
-export function mountSourceFolders({tr, settings, show}) {
+export function mountSourceFolders({tr, settings, show, reveal}) {
  const text=(local,en)=>tr?local:en;
  const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value)n.textContent=value;return n;};
  const names={'claude-code':'Claude Code',codex:'Codex'};
@@ -82,7 +82,7 @@ export function mountSourceFolders({tr, settings, show}) {
   catch{data=null;fail({});}finally{loading=false;sync();}
  }
  document.addEventListener('pler-screen-change',event=>{if(event.detail==='settings')load();});
- document.addEventListener('pler-manage-sources',()=>{show('settings',true);heading.focus({preventScroll:true});section.scrollIntoView({block:'start',behavior:'instant'});});
+ document.addEventListener('pler-manage-sources',()=>{if(reveal)reveal(section);else show('settings',true);heading.focus({preventScroll:true});section.scrollIntoView({block:'start',behavior:'instant'});});
  sync();load();
  return {load};
 }

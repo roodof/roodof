@@ -1,11 +1,11 @@
 // Explicit, previewed annotation transfer. The server owns conflicts and recovery.
-export function mountReconnections({tr,settings,show}){
+export function mountReconnections({tr,settings,show,reveal}){
  const text=(local,en)=>tr?local:en;
  const el=(tag,cls,value)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(value)node.textContent=value;return node;};
  const number=value=>new Intl.NumberFormat(tr?'tr-TR':'en-US',{maximumFractionDigits:4}).format(value);
  const label=row=>row?.title||row?.works?.[0]?.title||'#'+(row?.id||'').slice(0,8);
  const verdict=value=>value==='useful'?text('Yararlı','Useful'):value==='wasted'?text('Boşa','Wasted'):text('Yok','None');
- const budget=value=>value?number(value.limit)+' '+(value.metric==='tokens'?'token':text('USD · API fiyat karşılığı','USD · API price equivalent')):text('Yok','None');
+ const budget=value=>value?number(value.limit)+' '+(value.metric==='tokens'?'token':'USD · '+t('stat_api')):text('Yok','None');
  const reasons={unavailable:text('Önce kayıtların başarıyla okunmasını bekle.','Wait for a successful record read first.'),
   unreadable:text('Kayıtlı ayarlar veya geri alma kaydı okunamadı. Dosyalar korunuyor; aktarım kapalı.','Saved settings or recovery data could not be read. Files are preserved; transfer is disabled.'),
   recovery_conflict:text('Kesilen aktarım sırasında ayarlar dışarıdan değişmiş. Dosyalar korunuyor; mevcut özel yedeğini sakla.','Settings changed externally during an interrupted transfer. Files are preserved; keep your private backup.'),
@@ -44,8 +44,8 @@ export function mountReconnections({tr,settings,show}){
  const inspect=el('button','primary',text('Aktarımı önizle','Preview transfer'));inspect.type='button';inspect.dataset.reconnectAction='preview';fields.append(inspect);
  const previewBox=el('div','reconnection-preview');previewBox.hidden=true;fields.append(previewBox);section.append(fields);
  const history=el('div','reconnection-history');section.append(history);
- section.append(el('p','section-note reconnection-privacy',text('Bu işlem oturum kullanımını birleştirmez, dosya kimliğini doğrulamaz ve ajan kayıtlarını değiştirmez. Son aktarımı geri almak için özel yerel bir kopya tutulur; bu kopya normal rapora veya özel yedeğe eklenmez. Yedekler sonuçtaki iş, değerlendirme ve bütçe ayarlarını içerir.',
-  'This does not combine session usage, prove file identity or change agent records. A private local copy supports undoing the last transfer; it is absent from regular reports and private backups. Backups include the resulting work, review and budget settings.')));
+ section.append(el('p','section-note reconnection-privacy',text('Bu işlem oturum kullanımını birleştirmez, dosya kimliğini doğrulamaz ve ajan kayıtlarını değiştirmez. Son aktarımı geri almak için özel yerel bir kopya tutulur; bu kopya normal rapora veya özel yedeğe eklenmez. Yedekler sonuçtaki iş, değerlendirme ve kullanım uyarısı ayarlarını içerir.',
+  'This does not combine session usage, prove file identity or change agent records. A private local copy supports undoing the last transfer; it is absent from regular reports and private backups. Backups include the resulting work, review and usage alert settings.')));
  settings.append(section);
  function fail(error){message.textContent=reasons[error?.reason]||text('Bağlantı kurulamadı. Mevcut ayarlar korundu; listeyi yenile.','Could not connect. Existing settings were kept; reload the list.');message.dataset.state='error';}
  function sync(){
@@ -129,13 +129,13 @@ export function mountReconnections({tr,settings,show}){
  }
  retry.addEventListener('click',()=>{invalidate();loadRows('sources');loadRows('targets');});
  function open(selection={}){
-  show('settings',true);fields.disabled=false;
+  if(reveal)reveal(section);else show('settings',true);fields.disabled=false;
   if(selection.source){lists.sources.input.value=selection.source;pages.sources=0;}
   if(selection.target){lists.targets.input.value=selection.target;pages.targets=0;}
   invalidate();loadRows('sources');loadRows('targets');heading.focus({preventScroll:true});section.scrollIntoView({block:'start',behavior:'instant'});
  }
  document.addEventListener('pler-screen-change',event=>{if(event.detail==='settings'){loadRows('sources');loadRows('targets');}});
- document.addEventListener('pler-reconnect-record',event=>open(event.detail));
+ document.addEventListener('pler-reconnect-record',event=>open(event.detail||{}));
  if(window.plerUI?.get().screen==='settings'){loadRows('sources');loadRows('targets');}
  sync();return {open};
 }

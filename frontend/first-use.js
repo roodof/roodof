@@ -8,22 +8,23 @@ export function mountFirstUse({tr,settings,show,tour}) {
  const make=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value)n.textContent=value;return n;};
  const words={
   title:text('Find your Claude Code and Codex work','Claude Code ve Codex çalışmalarını bul'),
-  intro:text('Find past sessions, see usage by project and keep related work together. PLER reads the local records these apps already save. No account connection is needed.','Geçmiş oturumlarını bul, proje kullanımını gör ve ilgili çalışmaları bir araya getir. PLER bu uygulamaların kaydettiği yerel kayıtları okur. Hesap bağlaman gerekmez.'),
+  intro:text('Find sessions from the local records saved by Claude Code and Codex. No account connection is needed.','Claude Code ve Codex’in bu bilgisayarda tuttuğu kayıtlardan oturumlarını bul. Hesap bağlaman gerekmez.'),
   retry:text('Look for records again','Kayıtları yeniden ara'),
   reading:text('Reading local records…','Yerel kayıtlar okunuyor…'),
   later:text('Continue without records','Kayıt olmadan devam et'),
   privacy:text('No model call is made. This check does not upload your agent records. ChatGPT web conversations are not included.','Model çağrısı yapılmaz. Bu kontrol ajan kayıtlarını dışarı yüklemez. ChatGPT web sohbetleri dahil değildir.'),
   help:text('Source and WSL help','Kayıt kaynakları ve WSL yardımı')
  };
- let data=null,open=!getView().setupDone;
+ let data=null,open=!getView().setupDone,nextAction='reading';
  const panel=make('section','first-use');panel.id='first-use';panel.setAttribute('aria-labelledby','first-use-title');
  const heading=make('h2','',words.title);heading.id='first-use-title';heading.tabIndex=-1;
- const caption=make('p','first-use-caption',text('LOCAL WORKSPACE','YEREL ÇALIŞMA ALANI'));
+ const caption=make('p','first-use-caption','Claude Code · Codex');
  const intro=make('p','first-use-intro',words.intro);
  const sources=make('div','first-use-sources');
  const status=make('p','first-use-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const actions=make('div','first-use-actions');
- const primary=make('button','primary',text('Open sessions','Oturumları aç'));primary.type='button';
+ const primary=make('button','primary',words.reading);primary.type='button';primary.id='first-use-next';
+ const sessionsButton=make('button','secondary',text('See your sessions','Oturumlarını gör'));sessionsButton.type='button';sessionsButton.id='first-use-sessions';
  const retry=make('button','secondary',words.retry);retry.type='button';retry.addEventListener('click',()=>{$('usage-refresh').click();update(data);});
  const later=make('button','quiet',words.later);later.type='button';
  const help=make('a','first-use-help',words.help);help.href='/help?lang='+(tr?'tr':'en')+'#coverage';
@@ -31,7 +32,10 @@ export function mountFirstUse({tr,settings,show,tour}) {
  const leaveSetup=event=>{open=false;visibility();document.dispatchEvent(new CustomEvent(event));};
  const manage=make('button','secondary',text('Add a log folder','Kayıt klasörü ekle'));manage.type='button';manage.id='first-use-manage-sources';manage.addEventListener('click',()=>leaveSetup('pler-manage-sources'));
  const diagnose=make('button','quiet',text('Inspect read issues','Sorunu incele'));diagnose.type='button';diagnose.id='first-use-diagnostics';diagnose.hidden=true;diagnose.addEventListener('click',()=>leaveSetup('pler-open-diagnostics'));
- actions.append(primary,retry,manage,later,diagnose);panel.append(caption,heading,intro,sources,status,actions,help,privacy);
+ const options=make('details','first-use-options');options.id='first-use-options';
+ options.append(make('summary','',text('Other options','Diğer seçenekler')));
+ const optionalActions=make('div','first-use-optional-actions');optionalActions.append(sessionsButton,retry,manage,later,diagnose);options.append(optionalActions,help);
+ actions.append(primary);panel.append(caption,heading,intro,sources,status,actions,options,privacy);
  document.querySelector('.workspace-head').after(panel);
  const sourceRows=new Map();
  for(const [agent,name] of [['claude-code','Claude Code'],['codex','Codex']]){
@@ -48,7 +52,7 @@ export function mountFirstUse({tr,settings,show,tour}) {
   text('For another local installation or a running WSL distribution, choose Add a log folder. Records on another computer are not read remotely.','Başka bir yerel kurulum veya çalışan WSL dağıtımı için Kayıt klasörü ekle seçeneğini kullan. Başka bilgisayardaki kayıtlar uzaktan okunmaz.'),
   text('If you already have sessions, check that their local records are still present and readable. PLER can only show the records it can read.','Oturumların zaten varsa yerel kayıtlarının hâlâ bulunduğunu ve okunabildiğini kontrol et. PLER yalnız okuyabildiği kayıtları gösterebilir.')
  ])guidance.append(make('p','',message));
- panel.insertBefore(guidance,status);
+ options.append(guidance);
  const reopen=make('button','secondary',text('Check record sources','Kayıt kaynaklarını kontrol et'));reopen.id='first-use-reopen';reopen.type='button';
  const tourButton=make('button','quiet first-use-tour',text('Show the interface tour','Kısa arayüz turunu aç'));tourButton.type='button';
  const settingsBlock=make('section','first-use-settings');settingsBlock.append(make('h2','',text('Getting started','Başlangıç')),reopen,tourButton);settings.prepend(settingsBlock);
@@ -64,7 +68,12 @@ export function mountFirstUse({tr,settings,show,tour}) {
   saveView({filters:{days:'0',agent:'all',project:'all',sort:'recent',quality:false}});
   await loadUsage();
  }
- primary.addEventListener('click',sessions);
+ primary.addEventListener('click',()=>{
+  if(nextAction==='sessions')sessions();
+  else if(nextAction==='sources')leaveSetup('pler-manage-sources');
+  else if(nextAction==='inspect')leaveSetup('pler-open-diagnostics');
+ });
+ sessionsButton.addEventListener('click',sessions);
  later.addEventListener('click',()=>{finish();show('sessions',true);});
  reopen.addEventListener('click',()=>{open=true;update(data);visibility(true);});
  tourButton.addEventListener('click',async()=>{await sessions();tour()?.start(usageState.data);});
@@ -74,24 +83,37 @@ export function mountFirstUse({tr,settings,show,tour}) {
   const busy=Boolean(usageState.loading||value?.state==='scanning'||!$('usage-progress').hidden);
   const snapshot=Boolean(value?.has_snapshot),summary=value?.setup;
   const count=summary?.sessions||0,failed=value?.state==='error'||Boolean(usageState.readError);
-  diagnose.hidden=!failed&&!value?.sources?.unreadable;
+  const unreadable=Boolean(value?.sources?.unreadable),files=(value?.sources?.claude_files||0)+(value?.sources?.codex_files||0);
+  const issue=failed||unreadable||(snapshot&&!count&&files>0);
+  nextAction=busy||(!snapshot&&!failed)?'reading':issue?'inspect':count?'sessions':'sources';
+  panel.dataset.action=nextAction;
+  heading.textContent=nextAction==='reading'?text('Looking for your sessions','Oturumların aranıyor'):
+   nextAction==='sessions'?text('Your sessions are ready','Oturumların hazır'):
+   nextAction==='sources'?text('Find your records','Kayıtlarını bulalım'):text('Check the read issue','Okuma sorununu inceleyelim');
+  primary.textContent=nextAction==='reading'?words.reading:nextAction==='sessions'?text('See your sessions','Oturumlarını gör'):
+   nextAction==='sources'?text('Add a log folder','Kayıt klasörü ekle'):text('Inspect the issue','Sorunu incele');
+  primary.disabled=nextAction==='reading'||usageState.stopped;
+  sessionsButton.hidden=nextAction==='sessions'||nextAction==='reading'||!snapshot||!count;
+  sessionsButton.disabled=busy||!snapshot||!count||usageState.stopped;
+  sessionsButton.textContent=issue?text('See available sessions','Bulunabilen oturumları gör'):text('See your sessions','Oturumlarını gör');
+  manage.hidden=nextAction==='sources';diagnose.hidden=!issue||nextAction==='inspect';
   for(const [agent,{row,state}] of sourceRows){
    const info=summary?.agents?.find(item=>item.agent===agent);
    const n=info?.sessions||0;
    row.dataset.state=busy?'reading':!snapshot?'unknown':n?'ready':'missing';
    state.textContent=busy?words.reading:!snapshot?text('Not read yet','Henüz okunmadı'):n?
-    (info.files?text(`${n} saved sessions`,`${n} kayıtlı oturum`):text(`${n} sessions in retained history`,`${n} oturum saklanan geçmişte`)):
+    (info.files?text(`${n} saved session${n===1?'':'s'}`,`${n} kayıtlı oturum`):text(`${n} session${n===1?'':'s'} in retained history`,`${n} oturum saklanan geçmişte`)):
     info?.files?text('Files found; no usable sessions','Dosya bulundu; kullanılabilir oturum yok'):text('No records found','Kayıt bulunamadı');
   }
   manage.disabled=busy||usageState.stopped;retry.disabled=busy||usageState.stopped;retry.textContent=busy?words.reading:words.retry;
-  primary.disabled=busy||!snapshot||!count||usageState.stopped;
-  primary.textContent=count?text(`Explore ${count} sessions`,`${count} oturumu incele`):text('Open sessions','Oturumları aç');
-  later.textContent=count?text('Continue to workspace','Çalışma alanına geç'):words.later;
+  diagnose.disabled=busy||usageState.stopped;
+  later.disabled=usageState.stopped;later.textContent=count?text('Continue to workspace','Çalışma alanına geç'):text('Skip for now','Şimdilik geç');
   status.textContent=busy?text('Checking both sources. Large histories can take a moment.','İki kaynak kontrol ediliyor. Büyük geçmişlerde bu biraz sürebilir.'):
-   failed?text('The read could not finish. Try again; any previous snapshot is kept.','Okuma tamamlanamadı. Yeniden dene; önceki kayıt görünümü korunur.'):
-   value?.sources?.unreadable?text('Some records could not be read. You can explore the readable sessions; see source help for missing records.','Bazı kayıtlar okunamadı. Okunabilen oturumları inceleyebilirsin; eksikler için kaynak yardımını aç.'):
-   snapshot&&count?text(`${count} sessions across ${summary.projects} projects. Open a session to see its details.`,`${summary.sessions} oturum, ${summary.projects} proje. Ayrıntıları görmek için bir oturum aç.`):
-   snapshot?text('No sessions to show yet. Open the guidance below the source list, then try again.','Henüz gösterilecek oturum yok. Kaynak listesinin altındaki açıklamayı açıp yeniden dene.'):'';
+   failed?text('The read could not finish. Inspect the issue; any previous snapshot is kept.','Okuma tamamlanamadı. Sorunu incele; varsa önceki kayıt görünümü korunur.'):
+   value?.sources?.unreadable?text('Some records could not be read. Available sessions are under Other options.','Bazı kayıtlar okunamadı. Bulunabilen oturumlar Diğer seçenekler altında.'):
+   snapshot&&count?text(`${count} session${count===1?'':'s'} across ${summary.projects} project${summary.projects===1?'':'s'}. Open a session to see its usage.`,`${summary.sessions} oturum, ${summary.projects} proje. Kullanımını görmek için bir oturum aç.`):
+   snapshot&&files?text('Record files were found, but no usable sessions. Inspect read status to see why.','Kayıt dosyaları bulundu, fakat gösterilebilen oturum yok. Nedenini okuma durumunda incele.'):
+   snapshot?text('No sessions found in the standard folders. Add the log folder if you use another installation.','Standart klasörlerde oturum kaydı bulunamadı. Farklı bir kurulum kullanıyorsan kayıt klasörünü ekle.'):'';
   guidance.hidden=snapshot&&count>0&&!value?.sources?.unreadable;
   tourButton.disabled=busy||!snapshot||!count||usageState.stopped;
   visibility();

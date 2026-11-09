@@ -2,8 +2,11 @@ import {animate,stagger} from 'motion';
 
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const spring={type:'spring',stiffness:400,damping:30};
+let pageEntry;
 export function enterPage(page){
- if(!reduced())animate(page,{opacity:[.35,1],y:[4,0]},{...spring,visualDuration:.22});
+ // Rapid navigation must not leave multiple page entrances running behind hidden views.
+ pageEntry?.cancel();pageEntry=null;
+ if(!reduced())pageEntry=animate(page,{opacity:[.9,1],y:[3,0]},{duration:.18,ease:[.22,1,.36,1]});
 }
 export function enterRows(rows){
  if(!reduced()&&rows.length)animate(rows.slice(0,8),{opacity:[.45,1],y:[4,0]},{...spring,delay:stagger(.04)});

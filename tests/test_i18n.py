@@ -1,6 +1,7 @@
 """English and Turkish stay complete and consistent: same keys, same placeholders, every word the code and the page
 use exists, the right language is picked, and counted nouns read naturally."""
 from datetime import datetime, timedelta, timezone
+import ast
 import json
 from pathlib import Path
 import re
@@ -70,7 +71,20 @@ class TableTests(unittest.TestCase):
             if path.name == 'i18n.py':
                 continue
             with self.subTest(file=path.name):
-                strings = [line for line in path.read_text(encoding='utf-8').splitlines() if turkish.search(line)
+                source = path.read_text(encoding='utf-8')
+                catalog_lines = set()
+                if path.name == 'diagnostics.py':
+                    # Diagnostics intentionally owns its bilingual allowlist. Only that table
+                    # is exempt; executable code still goes through the same check below.
+                    catalog = next(node for node in ast.parse(source).body if isinstance(node, ast.Assign)
+                                   and any(isinstance(target, ast.Name) and target.id == 'CATALOG' for target in node.targets))
+                    for row in ast.literal_eval(catalog.value).values():
+                        self.assertEqual(len(row), 7)
+                        self.assertTrue(all(isinstance(value, str) and value for value in row))
+                        self.assertEqual(fields(row[3]), fields(row[5]))
+                        self.assertEqual(fields(row[4]), fields(row[6]))
+                    catalog_lines = set(range(catalog.lineno, catalog.end_lineno + 1))
+                strings = [line for index, line in enumerate(source.splitlines(), 1) if index not in catalog_lines and turkish.search(line)
                            and not line.strip().startswith('#')]
                 self.assertEqual(strings, [])
 

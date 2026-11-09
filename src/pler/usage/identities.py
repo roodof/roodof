@@ -271,7 +271,12 @@ def bind(sessions, before, after, base=None):
                 value = dict(format=1, files=updated)
                 encoded = json.dumps(value, separators=(',', ':'), allow_nan=False).encode('utf-8')
                 validate(encoded)  # never publish an unbounded or incompatible registry
-                _write(path, value)
+                try:
+                    _write(path, value)
+                except OSError:
+                    # A cache that cannot be written must not hide verified usage. Nothing was
+                    # replaced, so saved codes stay intact; this run simply cannot keep new ones.
+                    return dict(status, state='unavailable')
             return status
     except (OSError, ValueError, TypeError, UnicodeError) as error:
         raise IdentityError() from error

@@ -33,12 +33,16 @@ export function mountNavigation(host,routes,words,onSelect) {
  const root=createRoot(host);flushSync(()=>root.render(<Navigation/>));
  return {setActive:name=>updateActive(name),setWarning:(count,text)=>updateWarning({count,text})};
 }
-export function mountSegments(host,items,initialValue,onSelect){
+export function mountSegments(host,items,initialValue,onSelect,{tabPrefix}={}){
  let update;
  function Segments(){
   const [value,setValue]=useState(initialValue),id=useId(),reduced=useReducedMotion();update=setValue;
   return <MotionConfig reducedMotion="user"><LayoutGroup id={id}>
-   {items.map(([key,label])=><TactileButton key={key} data-value={key} aria-pressed={value===key} onClick={()=>onSelect(key)}>
+   {items.map(([key,label],index)=><TactileButton key={key} data-value={key} role={tabPrefix?'tab':undefined}
+    id={tabPrefix?tabPrefix+'-tab-'+key:undefined} aria-controls={tabPrefix?tabPrefix+'-panel-'+key:undefined}
+    aria-selected={tabPrefix?value===key:undefined} aria-pressed={tabPrefix?undefined:value===key} tabIndex={tabPrefix?(value===key?0:-1):undefined}
+    onKeyDown={tabPrefix?event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowRight'?1:-1)+items.length)%items.length;onSelect(items[next][0]);host.querySelector('[data-value="'+items[next][0]+'"]').focus();}:undefined}
+    onClick={()=>onSelect(key)}>
     {value===key&&<motion.span className="wb-active-indicator" layoutId="active-segment" transition={reduced?{duration:0}:selectionSpring}/>}
     <span className="wb-segment-label">{label}</span>
    </TactileButton>)}

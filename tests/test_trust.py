@@ -5,6 +5,7 @@ The source is checked statically (no module that can open a connection or start 
 whole run is checked at runtime (a scan and every page request, with outgoing connections and new processes
 recorded). Synthetic logs only."""
 import ast
+import re
 import contextlib
 import http.client
 import io
@@ -42,6 +43,12 @@ def imported(tree):
 
 
 class SourceTests(unittest.TestCase):
+    def test_identity_ctypes_use_is_limited_to_two_read_only_volume_queries(self):
+        text = (SOURCE/'usage/identities.py').read_text(encoding='utf-8')
+        calls = set(re.findall(r'kernel\.(\w+)', text))
+        self.assertEqual(calls, {'GetVolumePathNameW', 'GetVolumeNameForVolumeMountPointW'})
+        self.assertEqual(re.findall(r"WinDLL\('(\w+)'", text), ['kernel32'])
+
     def test_no_module_that_can_reach_out_or_start_a_program_is_imported(self):
         files = sorted(SOURCE.rglob('*.py'))
         self.assertGreater(len(files), 10)
@@ -51,6 +58,8 @@ class SourceTests(unittest.TestCase):
                 with self.subTest(file=path.name, module=name):
                     if path.name == 'wsl.py' and name == 'subprocess':
                         continue  # Only the fixed, read-only running-distribution query is allowed here.
+                    if path.name == 'identities.py' and name in ('ctypes', 'ctypes.wintypes'):
+                        continue  # Read-only volume-name lookup; pinned by the test below.
                     if path.parent==SOURCE and any(name==allowed or name.startswith(allowed+'.') for allowed in UPDATE_IMPORTS.get(path.name,())):
                         continue  # Narrow update-only boundary; ordinary scan/page traffic is still audited below.
                     self.assertFalse(any(name == bad or name.startswith(bad + '.') for bad in FORBIDDEN))

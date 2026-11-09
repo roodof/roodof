@@ -203,11 +203,11 @@ class RunningVersionTests(unittest.TestCase):
     def test_running_assets_stay_consistent_until_a_new_server_is_started(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
+            for name in ('index.html', 'app.js', 'ui-state.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
                 (root/name).write_text('old-'+name+' __SESSION_TOKEN__', 'utf-8')
             with patch('pler.server.WEB', root):
                 old = Server(0, UsageDashboard(lambda: ([], {})))
-                for name in ('index.html', 'app.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
+                for name in ('index.html', 'app.js', 'ui-state.js', 'app.css','updates.js','updates.css','workspace.js','workspace.css','workspace-font.woff2','sessions-grid.css'):
                     (root/name).write_text('new-'+name+' __SESSION_TOKEN__', 'utf-8')
                 new = Server(0, UsageDashboard(lambda: ([], {})))
             for server, expected in ((old, 'old-'), (new, 'new-')):

@@ -23,6 +23,34 @@ Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:
 | N02 / uygulandı | Uygulamadan yedek kurtarma ve masaüstü geçmiş seçimi | Frontend + backend | Güvenilir dosyayı incele, yeni konumu gör, açık onayla ayrı klasöre kurtar; masaüstünde aç ve önceki geçmişe dön. Normal açılış seçimi hatırlar; özel veri klasörü kapsamı korunur. | 0.9.13 yerel adayda uygulandı; kaynak kayıtları yerel Git’te; Q01/SON açık |
 | Q01 / SON | Son sabit paketin temiz Windows kabulü; ardından genel yayın kararı | Frontend + backend + girişimci | Açılış, kaynak okuma, klavye, kayıt/geri yükleme, güncelleme/geri dönüş, kapanış ve kaldırma aynı son adayda doğrulanır. | Kullanıcı isteğiyle SON görev, bekliyor |
 
+## 0.9.20 — Yükleme hareketi
+
+İskelet ve bekleme çizgisi transform katmanlarında; hızlı geçişte eski giriş iptal. Azaltılmış hareket ve mevcut veriyle yenileme korunur. Kanıt reports/loading-motion-fix-v1 altında.400/public0.9.11 aynı, temiz Windows kabulü SON.
+
+## 0.9.19 — Logo geçişi
+
+Kullanıcının bildirdiği logo tıklamasında belge yenileme kaldırıldı; mevcut Oturumlar ekranı açılır. Fare/Enter, TR/EN ve taslak koruma kontrolü reports/brand-home-fix-v1 altında.400 ve public0.9.11 aynı; gerçek ortam kabulü SON.
+
+## 0.9.18 — UX5 kavram adları ve UX6 yardımcı ekran okunabilirliği
+
+Kullanıcı “5 ve6yı yapalım” dedi. Menü, komut arama, oturum/iş özeti, kullanım uyarısı, yerel bildirim, CLI ve TR/EN yardımda sağlayıcı hesap kotası / kişisel kullanım uyarısı / API fiyat karşılığı ayrımı tamamlandı. Yardımcı ekranlar ortak 12/13/15 px ölçülerinde; çevrimdışı yardım koyu tasarıma alındı. [Davranış](TERMINOLOGY-READABILITY.md), [geliştirici kanıtı](../../reports/terminology-readability-v1/REPORT.md). E01/R02 veQ01/SON açık.400 seçici dosyası ve public0.9.11 aynı.
+
+## 0.9.17 — UX3 korunarak UX4 ilk kullanım
+
+Kullanıcı “3 ve4ü yap” dedi. UX3 zaten0.9.16’da tamamlandı; bu pakette regresyonla korunur. UX4 tek ana eylem (kayıt/klasör/sorun), kapalı ikincil seçenekler, hata halinde bulunabilen oturumlar ve açık tamamlama davranışıyla tamamlandı. [Davranış](FIRST-USE-SIMPLE.md), [geliştirici kanıtı](../../reports/first-use-simple-v1/REPORT.md). UX5 kavram adları ve UX6 yardımcı ekran tipografisi hâlen öneri. E01/R02 veQ01/SON açık;400 ve public0.9.11 aynı.
+
+## 0.9.16 — UX3 aramada çıkmazları kaldırma
+
+Kullanıcı “3ü yap” dedi. Sonuçsuz arama ve boş kapsamda tek kısıtı genişleten eylemler, görünen seçim özeti, boş tabloyu kaldırma, kaynak/okuma hatası ve yeniden deneme yolları tamamlandı. Arama temizleme artık kalite filtresini korur. [Davranış](SEARCH-RECOVERY.md), [geliştirici kanıtı](../../reports/search-recovery-v1/REPORT.md). UX4–6 (ilk kullanım kararları, kavram adları, yardımcı ekran tipografisi) halen öneri; E01/R02 veQ01/SON açık.400 ve public0.9.11 aynı.
+
+## 0.9.15 — İş bağlantısı ve Ayarlar sadeleştirmesi
+
+Kullanıcı önerilen1 ve2 numaralı UX işlerine başlamamızı istedi. Oturum iş bağlantısı tek açılır bölümdedir; mevcut/yeni iş formları aynı anda gösterilmez, taslak korunur. Ayarlar üç grupta, destek araçları açılır satırlardadır; kısayollar hedefi açar. [Davranış](SETTINGS-WORK.md), [geliştirici kanıtı](../../reports/settings-work-v1/REPORT.md). Diğer öneriler (aramada çıkmazlar, ilk kullanım kararları, kavram adları ve tüm yardımcı ekranlarda tipografi) bu teslimde tamamlanmış sayılmaz.400 aynı; E01/R02 veQ01/SON açık; public0.9.11 değişmedi.
+
+## 0.9.14 — Oturum arama, kullanım ve uyarı akışı
+
+Kullanıcı kullanım kolaylığı/hız değerlendirmesindeki öneriyi uygulamamızı istedi. Oturum listesi yeni kullanıcılarda üç temel sütunla başlar; mevcut tercihler korunur. Görünür arama etiketi ve `/` kısayolu; ayrıntıda önce kayıtlı kullanım ve fiyat kapsamı, sonra açılır uyarı düzenleyicisi ve hazır eşikler vardır. Uzun liste seçiminde görünmeyen satır öğeleri oluşturulmaz; kaydırma seçimi güncel tutar. [Akış](SESSION-FLOW.md), [geliştirici ölçümleri](../../reports/session-flow-v1/REPORT.md). 400 dosyası aynı; gerçek kayıt/temiz Windows ve kullanıcı kabulü Q01/SON açık. R02 dağıtım lisansı/imza ve E01 gerçek kullanıcı faydası açık; public beta 0.9.11.
+
 ## 0.9.13 — Kaynak kaydı ve uygulamadan kurtarma
 
 Kullanıcı profesyonel değerlendirmedeki sırayı kabul etti. 0.9.12 kaynakları 0948eb4 ve candidate/0.9.12 ile yerel kayda alındı; push/yayın yapılmadı. 0.9.13 Ayarlar’da güvenilir özel yedeği inceleme, yeni konum planı, açık onayla ayrı klasöre kurtarma ve masaüstünde geçmiş değiştirmeyi ekler. Normal masaüstü seçimi hatırlanır; önceki geçmişe dönüş vardır. Özel veri klasörüyle başlayan çalıştırmanın kapsamı korunur. [Sözleşme](HISTORY-RECOVERY.md), [geliştirici kanıtı](../../reports/history-recovery-v1/REPORT.md). Lisans/Authenticode kararı R02, gerçek kullanıcı E01 ve temiz Windows/gerçek ajan kabulü Q01/SON açık. 400 değişmedi; public beta 0.9.11.

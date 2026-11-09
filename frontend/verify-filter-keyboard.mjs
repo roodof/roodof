@@ -28,6 +28,7 @@ async function verifyClear(page,lang){
  await page.locator('[data-select=usage-agent] [data-value=codex]').click();await settled(page);
  await page.locator('[data-select=usage-period] [data-value="7"]').click();await settled(page);
  await page.locator('#usage-project').selectOption(project);await settled(page);
+ if(!(await page.locator('#usage-filter-clear').isVisible()))await page.locator('#usage-empty .search-recovery-more>summary').click();
  await page.locator('#usage-filter-clear').waitFor({state:'visible'});
  // Start from a real empty selection and ensure clearing performs one query, not one per control.
  const queries=[];const capture=request=>{const u=new URL(request.url());if(u.pathname==='/api/usage')queries.push(Object.fromEntries(u.searchParams));};

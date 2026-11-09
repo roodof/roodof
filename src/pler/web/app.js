@@ -62,7 +62,7 @@ const I18N=/*I18N*/{
 "coverage_uncertain_attribution_impact": "Session, project or model splits may be uncertain. Do not use those splits to rank work or assign its cost.",
 "coverage_uncertain_attribution_next": "Inspect the affected sessions. Naming or linking a work item does not repair missing source attribution; leave unsupported comparisons open.",
 "coverage_unpriced_usage_title": "Part of the usage has no API price",
-"coverage_unpriced_usage_impact": "The API equivalent covers priced records only. Unpriced usage is unknown, not free, and the amount is not your subscription bill.",
+"coverage_unpriced_usage_impact": "The API price equivalent covers priced records only. Unpriced usage is unknown, not free, and the amount is not your subscription bill.",
 "coverage_unpriced_usage_next": "Check the priced share and model names before comparing amounts. Missing model or price evidence cannot be filled in by rebuilding the cache.",
 "quality_only": "Only sessions with data-quality limits",
 "quality_clear": "Show all selected sessions",
@@ -136,15 +136,15 @@ const I18N=/*I18N*/{
 "work_rename": "Save title",
 "work_delete": "Delete work…",
 "work_summary": "Work groups: {works} · Linked sessions in this selection: {selected}, counted once · Unassigned: {unassigned}. Linked outside the main filters: {outside} · Unavailable: {missing} · Shared by several works in this selection: {overlap}.",
-"work_union": "Linked-session summary: {tokens} known tokens · {calls} recorded calls · {api} API equivalent.",
+"work_union": "Linked-session summary: {tokens} known tokens · {calls} recorded calls · {api} API price equivalent.",
 "work_counts": "Linked: {linked} · Available: {available} · In the main filters: {selected} · Outside the main filters: {outside} · Unavailable: {missing} · Also linked to other work in this selection: {overlap}.",
-"work_usage": "Selected linked sessions: {tokens} known tokens · {calls} recorded calls · {api} API equivalent.",
+"work_usage": "Selected linked sessions: {tokens} known tokens · {calls} recorded calls · {api} API price equivalent.",
 "work_no_selection": "No linked sessions in the main filters. No usage total is shown for this work.",
 "work_quality": "Some selected sessions have incomplete usage or attribution. These are known recorded values, not a complete measurement.",
 "work_more": "Show more linked sessions ({n})",
 "work_no_members": "Add sessions from Sessions to collect the work here.",
 "work_scope": "Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.",
-"work_api_note": "API equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.",
+"work_api_note": "API price equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.",
 "work_links_privacy": "Privacy of these links",
 "work_privacy": "Titles, goals, outcome notes and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.",
 "work_outside": "Outside the main filters",
@@ -245,6 +245,15 @@ const I18N=/*I18N*/{
 "verdict_hint": "Mark sessions Useful or Wasted with one click; PLER then shows what the wasted ones cost. Saved only on this computer, never sent anywhere.",
 "verdict_demo": " Demo verdicts last only while this page is open.",
 "verdict_unreadable": "The saved verdicts file could not be read (damaged, or from a newer PLER), so verdicts are shown as not judged and the file is not overwritten.",
+"session_work_link": "Link to a work",
+"session_work_another": "Link to another work",
+"session_work_mode": "Work link type",
+"session_work_existing": "Link existing work",
+"session_work_new": "Create new work",
+"account_limits": "Account limits",
+"account_limit_warning": "Account limit warning",
+"usage_alert": "Usage alert",
+"usage_alerts": "Usage alerts",
 "search_empty": "No session matches your search.",
 "search_clear": "Clear search",
 "more": "Show more sessions",
@@ -290,10 +299,10 @@ const I18N=/*I18N*/{
 "stat_fresh_note": "New input, cache writes and output",
 "stat_sessions": "Sessions",
 "stat_calls": "Logged model calls",
-"stat_api": "At API list prices",
+"stat_api": "API price equivalent",
 "stat_api_note": "Recorded responses at standard prices of {date}. Not your bill: a subscription is a flat fee.",
 "stat_api_partial": "Covers {share} of tokens; the rest could not be priced. Standard prices of {date}; not your bill.",
-"field_api": "At API list prices",
+"field_api": "API price equivalent",
 "tokens": "{n} tokens",
 "agent_note": "{sessions} · {calls} · {share} of input from cache · {errors} · {aborted}",
 "insights_eyebrow": "Your situation",
@@ -304,8 +313,8 @@ const I18N=/*I18N*/{
 "out_full": "Full. Resets {reset}.",
 "quota_alert_full": "{agent}: the {window} limit is reached. It resets {reset}.",
 "quota_alert_soon": "{agent}: at this pace the {window} limit fills around {full}, in {left}. It resets {reset}.",
-"quota_alert_title": "PLER quota warning",
-"live_watch": "Watch the quota live",
+"quota_alert_title": "PLER account limit warning",
+"live_watch": "Watch account limits",
 "live_watch_help": "While this page is open, PLER reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this window remembers the choice while it stays open.",
 "live_notify_on": "Turn on desktop notifications",
 "live_notify_off": "Turn off desktop notifications",
@@ -321,7 +330,7 @@ const I18N=/*I18N*/{
 "out_stale": "The last sample was {used} used. It is too old for a current level or forecast; read the logs again after the agent runs.",
 "out_historical": "The log recorded {used} used. Its reset time is missing, so the current level is unknown.",
 "quota_eyebrow": "Account quota",
-"quota_title": "Where is the quota, and where is it heading?",
+"quota_title": "Account limits and forecasts",
 "plans_eyebrow": "Subscription",
 "plans_title": "Recorded usage and plan prices",
 "plan_choose_label": "Your Claude plan",
@@ -334,8 +343,8 @@ const I18N=/*I18N*/{
 "plan_api_key": "API key, no plan",
 "plan_unchosen": "plan not chosen",
 "plan_unlogged": "plan not logged",
-"plan_api_line": "Recorded dated responses at API list prices: {usd} ({share} of their tokens priced).",
-"plan_api_unknown": "An API equivalent cannot be calculated from priced responses in this period. Missing or unpriced records are unknown, not free.",
+"plan_api_line": "Recorded dated responses, API price equivalent: {usd} ({share} of their tokens priced).",
+"plan_api_unknown": "An API price equivalent cannot be calculated from priced responses in this period. Missing or unpriced records are unknown, not free.",
 "plan_partial": " Retained usage could not be fully dated or verified; the sum may be low.",
 "plan_meter_line": "Observed at 100% in {five} of {five_total} sampled 5-hour reset periods and {week} of {week_total} sampled weekly reset periods. Unobserved peaks are unknown.",
 "plan_choose_plan": "Choose your Claude plan to compare it with this usage. It is saved only on this computer.",
@@ -343,7 +352,7 @@ const I18N=/*I18N*/{
 "plan_no_meter_codex": "No usable Codex quota samples were found. Read logs again after using Codex; if its logs contain no supported meter, remaining quota stays unknown.",
 "plan_larger_ratio_unpublished": "PLER has no verified limit ratio for these plans, so it cannot name a sufficient tier. Review current provider limits, credits and API options.",
 "plan_larger_need_unseen": "Observed limit pressure does not establish how much capacity you need. A larger plan is not proven sufficient; model-specific limits and paid extra usage need separate review.",
-"plan_api_below_list_price": "Recorded API equivalent {usd} is below the monthly list price {price}. This does not establish a switching saving or subscription value.",
+"plan_api_below_list_price": "Recorded API price equivalent {usd} is below the monthly list price {price}. This does not establish a switching saving or subscription value.",
 "plan_lower_observed": "Assuming these samples used {current}, their observed peak was {peak}; {smaller} (list price {price}/month) provides {share} of those published limits. This does not establish that the smaller plan would be enough.",
 "plan_lower_weekly_observed": "Assuming these samples used {current}, the observed weekly peak was {peak}; {smaller} (list price {price}/month) provides {share} of that published limit. A 5-hour comparison and overall plan fit are unverified.",
 "plan_comparison_expired": "The quota evidence for this comparison has aged or its reset has passed. Read logs again before comparing current plan thresholds.",
@@ -653,7 +662,7 @@ const I18N=/*I18N*/{
 "coverage_uncertain_attribution_impact": "Oturum, proje veya model dağılımı belirsiz olabilir. Bu dağılımlarla işleri sıralama veya maliyetlerini belirleme.",
 "coverage_uncertain_attribution_next": "Etkilenen oturumları incele. Bir işe ad vermek veya oturum bağlamak eksik kaynak eşleştirmesini düzeltmez; dayanağı olmayan karşılaştırmayı açık bırak.",
 "coverage_unpriced_usage_title": "Kullanımın bir kısmının API fiyatı yok",
-"coverage_unpriced_usage_impact": "API karşılığı yalnız fiyatlanabilen kayıtları kapsar. Fiyatlanamayan kullanım ücretsiz değil, bilinmiyor; gösterilen tutar abonelik faturası değildir.",
+"coverage_unpriced_usage_impact": "API fiyat karşılığı yalnız fiyatlanabilen kayıtları kapsar. Fiyatlanamayan kullanım ücretsiz değil, bilinmiyor; gösterilen tutar abonelik faturası değildir.",
 "coverage_unpriced_usage_next": "Tutarları karşılaştırmadan önce fiyatlanan payı ve model adlarını kontrol et. Eksik model veya fiyat bilgisi önbelleği yeniden kurarak tamamlanamaz.",
 "quality_only": "Yalnız veri kalitesi sınırlı oturumlar",
 "quality_clear": "Seçili oturumların tümünü göster",
@@ -727,15 +736,15 @@ const I18N=/*I18N*/{
 "work_rename": "Başlığı kaydet",
 "work_delete": "İşi sil…",
 "work_summary": "{works} iş · Bu seçimde birer kez sayılan {selected} bağlı oturum · {unassigned} bağlanmamış oturum. Ana filtrelerin dışında {outside} bağlı oturum · {missing} erişilemeyen oturum · Birden fazla işe bağlı {overlap} seçili oturum.",
-"work_union": "Bağlı oturum özeti: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API karşılığı.",
+"work_union": "Bağlı oturum özeti: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API fiyat karşılığı.",
 "work_counts": "{linked} bağlı oturum: {available} erişilebilir, {selected} ana filtrelerde, {outside} ana filtrelerin dışında ve {missing} erişilemeyen. {overlap} seçili oturum başka işlere de bağlı.",
-"work_usage": "Seçili bağlı oturumlar: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API karşılığı.",
+"work_usage": "Seçili bağlı oturumlar: {tokens} bilinen token · {calls} kayıtlı çağrı · {api} API fiyat karşılığı.",
 "work_no_selection": "Ana filtrelerde bu işe bağlı oturum yok. Bu iş için kullanım toplamı gösterilmiyor.",
 "work_quality": "Bazı seçili oturumların kullanım veya kaynak eşleştirmesi eksik. Bunlar bilinen kayıtlı değerlerdir; tam bir ölçüm değildir.",
 "work_more": "Daha fazla bağlı oturum göster ({n})",
 "work_no_members": "Bu işe ait çalışmaları toplamak için Oturumlar bölümünden oturum ekleyin.",
 "work_scope": "Kullanım ana filtreleri izler ve tek bir değişikliğin maliyetini değil, oturumların tamamını kapsar. Arama ve veri kalitesi liste filtreleri bu kapsamı değiştirmez. Bir oturum birden fazla işe bağlanabilir; iş toplamları birbiriyle toplanamaz. Özet, her bağlı oturumu bir kez sayar.",
-"work_api_note": "API karşılıkları mevcut fiyatları kullanır; fiyatı bilinmeyen kullanım dahil edilmeyebilir. Bunlar abonelik faturanız değildir.",
+"work_api_note": "API fiyat karşılıkları mevcut fiyatları kullanır; fiyatı bilinmeyen kullanım dahil edilmeyebilir. Bunlar abonelik faturanız değildir.",
 "work_links_privacy": "Bu bağlantıların gizliliği",
 "work_privacy": "Başlıklar, hedefler, sonuç notları ve bağlantılar bu bilgisayarda kalır; normal JSON özetlerine eklenmez. Özel yedeklere dahildir. Erişilemeyen oturumlar kayıtlı kodlarıyla bağlı kalır; PLER otomatik olarak başka bir oturuma bağlamaz.",
 "work_outside": "Ana filtrelerin dışında",
@@ -836,6 +845,15 @@ const I18N=/*I18N*/{
 "verdict_hint": "Oturumları tek tıkla “İşe yaradı” ya da “Boşa gitti” diye işaretle; PLER boşa gidenlerin neye mal olduğunu gösterir. Yalnız bu bilgisayarda saklanır, hiçbir yere gönderilmez.",
 "verdict_demo": " Demo değerlendirmeleri yalnız bu sayfa açıkken tutulur.",
 "verdict_unreadable": "Kayıtlı değerlendirmeler dosyası okunamadı (bozuk ya da daha yeni bir PLER sürümünden); oturumlar değerlendirilmemiş görünür ve dosyanın üzerine yazılmaz.",
+"session_work_link": "Bir işe bağla",
+"session_work_another": "Başka bir işe bağla",
+"session_work_mode": "İş bağlantısı türü",
+"session_work_existing": "Mevcut işe bağla",
+"session_work_new": "Yeni iş oluştur",
+"account_limits": "Hesap kotaları",
+"account_limit_warning": "Hesap kotası uyarısı",
+"usage_alert": "Kullanım uyarısı",
+"usage_alerts": "Kullanım uyarıları",
 "search_empty": "Aramana uyan oturum yok.",
 "search_clear": "Aramayı temizle",
 "more": "Daha fazla oturum göster",
@@ -881,10 +899,10 @@ const I18N=/*I18N*/{
 "stat_fresh_note": "Yeni girdi, önbelleğe yazılan ve çıktı",
 "stat_sessions": "Oturum",
 "stat_calls": "Kayıtlı model çağrısı",
-"stat_api": "API liste fiyatıyla",
+"stat_api": "API fiyat karşılığı",
 "stat_api_note": "Kayıtlı yanıtlar, {date} standart fiyatlarıyla. Faturan değildir: abonelik sabit ücretlidir.",
 "stat_api_partial": "Tokenların {share} kadarını kapsar; kalanı fiyatlanamadı. {date} standart fiyatları; faturan değildir.",
-"field_api": "API liste fiyatıyla",
+"field_api": "API fiyat karşılığı",
 "tokens": "{n} token",
 "agent_note": "{sessions} · {calls} · girdinin {share} kadarı önbellekten · {errors} · {aborted}",
 "insights_eyebrow": "Durumun",
@@ -895,8 +913,8 @@ const I18N=/*I18N*/{
 "out_full": "Dolu. Sıfırlanma: {reset}.",
 "quota_alert_full": "{agent}: {window} sınır doldu. Sıfırlanma: {reset}.",
 "quota_alert_soon": "{agent}: bu hızla {window} sınır {full} civarında, {left} sonra dolar. Sıfırlanma: {reset}.",
-"quota_alert_title": "PLER kota uyarısı",
-"live_watch": "Kotayı canlı izle",
+"quota_alert_title": "PLER hesap kotası uyarısı",
+"live_watch": "Hesap kotalarını izle",
 "live_watch_help": "Bu sayfa açıkken PLER kayıtları 5 dakikada bir yeniden okur ve bir sınır bir saat içinde (haftalık sınırda bir gün içinde) dolacaksa uyarır. Her okuma biraz işlemci zamanı kullanır; seçim pencere açıkken hatırlanır.",
 "live_notify_on": "Masaüstü bildirimlerini aç",
 "live_notify_off": "Masaüstü bildirimlerini kapat",
@@ -912,7 +930,7 @@ const I18N=/*I18N*/{
 "out_stale": "Son ölçümde {used} kullanılmıştı. Ölçüm, güncel doluluk veya tahmin için eski; ajan çalıştıktan sonra kayıtları yeniden oku.",
 "out_historical": "Kayıtta {used} kullanılmıştı. Sıfırlanma zamanı eksik olduğu için güncel doluluk bilinmiyor.",
 "quota_eyebrow": "Hesap kotası",
-"quota_title": "Kota nerede, nereye gidiyor?",
+"quota_title": "Hesap kotaları ve tahminler",
 "plans_eyebrow": "Abonelik",
 "plans_title": "Kayıtlı kullanım ve plan fiyatları",
 "plan_choose_label": "Claude planın",
@@ -925,8 +943,8 @@ const I18N=/*I18N*/{
 "plan_api_key": "API anahtarı, plan yok",
 "plan_unchosen": "plan seçilmedi",
 "plan_unlogged": "plan kayıtlarda yok",
-"plan_api_line": "Kayıtlı tarihli yanıtların API liste fiyatı karşılığı: {usd} (tokenlarının {share} kadarı fiyatlandı).",
-"plan_api_unknown": "Bu dönemde fiyatlanabilen yanıtlardan API karşılığı hesaplanamıyor. Eksik veya fiyatlanamayan kayıtlar ücretsiz değil, bilinmiyor.",
+"plan_api_line": "Kayıtlı tarihli yanıtların API fiyat karşılığı: {usd} (tokenlarının {share} kadarı fiyatlandı).",
+"plan_api_unknown": "Bu dönemde fiyatlanabilen yanıtlardan API fiyat karşılığı hesaplanamıyor. Eksik veya fiyatlanamayan kayıtlar ücretsiz değil, bilinmiyor.",
 "plan_partial": " Saklanan kullanımın tamamı tarihlenemedi veya doğrulanamadı; toplam düşük olabilir.",
 "plan_meter_line": "Yüzde 100 gözlenen: örnek alınan {five_total} beş saatlik sıfırlama döneminin {five} tanesi, {week_total} haftalık dönemin {week} tanesi. Gözlenmeyen tepe değerler bilinmiyor.",
 "plan_choose_plan": "Bu kullanımla karşılaştırmak için Claude planını seç. Seçim yalnız bu bilgisayarda saklanır.",
@@ -934,7 +952,7 @@ const I18N=/*I18N*/{
 "plan_no_meter_codex": "Kullanılabilir Codex kota örneği bulunamadı. Codex'i kullandıktan sonra kayıtları yenile; kayıtlarında desteklenen ölçer yoksa kalan kota bilinmiyor olarak kalır.",
 "plan_larger_ratio_unpublished": "PLER'de bu planlar için doğrulanmış sınır oranı yok; yeterli olacak planı belirleyemez. Sağlayıcının güncel sınırlarını, kredileri ve API seçeneklerini incele.",
 "plan_larger_need_unseen": "Gözlenen sınıra dayanma, gereken kapasiteyi belirlemez. Büyük planın yeteceği kanıtlanmıyor; modele özel sınırlar ve ücretli ek kullanım ayrıca incelenmeli.",
-"plan_api_below_list_price": "Kayıtlı API karşılığı {usd}, aylık liste fiyatı {price} altında. Bu, geçişte tasarrufu veya aboneliğin değerini kanıtlamaz.",
+"plan_api_below_list_price": "Kayıtlı API fiyat karşılığı {usd}, aylık liste fiyatı {price} altında. Bu, geçişte tasarrufu veya aboneliğin değerini kanıtlamaz.",
 "plan_lower_observed": "Bu örneklerin {current} planında alındığı varsayımıyla gözlenen tepe {peak}; {smaller} (liste fiyatı ayda {price}) yayımlanmış sınırların {share} kadarını sağlar. Bu, küçük planın yeteceğini kanıtlamaz.",
 "plan_lower_weekly_observed": "Bu örneklerin {current} planında alındığı varsayımıyla haftalık gözlenen tepe {peak}; {smaller} (liste fiyatı ayda {price}) yayımlanmış haftalık sınırın {share} kadarını sağlar. Beş saatlik karşılaştırma ve genel plan yeterliliği doğrulanmadı.",
 "plan_comparison_expired": "Bu karşılaştırmanın kota kanıtı eskidi veya sıfırlama zamanı geçti. Güncel plan sınırlarını karşılaştırmadan önce kayıtları yenile.",
@@ -1797,7 +1815,7 @@ function showMoreUsageSessions(){
   $('usage-sessions').querySelectorAll('button')[previous]?.focus();
 }
 // Work titles are manual, private metadata. Keep their state separate from measured usage.
-const workState={ready:false,selected:'',pageSize:20,createDraft:'',renameDrafts:{},detailDrafts:{},sessionDrafts:{},sessionChoices:{},openSession:null,action:0,navigation:false,needsRefresh:false,deleteID:null};
+const workState={ready:false,selected:'',pageSize:20,createDraft:'',renameDrafts:{},detailDrafts:{},sessionDrafts:{},sessionChoices:{},sessionForms:{},openSession:null,action:0,navigation:false,needsRefresh:false,deleteID:null};
 function workViewMemory(){const value={selected:workState.selected,create:workState.createDraft,rename:workState.renameDrafts};if(Object.keys(workState.detailDrafts).length)value.details=workState.detailDrafts;if(Object.keys(followState.drafts).length)value.follow=followState.drafts;if($('usage-work-followups').open)value.followOpen=true;return value;}
 function restoreWorkMemory(){
   if(workState.ready)return;workState.ready=true;
@@ -2039,11 +2057,14 @@ function renderSelectedWork(){
 function renderSessionWorkItems(){
   const session=workState.openSession;if(!session)return;
   let box=$('usage-session-work-items');if(!box){box=node('section','session-work-items');box.id='usage-session-work-items';$('usage-session-detail').append(box);}
-  box.replaceChildren(node('h3','',t('work_title')),node('p','section-note',t('work_session_note')));
+  const previous=$('usage-session-work-editor');
+  if(previous?.dataset.sessionId===session&&workState.sessionForms[session])workState.sessionForms[session].open=previous.open;
+  box.replaceChildren(node('h3','',t('work_title')));
   const value=workProjection();
   if(value?.readable!==true){box.append(node('p','notice',t('work_unreadable')));return;}
   const linked=value.items.filter(item=>item.session_ids.includes(session)),available=value.items.filter(item=>!item.session_ids.includes(session));
-  if(!linked.length)box.append(node('p','section-note',t('work_linked_none')));
+  const state=workState.sessionForms[session]??(workState.sessionForms[session]={open:Boolean(workState.sessionChoices[session]),mode:available.length?'existing':'new'});
+  if(!available.length)state.mode='new';
   const list=node('ul','work-members');
   for(const item of linked){const line=node('li','work-member'),unlink=node('button','quiet work-unlink',t('work_unlink'));unlink.type='button';unlink.setAttribute('aria-label',t('work_unlink_label',{code:session.slice(0,8),title:item.title}));unlink.addEventListener('click',()=>performWorkAction({action:'unlink',id:item.id,session},{focus:'session',session}));line.append(node('span','',workLabel(item)),unlink);list.append(line);}box.append(list);
   const form=node('form','work-form'),label=node('label','',t('work_link_choose')),controls=node('div','work-input-action'),select=node('select',''),link=node('button','secondary',t('work_link'));select.id='usage-session-work-select';label.htmlFor=select.id;link.id='usage-session-work-link';link.type='submit';
@@ -2051,9 +2072,23 @@ function renderSessionWorkItems(){
   for(const item of available){const option=node('option','',workLabel(item));option.value=item.id;select.append(option);}
   select.value=available.some(item=>item.id===workState.sessionChoices[session])?workState.sessionChoices[session]:'';
   select.addEventListener('change',()=>{workState.sessionChoices[session]=select.value;syncWorkControls();});
-  form.addEventListener('submit',event=>{event.preventDefault();if(select.value)performWorkAction({action:'link',id:select.value,session},{focus:'session',session});});controls.append(select,link);form.append(label,controls);box.append(form);
+  form.addEventListener('submit',event=>{event.preventDefault();if(select.value)performWorkAction({action:'link',id:select.value,session},{focus:'session',session});});controls.append(select,link);form.append(label,controls);
   const createForm=node('form','work-form'),createLabel=node('label','',t('work_new_title')),createControls=node('div','work-input-action'),title=node('input',''),create=node('button','secondary',t('work_create_link'));title.id='usage-session-work-title';title.maxLength=240;title.autocomplete='off';title.placeholder=t('work_placeholder');title.value=workState.sessionDrafts[session]||'';createLabel.htmlFor=title.id;create.id='usage-session-work-create';create.type='submit';
-  title.addEventListener('input',()=>{workState.sessionDrafts[session]=title.value;syncWorkControls();});createForm.addEventListener('submit',event=>{event.preventDefault();createWork(session);});createControls.append(title,create);createForm.append(createLabel,createControls);const privacy=node('details','work-link-privacy');privacy.append(node('summary','',t('work_links_privacy')),node('p','section-note',t('work_privacy')));box.append(createForm,privacy);
+  title.addEventListener('input',()=>{workState.sessionDrafts[session]=title.value;syncWorkControls();});createForm.addEventListener('submit',event=>{event.preventDefault();createWork(session);});createControls.append(title,create);createForm.append(createLabel,createControls);
+  const editor=node('details','session-work-editor');editor.id='usage-session-work-editor';editor.dataset.sessionId=session;editor.open=state.open;
+  const toggle=node('summary','',t(linked.length?'session_work_another':'session_work_link'));toggle.id='usage-session-work-toggle';
+  editor.append(toggle,node('p','section-note',t('work_session_note')));
+  const modes=node('div','session-work-modes');modes.setAttribute('role','group');modes.setAttribute('aria-label',t('session_work_mode'));
+  function setMode(mode){state.mode=mode;form.hidden=mode!=='existing';createForm.hidden=mode!=='new';for(const button of modes.children)button.setAttribute('aria-pressed',String(button.dataset.mode===mode));}
+  for(const [mode,label] of [['existing',t('session_work_existing')],['new',t('session_work_new')]]){
+    const button=node('button','quiet',label);button.type='button';button.dataset.mode=mode;
+    if(mode==='existing'&&!available.length)continue;
+    button.addEventListener('click',()=>{setMode(mode);(mode==='new'?title:select).focus();});modes.append(button);
+  }
+  if(available.length)editor.append(modes);
+  editor.append(form,createForm);setMode(state.mode);
+  editor.addEventListener('toggle',()=>{if(editor.isConnected&&workState.openSession===session)state.open=editor.open;});
+  const privacy=node('details','work-link-privacy');privacy.append(node('summary','',t('work_links_privacy')),node('p','section-note',t('work_privacy')));editor.append(privacy);box.append(editor);
   const status=node('p','section-note');status.id='usage-session-work-status';status.setAttribute('role','status');box.append(status);
   syncWorkControls();
 }
@@ -2117,7 +2152,8 @@ async function performWorkAction(body,context={}){
     usageState.workBusy=false;syncArchiveButton();syncExportButton();syncWorkControls();
     if(current()&&body.action.endsWith('_followup'))await loadFollowups(true);
     if(current()){
-      const target=context.focus==='session'&&workState.openSession===context.session?$('usage-session-work-select'):context.focus==='details'?$('usage-work-goal'):context.focus==='rename'?$('usage-work-rename-title'):$('usage-work-select');
+      const sessionTarget=$('usage-session-work-editor')?.open?(workState.sessionForms[context.session]?.mode==='new'?$('usage-session-work-title'):$('usage-session-work-select')):$('usage-session-work-toggle');
+      const target=context.focus==='session'&&workState.openSession===context.session?sessionTarget:context.focus==='details'?$('usage-work-goal'):context.focus==='rename'?$('usage-work-rename-title'):$('usage-work-select');
       if(target&&!target.disabled&&!$('usage-work-delete-dialog').open)target.focus();
     }
   }
@@ -2156,7 +2192,7 @@ $('usage-quality-only').addEventListener('change',()=>{usageState.pageSize=20;re
 $('usage-quality-show').addEventListener('click',()=>{$('usage-quality-only').checked=true;$('usage-session-search').value='';usageState.pageSize=20;renderUsageSessions();$('usage-session-section').scrollIntoView({block:'start'});$('usage-quality-only').focus();});
 for(const id of ['usage-period','usage-agent','usage-project'])$(id).addEventListener('change',()=>{usageState.pageSize=20;loadUsage();});
 for(const id of ['usage-session-search','usage-session-sort'])$(id).addEventListener(id==='usage-session-search'?'input':'change',()=>{usageState.pageSize=20;renderUsageSessions();});
-$('usage-search-clear').addEventListener('click',()=>{$('usage-session-search').value='';$('usage-quality-only').checked=false;usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
+$('usage-search-clear').addEventListener('click',()=>{setUsageFilters({search:''});usageState.pageSize=20;renderUsageSessions();$('usage-session-search').focus();});
 $('usage-filter-clear').addEventListener('click',()=>{$('usage-period').value='0';$('usage-agent').value='all';$('usage-project').value='all';$('usage-session-search').value='';$('usage-quality-only').checked=false;$('usage-period').focus();usageState.pageSize=20;loadUsage();});
 // Age the displayed snapshot without re-reading logs or making any network request.
 function quotaInsightStates(data){return (data.insights||[]).filter(note=>note.kind==='quota').map(note=>quotaWindowNow(note.evidence).state).join(',');}

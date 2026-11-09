@@ -18,7 +18,7 @@ function page(data=snapshot(),lang='en',restore){
   const elements={},requests=[],messages=[],opened=[],inspected=[],runs=[],getRequests=[];
   const document={body:{},activeElement:null};document.activeElement=document.body;
   class Element{
-    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.events={};this.attributes={};this.disabled=false;this.hidden=false;this.value='';this.open=false;this.isConnected=false;this._text='';}
+    constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.events={};this.attributes={};this.dataset={};this.disabled=false;this.hidden=false;this.value='';this.open=false;this.isConnected=false;this._text='';}
     set id(value){this._id=value;if(this.isConnected)elements[value]=this;}get id(){return this._id;}
     set innerHTML(_){throw new Error('Work titles must never enter innerHTML');}
     set textContent(value){this.replaceChildren();this._text=String(value);}get textContent(){return this._text+this.children.map(child=>child.textContent).join('');}
@@ -251,7 +251,7 @@ test('manual titles render literally in options, member labels and the delete di
   for(const lang of ['en','tr']){
     const data=snapshot(),title='<img src=x onerror="attack()"> & <script>bad()</script>';data.work_items.items[0].title=title;
     const p=page(data,lang);assert.equal(p.elements['usage-work-select'].children[0].textContent,title+' · #11111111');
-    p.session(A);assert.equal(p.elements['usage-session-work-items'].children[2].children[0].children[0].textContent,title+' · #11111111');
+    p.session(A);assert.equal(p.elements['usage-session-work-items'].querySelectorAll('ul')[0].children[0].children[0].textContent,title+' · #11111111');
     p.context.requestWorkDelete();assert.equal(p.elements['usage-work-delete-name'].textContent,title+' · #11111111');assert.equal(p.elements['usage-work-delete-dialog'].open,true);
     assert.equal(p.requests.length,0);
   }
@@ -279,7 +279,7 @@ test('membership controls support several works and never optimistically unlink 
   const p=page();p.session(A);const box=p.elements['usage-session-work-items'];
   assert.match(box.textContent,/Ship the release/);assert.match(box.textContent,/Review the release/);
   assert.equal(p.elements['usage-session-work-select'].disabled,true);
-  box.children[2].children[0].children[1].click();
+  box.querySelectorAll('ul')[0].children[0].children[1].click();
   assert.deepEqual(p.requests[0].body,{action:'unlink',id:W,session:A});
   assert.match(box.textContent,/Ship the release/);p.reject(new Error('Invented save error'));await p.runs.at(-1);
   assert.match(box.textContent,/Ship the release/);assert.deepEqual(p.state.data.work_items.items[0].session_ids,[A,C,D]);
@@ -336,7 +336,7 @@ test('work selection and draft titles survive a language reload without replacin
 });
 
 test('unpriced models do not look free and partial prices keep their coverage',()=>{
-  for(const [share,expected] of [[0,/Unpriced/],[0.25,/\$1 \(25% of tokens priced\)/],[1,/\$1 API equivalent/]]){
+  for(const [share,expected] of [[0,/Unpriced/],[0.25,/\$1 \(25% of tokens priced\)/],[1,/\$1 API price equivalent/]]){
     const data=snapshot();data.work_items.items[0].api_priced_share=share;const p=page(data);assert.match(p.elements['usage-work-usage'].textContent,expected);
   }
   const data=snapshot();data.work_items.items[0].selected_sessions=0;const p=page(data);assert.match(p.elements['usage-work-usage'].textContent,/No usage total/);assert.doesNotMatch(p.elements['usage-work-usage'].textContent,/\$/);

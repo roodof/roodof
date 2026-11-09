@@ -1,0 +1,43 @@
+import {_electron} from 'playwright';
+import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import assert from 'node:assert/strict';
+const root=path.resolve(process.env.PLER_SETTINGS_ROOT),pkg=path.resolve(process.env.PLER_SETTINGS_PACKAGE);
+const startup=(await readFile(path.join(root,'access.tmp'),'utf8')).trim();
+const control=path.join(root,'desktop-control-'+randomUUID()),state=path.join(root,'desktop-state.json');
+await mkdir(control);await writeFile(path.join(control,'running'),'1');
+await writeFile(state,JSON.stringify({width:1440,height:1000,lang:'tr',tour:true,view:{screen:'settings',setupDone:true,filters:{days:'0',agent:'all',project:'all'}}}));
+const env={...process.env,PLER_DESKTOP_URL:startup,PLER_DESKTOP_SESSION:control,PLER_DESKTOP_PARENT:String(process.pid),PLER_DESKTOP_STATE:state};
+delete env.ELECTRON_RUN_AS_NODE;delete env.NODE_OPTIONS;delete env.NODE_PATH;
+let app;const errors=[],remote=[];
+try{
+ app=await _electron.launch({executablePath:path.join(pkg,'desktop/PLER-Desktop.exe'),args:[],env,timeout:20000});
+ const page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(new URL(r.url()).origin!==new URL(startup).origin)remote.push(new URL(r.url()).origin);});
+ await page.waitForFunction(()=>usageState.data?.has_snapshot&&!usageState.loading&&document.querySelector('.settings-tabs'));
+ assert.equal(await page.evaluate(()=>usageState.data.version),'0.9.15');
+ assert.equal(await page.getByRole('tab').count(),3);
+ await page.locator('#settings-tab-sources').focus();await page.keyboard.press('End');
+ await page.locator('[data-settings-tool=diagnostics]>summary').click();await page.locator('#diagnostics .diagnostics-actions button').last().click();
+ await page.locator('#source-path').fill('C:\\invented\\desktop-draft');
+ await page.locator('#settings-tab-alerts').click();await page.locator('#settings-tab-sources').click();
+ assert.equal(await page.locator('#source-path').inputValue(),'C:\\invented\\desktop-draft');
+ await page.locator('#settings-tab-alerts').click();await page.locator('.budget-add').click();
+ await page.locator('.grid-project-name').first().click();
+ assert.equal(await page.locator('#usage-session-work-editor').evaluate(n=>n.open),false);
+ await page.locator('#usage-session-work-toggle').click();
+ const mode=page.locator('.session-work-modes [data-mode=new]');if(await mode.isVisible())await mode.click();
+ await page.locator('#usage-session-work-title').fill('Masaüstü akışı / Desktop flow');
+ await page.locator('#usage-session-work-create').click();await page.waitForFunction(()=>!usageState.workBusy&&usageState.data.work_items.items.some(w=>w.title==='Masaüstü akışı / Desktop flow'));
+ assert.ok(await page.locator('#usage-session-work-items .work-member').filter({hasText:'Masaüstü akışı'}).isVisible());
+ await page.locator('#usage-session-work-toggle').click();await page.locator('#usage-session-dialog').evaluate(n=>n.scrollTop=0);
+ await page.screenshot({path:path.join(root,'desktop-work-tr.png')});
+ await page.keyboard.press('Escape');await page.locator('[data-route=settings]').click();await page.locator('#settings-tab-support').click();
+ await page.screenshot({path:path.join(root,'desktop-settings-tr.png')});
+ assert.deepEqual(errors,[]);assert.deepEqual(remote,[]);
+ await writeFile(path.join(root,'desktop-check.json'),JSON.stringify({version:'0.9.15',actualPackagedElectron:true,packagedAssets:true,inventedSourcesOnly:true,threeGroups:true,keyboardTabs:true,diagnosticSourceReveal:true,groupDraftPreserved:true,alertSearchEntry:true,compactWork:true,newWorkSaved:true,scriptErrors:errors,remoteRequests:remote,acceptance:'Clean Windows and independent user acceptance remain LAST'},null,2));console.log('Packaged Electron grouped settings and work flow passed');
+}finally{
+ if(app)await app.close();
+ assert.equal(path.dirname(control),root);assert.ok(path.basename(control).startsWith('desktop-control-'));
+ await rm(control,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+}

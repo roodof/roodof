@@ -1,5 +1,52 @@
 # Changes
 
+## 0.9.20 — Yükleme animasyonu düzeltmesi (yerel aday)
+
+- İskelet satırlarında sürekli arka plan boyama yerine tek transform katmanı; native belirsiz ilerleme çizgisi yerine kontrollü kesintisiz hareket. Gerçek yüzde uydurulmaz; erişilebilir progress öğesi korunur.
+- Hızlı sayfa geçişinde önceki giriş animasyonu iptal edilir; derin solma kaldırıldı. Azaltılmış hareket tercihi durağan gösterge kullanır. Yenilemede mevcut veriler korunur.
+- Logo düzeltmesi ve400 seçici korunur. Public0.9.11 aynı; gerçek ortam kabulü SON.
+
+## 0.9.19 — Logo ana ekran geçişi düzeltmesi (yerel aday)
+
+- Sol üst PLER logosu belgeyi yeniden yüklemeden mevcut arayüzde Oturumlar’a döner. Dil, adres, kayıtlı toplamlar ve kaydedilmemiş alanlar korunur. Fare ve Enter aynı geçişi kullanır.
+- Önceki0.9.18 özellikleri ve400 seçici korunur. Yayın yapılmadı; public beta0.9.11 aynı.
+
+## 0.9.18 — Tutarlı kavramlar ve yardımcı ekran okunabilirliği (yerel aday)
+
+- Hesap kotaları, Kullanım uyarıları ve API fiyat karşılığı menü, komut arama, ayrıntı, bildirim, rapor ve yardımda aynı anlamlarla kullanılır. Sağlayıcı sınırı, kişisel eşik ve hesaplanan fiyat birbirinden ayrılır.
+- Yardımcı metinler en az 12 px, gövde 13 px ve bölüm başlıkları 15 px ortak ölçülere taşındı. Yedek/geçmiş, tanılama, yeniden bağlama, kota göstergeleri ve güncelleme penceresindeki boşluklar hizalandı.
+- Çevrimdışı TR/EN yardım aynı koyu tasarımla ve üç kavramın kısa sözlüğüyle açılır. Küçük ekranlarda uzun metinler sarılır.
+- 400 oturum seçici, hesaplama/izleme kuralları ve ücretsiz beta kapsamı korundu. Public beta0.9.11; gerçek kullanıcı ve temiz Windows kabulü SON.
+
+## 0.9.17 — Tek ana eylemli ilk kullanım, UX3 korunarak (yerel aday)
+
+- İlk açılış duruma göre tek ana eylem sunar: Oturumlarını gör, Kayıt klasörü ekle veya Sorunu incele. İlk okuma bitmeden kaynak yok sayılmaz; okuma sırasında ana eylem kilitlidir.
+- Yeniden arama, yardım ve şimdilik geçme Diğer seçenekler altında; bazı kayıtlar okunamadığında bulunabilen oturumlar da burada erişilir. Tur isteğe bağlı ve Ayarlar’da kalır.
+- Oturum girişi tüm dönemleri açar; tamamlama yalnız oturumları görme veya açık geçme ile hatırlanır. Klasör/sorun inceleme kendiliğinden tamamlandı işareti koymaz.
+- UX3 arama çıkışları,400 sınırı, backend ve bildirim kuralları korundu. Public beta0.9.11; gerçek kullanıcı ve temiz Windows kabulü SON.
+
+## 0.9.16 — Aramada çıkmazları kaldırma (yerel aday)
+
+- Sonuç bulunamadığında geçerli dönem/ajan/proje/kayıt durumu gösterilir; uygun sonraki eylem öne çıkar. Boş tablo yerini eylem alanına bırakır.
+- Tüm dönemlerde/projelerde/iki ajanda ara yalnız ilgili seçimi genişletir; sorgu ve diğer filtreler korunur. Aramayı temizle kayıt durumu filtresini artık kapatmaz.
+- Kaynak yokluğu, okunamayan veya kullanılabilir oturum üretmeyen kayıt ve bağlantı hatası ayrı anlatılır. Kaynak ekleme, tanılama ve yeniden deneme doğru ekrana gider.
+- Arama metni API’ye veya kalıcı tercihlere eklenmez.400 sınırı, backend, sayım ve bildirim kuralları aynı. Public beta0.9.11; gerçek kullanıcı/temiz Windows kabulü SON.
+
+## 0.9.15 — Sade iş bağlantısı ve gruplu Ayarlar (yerel aday)
+
+- Oturum ayrıntısında bağlı işler görünür; bağlama/oluşturma tek açılır akıştadır. Aynı anda yalnız seçilen form görünür; taslak ve seçimler korunur. İşlerim → Oturum ekle seçilen işi önceden doldurur.
+- Ayarlar üç klavye erişimli gruba ayrıldı: Kayıt kaynakları, Kullanım uyarıları, Yedek ve destek. Yedek/kurtarma, geçmiş, yeniden bağlama, tanılama ve rapor araçları istek üzerine açılır.
+- Kısayollar doğru grubu ve aracı açar; başlangıçta geçmiş seçimi sorunu kurtarma aracını görünür yapar. Gruplar arasında geçiş ayar kaydetmez veya formu yeniden oluşturmaz.
+- Backend, bildirim kuralları, sayım ve400 oturumluk iş seçicisi değişmedi. Ücretsiz public beta0.9.11; temiz Windows ve gerçek kullanıcı kabulü SON görev.
+
+## 0.9.14 — Oturumu bul, kullanımını anla, uyarını kur (yerel aday)
+
+- Arama görünür etiket ve `/` kısayoluyla öne çıktı. Yeni görünümlerde üç temel sütun var; kullanıcının kaydettiği sütun seçimleri korunur.
+- Oturum ayrıntısı kayıtlı token, girdi/önbellek/çıktı ve API fiyat kapsamıyla başlar. Eksik değerler tahmin edilmez; model ve yöntem ayrıntıları istek üzerine açılır.
+- Uyarı düzenleyicisi tek tıkla açılır; hazır eşikler, aşılmış eşik açıklaması ve ayrı kaydedilmiş durum var. Reddedilen kayıtta taslak korunur. Ayarlar’dan oturum aramaya doğrudan geçilir.
+- Uzun listede seçim güncellemesi yalnız oluşturulmuş satır öğelerine dokunur; görünmeyen binlerce satır için öğe oluşturmaz. Kaydırma ve klavye seçimi korunur.
+- 400 oturumluk iş seçicisi değişmedi. Yerel ölçümler genel hız garantisi değildir; gerçek kullanıcı ve temiz Windows kabulü SON görevdir. Sitedeki beta 0.9.11.
+
 ## 0.9.13 — Uygulamadan güvenli geçmiş kurtarma (yerel aday)
 
 - Ayarlar’dan güvenilir özel yedeği incele; sayıları ve yeni hedefi gör; açık onayla ayrı klasöre kurtar. Mevcut veri üzerine yazılmaz.

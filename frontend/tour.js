@@ -12,7 +12,7 @@ export function mountTour({ tr, show }) {
   const words = tr ? {
     next: 'İleri', prev: 'Geri', done: 'Başla', progress: '{{current}} / {{total}}',
     steps: [
-      ['.ws-nav', 'Beş bölüm', 'Oturumlar, İşlerim, Kullanım, Kotalar ve Ayarlar. Hepsi yalnız bu bilgisayardaki kayıtlardan okunur.'],
+      ['.ws-nav', 'Beş bölüm', 'Oturumlar, İşlerim, Kullanım, Hesap kotaları ve Ayarlar. Hesap kotaları sağlayıcının sınırlarıdır; kendi oturum uyarılarını Ayarlar’da yönetirsin.'],
       ['.wb-filterbar', 'Ajan ve dönem', 'Claude Code, Codex ya da ikisi; 7, 30, 90 gün veya tümü. Seçim bütün sayfalara uygulanır.'],
       ['#sessions-grid', 'Bir oturum aç', 'Satıra tıkla: ayrıntılar sağda açılır. ↑ ↓ ile oturumlar arasında gezinebilirsin.'],
       ['[data-route=work]', 'İşine ad ver', 'İşlerim\'de bir iş oluştur ve oturumları bağla; o işin toplam kullanımını gör.'],
@@ -21,7 +21,7 @@ export function mountTour({ tr, show }) {
   } : {
     next: 'Next', prev: 'Back', done: 'Start', progress: '{{current}} / {{total}}',
     steps: [
-      ['.ws-nav', 'Five sections', 'Sessions, My work, Usage, Limits and Settings, all read from the records on this computer only.'],
+      ['.ws-nav', 'Five sections', 'Sessions, My work, Usage, Account limits and Settings. Account limits come from your provider; manage your own session alerts in Settings.'],
       ['.wb-filterbar', 'Agent and period', 'Claude Code, Codex or both; 7, 30, 90 days or all time. The choice applies to every page.'],
       ['#sessions-grid', 'Open a session', 'Click a row: its details open on the right. Move between sessions with ↑ ↓.'],
       ['[data-route=work]', 'Name your work', 'Create a work item in My work and link sessions to it to see its total usage.'],

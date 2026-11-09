@@ -11,9 +11,18 @@ export function mountSessionsGrid({tr,list,inspector}) {
  const legacy=list.closest('.table-scroll');
  const host=node('div','sessions-grid');host.id='sessions-grid';legacy.before(host);
  const tools=document.querySelector('.wb-list-tools');
- const options=node('details','grid-options');options.append(node('summary','',text('Customize view','Görünümü düzenle')));
+ const options=node('details','grid-options');options.append(node('summary','',text('Columns','Sütunlar')));
  const menu=node('div','grid-column-menu');options.append(menu);
  document.querySelector('.session-controls').append(options);
+ const search=$('usage-session-search'),searchWrap=search.parentElement;
+ searchWrap.classList.add('session-search');
+ search.placeholder=text('Search by session title, project or model…','Oturum başlığı, proje veya model ara…');
+ const shortcut=node('kbd','session-search-key','/');shortcut.setAttribute('aria-hidden','true');searchWrap.append(shortcut);
+ search.setAttribute('aria-keyshortcuts','/');
+ document.addEventListener('keydown',event=>{
+  if(event.key!=='/'||event.ctrlKey||event.metaKey||event.altKey||event.target.isContentEditable||event.target.closest('input,textarea,select')||document.querySelector('dialog[open]')||window.plerUI.get().screen!=='sessions'||document.body.dataset.setupOpen==='true')return;
+  event.preventDefault();search.focus();
+ });
  const footer=node('div','grid-footer');
  const count=$('usage-session-count');footer.append(count);
  const hint=node('span','grid-scroll-hint',text('Scroll sideways for the other columns →','Diğer sütunlar için yana kaydır →'));
@@ -56,8 +65,8 @@ export function mountSessionsGrid({tr,list,inspector}) {
   {title:text('Review','Değerlendirme'),field:'verdict',width:178,visible:false,formatter:review},
   {title:text('Agent','Ajan'),field:'agent',width:112,visible:false,formatter:cell=>cell.getRow().getData().agentName},
   {title:text('Last active','Son etkinlik'),field:'ended',width:165,visible:false,formatter:cell=>safeDate(cell.getValue())},
-  {title:text('Models','Modeller'),field:'models',width:225,minWidth:180,visible:true,formatter:'plaintext'},
-  {title:text('Model calls','Model çağrıları'),field:'calls',width:140,visible:true,hozAlign:'right',formatter:cell=>cell.getValue()==null?text('Unknown','Bilinmiyor'):formatNum(cell.getValue())},
+  {title:text('Models','Modeller'),field:'models',width:225,minWidth:180,visible:false,formatter:'plaintext'},
+  {title:text('Model calls','Model çağrıları'),field:'calls',width:140,visible:false,hozAlign:'right',formatter:cell=>cell.getValue()==null?text('Unknown','Bilinmiyor'):formatNum(cell.getValue())},
   {title:text('Session code','Oturum kodu'),field:'id',width:140,visible:false,formatter:cell=>node('code','grid-code',cell.getValue().slice(0,8))}
  ];
  let ready=false,signature='',lastWidth=0,adjustingWidth=false,focusRequest=0;
@@ -76,7 +85,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
    // Keep the preferred identity width separate so narrowing a window cannot overwrite it.
    return savedColumns.map(c=>c.field==='project'?{field:c.field,visible:true}:c);
   },
-  rowFormatter:row=>{row.getElement().dataset.sessionId=row.getData().id;},renderVertical:'virtual'
+  rowFormatter:row=>{const element=row.getElement(),id=row.getData().id;const selected=id===activeId();element.dataset.sessionId=id;element.classList.toggle('grid-row-open',selected);element.setAttribute('aria-selected',String(selected));},renderVertical:'virtual'
  });
  function focusRow(id){
   const request=++focusRequest;
@@ -103,7 +112,11 @@ export function mountSessionsGrid({tr,list,inspector}) {
   const buttons=[...document.querySelectorAll('.wb-inspector-tools button')];
   if(buttons.length===2){buttons[0].disabled=index<=0;buttons[1].disabled=index<0||index>=visible.length-1;}
   const counter=document.querySelector('.wb-inspector-tools>span');if(counter)counter.textContent=index<0?'':`${index+1} / ${visible.length}`;
-  for(const row of grid.getRows()){const yes=row.getData().id===selected;row.getElement().classList.toggle('grid-row-open',yes);row.getElement().setAttribute('aria-selected',String(yes));}
+  paintSelection();
+ }
+ function paintSelection(){if(!ready)return;const selected=activeId();
+  // Touch rendered rows only: getElement() would allocate a DOM node for every unloaded row.
+  for(const element of host.querySelectorAll('.tabulator-row')){const yes=element.dataset.sessionId===selected;element.classList.toggle('grid-row-open',yes);element.setAttribute('aria-selected',String(yes));}
  }
  function refresh(){
   if(!ready)return;
@@ -134,6 +147,8 @@ export function mountSessionsGrid({tr,list,inspector}) {
  options.addEventListener('toggle',()=>{if(options.open&&ready)renderMenu();});
  document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});
  grid.on('tableBuilt',()=>{ready=true;legacy.hidden=true;document.body.classList.add('tabulator-sessions');refresh();resize();});
+ grid.on('scrollVertical',paintSelection);
+ grid.on('renderComplete',paintSelection);
  grid.on('rowClick',(event,row)=>{if(event.target.closest('button,select,input,a'))return;open(row.getData().id);row.getElement().querySelector('button')?.focus({preventScroll:true});});
  grid.on('columnResized',column=>{
   if(adjustingWidth)return;

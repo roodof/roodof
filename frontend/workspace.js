@@ -1,5 +1,8 @@
 import {mountFirstUse} from './first-use.js';
 import {mountHistoryRecovery} from './history-recovery.js';
+import {mountSessionUsage} from './session-usage.js';
+import {mountSettings} from './settings.js';
+import {mountSearchRecovery} from './search-recovery.js';
 import {mountBudgets} from './session-budgets.js';
 import {mountSourceFolders} from './source-folders.js';
 import {mountReconnections} from './session-reconnections.js';
@@ -21,18 +24,18 @@ import { createElement, LayoutDashboard, ListFilter, Layers, Gauge, Settings2, S
 use([BarChart, GridComponent, TooltipComponent, AriaComponent, CanvasRenderer]);
 const tr = document.documentElement.lang === 'tr';
 const words = tr ? {
-  overview:'Kullanım',sessions:'Oturumlar',work:'İşlerim',quota:'Kotalar',settings:'Ayarlar',
-  warning:'Kota uyarısı',workspace:'Çalışma alanı',find:'Bir bölüme git…',local:'Verilerin bu bilgisayarda',localNote:'Yerel kayıtlar · Model çağrısı yok',
-  overviewIntro:'Kullanımını anla. Bir sonraki işine odaklan.',sessionsIntro:'Oturumlarını bul, ayrıntılarını incele ve işlerine bağla.',
-  workIntro:'Bir işe ait oturumlar, hedefler ve sonuçlar bir arada.',quotaIntro:'Kota gözlemleri ve model kullanımının ayrıntıları.',settingsIntro:'Yerel geçmişini sakla, yedekle ve yönet.',
+  overview:'Kullanım',sessions:'Oturumlar',work:'İşlerim',quota:t('account_limits'),settings:'Ayarlar',
+  warning:t('account_limit_warning'),workspace:'Çalışma alanı',find:'Bir bölüme git…',local:'Verilerin bu bilgisayarda',localNote:'Yerel kayıtlar · Model çağrısı yok',
+  overviewIntro:'Kullanımını anla. Bir sonraki işine odaklan.',sessionsIntro:'Oturumunu bul. Kullanımını gör, uyarını kur.',
+  workIntro:'Bir işe ait oturumlar, hedefler ve sonuçlar bir arada.',quotaIntro:'Sağlayıcının belirlediği hesap sınırları. Kayıtlardaki son ölçümler gösterilir.',settingsIntro:'Yerel geçmişini sakla, yedekle ve yönet.',
   chart:'Kullanımın nerede yoğunlaşıyor?',chartNote:'Seçili oturumların kaydedilmiş toplam tokenları. Bir projeye tıklayarak oturumlarını aç.',
   chartEmpty:'Projelerin burada görünecek',chartEmptyNote:'Kayıtlar okunduğunda seçili projelerin dağılımını görebilirsin.',
   export:'Dışa aktarma seçenekleri',allSessions:'Oturumları incele',chartLabel:'Projelere göre kaydedilmiş toplam tokenlar',noMatch:'Bölüm bulunamadı',close:'Kapat'
 } : {
-  overview:'Usage',sessions:'Sessions',work:'My work',quota:'Limits',settings:'Settings',
-  warning:'Quota warning',workspace:'Workspace',find:'Jump to a section…',local:'Your data stays here',localNote:'Local records · No model calls',
-  overviewIntro:'Understand your usage. Focus on your next piece of work.',sessionsIntro:'Find sessions, explore their details and connect them to your work.',
-  workIntro:'The sessions, goals and outcomes behind each piece of work.',quotaIntro:'Quota observations and a closer look at model usage.',settingsIntro:'Keep, back up and manage your local history.',
+  overview:'Usage',sessions:'Sessions',work:'My work',quota:t('account_limits'),settings:'Settings',
+  warning:t('account_limit_warning'),workspace:'Workspace',find:'Jump to a section…',local:'Your data stays here',localNote:'Local records · No model calls',
+  overviewIntro:'Understand your usage. Focus on your next piece of work.',sessionsIntro:'Find a session. See its usage and set an alert.',
+  workIntro:'The sessions, goals and outcomes behind each piece of work.',quotaIntro:'Limits set by your provider, shown from the latest recorded samples.',settingsIntro:'Keep, back up and manage your local history.',
   chart:'Where is your usage going?',chartNote:'Recorded total tokens in the selected sessions. Click a project to explore its sessions.',
   chartEmpty:'Your projects will appear here',chartEmptyNote:'Read your records to see how usage is distributed across your selected projects.',
   export:'Export options',allSessions:'Explore sessions',chartLabel:'Recorded total tokens by project',noMatch:'No matching section',close:'Close'
@@ -44,7 +47,11 @@ function icon(node) { const svg=createElement(node,{width:19,height:19,'stroke-w
 const pages = {};
 const routes=[['sessions',ListFilter],['work',Layers],['overview',LayoutDashboard],['quota',Gauge],['settings',Settings2]];
 const sidebar=el('aside','ws-sidebar');
-const brand=el('a','ws-brand','PLER');brand.href='/';brand.prepend(el('span','ws-symbol','∥')); sidebar.append(brand);
+const brand=el('a','ws-brand','PLER');brand.href=location.pathname+location.search;brand.prepend(el('span','ws-symbol','∥')); sidebar.append(brand);
+// Home stays inside the mounted workspace: no document reload, lost language or drafts.
+function openHome(event){event.preventDefault();show('sessions',true);}
+brand.addEventListener('click',openHome);
+document.querySelector('.topbar>.brand')?.addEventListener('click',openHome);
 const find=el('button','ws-find');find.type='button';find.append(icon(Search),el('span','',words.find),el('kbd','','Ctrl K'));sidebar.append(find,el('p','ws-nav-label',words.workspace));
 find.setAttribute('aria-label',words.find);
 const nav=el('nav','ws-nav');nav.setAttribute('aria-label',words.workspace);sidebar.append(nav);
@@ -72,7 +79,8 @@ const h1=document.querySelector('.workspace-head h1');const intro=document.query
 let current=null,chart=null,lastData=null,linkingWork=null,workDirty=true;
 const renderedViews={overview:new WeakSet(),quota:new WeakSet()};
 // Mounted further down, once the work page is rearranged; redraw() may run before that.
-let workView=null,tour=null,firstUse=null,budgetUI=null,diagnosticUI=null,reconnectionUI=null;
+let workView=null,tour=null,firstUse=null,budgetUI=null,diagnosticUI=null,reconnectionUI=null,settingsUI=null;
+function revealSetting(target){show('settings',true);settingsUI?.reveal(target);}
 function show(name,focus=false) {
   if(!Object.hasOwn(pages,name))name='sessions';
   if(current===name){if(focus){h1.tabIndex=-1;h1.focus({preventScroll:true});window.scrollTo({top:0,behavior:'instant'});}return;}
@@ -84,7 +92,6 @@ function show(name,focus=false) {
   h1.textContent=words[name];intro.textContent=words[name+'Intro'];
   document.dispatchEvent(new CustomEvent('pler-screen-change',{detail:name}));
   document.title='PLER · '+words[name];
-  if(name==='settings')$('usage-archive-controls').open=true;
   document.querySelector('.workspace-head .eyebrow').textContent=words.workspace+' / '+words[name];
   document.body.dataset.screen=name;
   syncSettingsSurface();
@@ -161,7 +168,8 @@ window.plerShowSession=(opened)=>{
 const detail=$('usage-session-detail'),dl=detail.querySelector('dl');
 const session=opened||usageState.data?.sessions.find(item=>item.id===workState.openSession);
 if(dl&&!dl.closest('details')){
- const fields=el('details','wb-record-fields');fields.append(el('summary','',tr?'Tüm kayıt bilgileri':'All record details'));dl.before(fields);fields.append(dl);
+ const fields=el('details','wb-record-fields');fields.append(el('summary','',tr?'Modeller ve tüm kayıt bilgileri':'Models and all record details'));dl.before(fields);fields.append(dl);
+ for(const model of detail.querySelectorAll(':scope > .detail-model-title,:scope > .usage-rank'))fields.append(model);
  const provenance=el('details','wb-provenance');provenance.append(el('summary','',tr?'Veri kapsamı ve yöntem':'Data coverage and method'));
  for(const note of detail.querySelectorAll(':scope > .section-note,:scope > .session-detail-intro'))provenance.append(note);
  detail.append(provenance);
@@ -170,17 +178,17 @@ if(dl&&!dl.closest('details')){
   if(!session.title&&namedWork)$('usage-session-title').textContent=namedWork.title;
   const identity=el('div','wb-session-identity');
   identity.append(el('span','',session.project));
-  identity.append(el('strong','',session.agent==='codex'?'Codex':'Claude Code'),el('span','',usageDate(session.started)+' → '+usageDate(session.ended)),el('code','','#'+usageSessionCode(session)));
+  identity.append(el('strong','',session.agent==='codex'?'Codex':'Claude Code'),el('span','',usageDate(session.started)+' → '+usageDate(session.ended)));
   detail.prepend(identity);
-  const metrics=el('div','wb-session-metrics');
-  for(const [label,value] of [[tr?'Kayıtlı token':'Recorded tokens',number(session.total_tokens)],[tr?'Model çağrısı':'Model calls',session.calls_complete?number(session.calls):tr?'Bilinmiyor':'Unknown']]){const stat=el('div');stat.append(el('small','',label),el('strong','',value));metrics.append(stat);}identity.after(metrics);
+  const metrics=mountSessionUsage({session,tr});identity.after(metrics);
   const titleExplanation=titleStatus(session,tr);if(titleExplanation)metrics.after(titleExplanation);
   if(['unverified','conflict'].includes(session.identity_state)){
    const warning=el('div','section-note wb-identity-warning');warning.append(el('p','',tr?'Bu dosyanın önceki oturumla eşleşmesi doğrulanamadı. Kayıtlı ayarları inceleyerek elle yeniden bağlayabilirsin.':'This file could not be verified as the previous session. Review saved settings to reconnect them manually.'));
    const reconnect=el('button','secondary',tr?'Kayıtlı ayarları yeniden bağla':'Reconnect saved settings');reconnect.type='button';reconnect.addEventListener('click',()=>{inspector.close();reconnectionUI?.open({target:session.id});});warning.append(reconnect);metrics.after(warning);
   }
   const work=$('usage-session-work-items');if(work)fields.before(work);
-  if(linkingWork&&usageState.data?.work_items?.items.some(w=>w.id===linkingWork&&!w.session_ids.includes(session.id))){workState.sessionChoices[session.id]=linkingWork;renderSessionWorkItems();}
+  const verdict=detail.querySelector('.verdict-dialog');if(verdict)fields.before(verdict);
+  if(linkingWork&&usageState.data?.work_items?.items.some(w=>w.id===linkingWork&&!w.session_ids.includes(session.id))){workState.sessionChoices[session.id]=linkingWork;workState.sessionForms[session.id].open=true;const editor=$('usage-session-work-editor');if(editor)editor.open=true;renderSessionWorkItems();}
  }
 }
 budgetUI?.open(session,detail);
@@ -226,7 +234,9 @@ const commandHint=el('div','ws-command-hint');commandHint.append(el('kbd','','�
 const skeleton=el('section','ws-skeleton');skeleton.setAttribute('aria-hidden','true');skeleton.hidden=true;skeleton.append(el('p','',tr?'Yerel kayıtlar okunuyor…':'Reading local records…'));
 for(let i=0;i<5;i++){const row=el('div','ws-skeleton-row');row.append(el('span'),el('span'),el('span'));skeleton.append(row);}
 content.before(skeleton);
-function syncLoading(){const state=ui.get(),data=state.data,busy=state.loading||data?.state==='scanning',initial=busy&&!data?.has_snapshot;skeleton.hidden=!initial;document.body.classList.toggle('is-refreshing',Boolean(busy&&data?.has_snapshot));document.body.dataset.hasSessions=String(Boolean(data?.totals.sessions));}
+// Keep the native indeterminate progress semantics, but draw one compositor-driven track.
+const loadingTrack=el('div','ws-loading-track');loadingTrack.setAttribute('aria-hidden','true');loadingTrack.hidden=true;loadingTrack.append(el('span'));$('usage-progress').after(loadingTrack);
+function syncLoading(){const state=ui.get(),data=state.data,busy=state.loading||data?.state==='scanning',initial=busy&&!data?.has_snapshot;skeleton.hidden=!initial;loadingTrack.hidden=!busy;$('usage-progress').hidden=!busy;document.body.classList.toggle('is-refreshing',Boolean(busy&&data?.has_snapshot));document.body.dataset.hasSessions=String(Boolean(data?.totals.sessions));}
 syncLoading();
 for(const target of [$('usage-empty'),$('usage-search-empty')]){const glyph=el('div','ws-empty-glyph');glyph.append(icon(ListFilter),el('kbd','','Ctrl K'));target.prepend(glyph);}
 $('usage-session-search').addEventListener('keydown',event=>{if(event.key==='Escape'&&$('usage-session-search').value){event.preventDefault();$('usage-search-clear').click();}});
@@ -240,10 +250,12 @@ ui.subscribe(['work'],()=>{workGlyph.hidden=$('usage-work-empty').hidden;});work
 installViewPreferences();
 firstUse=mountFirstUse({tr,settings:pages.settings,show,tour:()=>tour});
 budgetUI=mountBudgets({tr,settings:pages.settings,before:content});
-mountSourceFolders({tr,settings:pages.settings,show});
-reconnectionUI=mountReconnections({tr,settings:pages.settings,show});
-diagnosticUI=mountDiagnostics({tr,settings:pages.settings,show});
-mountHistoryRecovery({tr,settings:pages.settings,show});
+mountSourceFolders({tr,settings:pages.settings,show,reveal:revealSetting});
+reconnectionUI=mountReconnections({tr,settings:pages.settings,show,reveal:revealSetting});
+diagnosticUI=mountDiagnostics({tr,settings:pages.settings,show,reveal:revealSetting});
+mountHistoryRecovery({tr,settings:pages.settings,show,reveal:revealSetting});
+settingsUI=mountSettings({tr,page:pages.settings,show});
+mountSearchRecovery({tr});
 ui.subscribe(['screen'],state=>{if(state.screen!==current)show(state.screen);});
 ui.subscribe(['data','loading','readError','filters','restoring','screen','work'],(_state,topic)=>{if(topic==='work')workDirty=true;redraw();syncLoading();});
 redraw();
