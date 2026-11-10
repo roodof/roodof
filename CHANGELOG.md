@@ -1,6 +1,13 @@
 # Changes
 
-## Yayınlanmamış — Windows kurulum programı (yerel)
+## 0.9.21 — Ücretsiz Windows betası, kurulum ve arayüz düzeltmeleri
+
+- Tek dosyalık kullanıcı kurulumu, PLER kısayolları/bildirim kimliği ve güncellemeden sonra Windows sürüm kaydı korundu.
+- Kurulum ve kaldırma aynı dosya kilidini kullanır. Çalışan uygulama/güncelleyici, program klasörü değiştirilmeden önce ortak çalışma kilidiyle denetlenir.
+- Temizlik klasör bağlantılarını izlemez; hedef dosya içerikleri ve izinleri korunur. Bağlantılı kurulum kökü reddedilir. Geçici kaldırıcı temizliği sabit Windows PowerShell ve literal yol kullanır.
+- Yerel Setup ve ZIP; mevcut kullanıcı kurulumu/geçmişi değiştirilmedi. Genel yayın0.9.11 aynı; gerçek ortam kabulü SON.
+
+## Windows kurulum programı — 0.9.21 kapsamı
 
 - `tools/build_windows_setup.py` paket ZIP'inden tek dosyalık `PLER-Setup-SÜRÜM.exe` üretir (paket değiştirilmeden gömülü; sonradan imzalanabilir). Kurulum soru sormaz, yönetici izni istemez: `%LOCALAPPDATA%\Programs\PLER\program`, Başlat ve masaüstü kısayolu, Uygulamalar kaydı; her dosya manifest hash'iyle denetlenir, sonra PLER açılır.
 - Aynı veya uygulama içinden güncellenmiş daha yeni sürüm korunur ve açılır; eski sürüm PLER kapalıyken değiştirilir (açıksa kapatma istenir). Uygulama içi güncelleyici aynı yapıda çalışır.

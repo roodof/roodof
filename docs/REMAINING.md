@@ -1,5 +1,7 @@
 # Güncel öncelik listesi — frontend, backend ve girişimci bakışları
 
+**10 Kasım 2026 yayın güncellemesi:** Ücretsiz beta0.9.21; Windows kurucusu ana indirme, ZIP/Python isteğe bağlı. Önceki sürüm/yayın kayıtları aşağıda tarihsel kanıttır.400 seçici ertelenmiş durumda. Gerçek ajan/WSL/kullanıcı/temiz Windows kabulü Q01/SON; E01değer veR02lisans/imza kararları açık.
+
 Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:** Kullanıcı 400 sınırına bir süre dokunulmamasını ve diğer işlere devam edilmesini istedi; F01 ertelendi, F02/F03 0.9.6 yerel adayında uygulandı. Aşağıdaki tarihli notlar geçmiş kanıt ve ayrıntılardır. 8 Kasım: Kullanıcı yeni gözlemleri kaydetmeyi ve N01 uyarı eşiğinin uygulanmasını istedi. Diğer açık işler bu tur kendiliğinden tamamlanmış sayılmaz. Ücretsiz masaüstü beta 0.9.11 siteye eşitlendi; canlı indirme ve sürüm imzası doğrulandı. Önceki 0.2.28–0.2.31 indirmelerinin baytları korundu. Temiz Windows ve gerçek kullanıcı kabulü Q01/SON olarak açık. B01b kullanıcı kontrollü ayar aktarımı 0.9.12 yerel adayda tamamlandı; sitedeki ücretsiz beta 0.9.11. Aşağıdaki eski tarihli B01b açık notları tarihsel kapsamı anlatır; güncel durum ilk tabloda ve 0.9.12 bölümündedir.
 
 Öncelik 1 yayın hazırlığında önce ele alınır; öncelik 2 sağlamlaştırma/kapsam kararıdır. Öneri satırı onaylı ilk sürüm kapsamı veya yapılmış özellik sayılmaz. Frontend ekran ve etkileşim doğruluğunu, backend kayıt/veri/işlem doğruluğunu, girişimci kullanıcı faydası ve ticari kapsamı değerlendirir.
@@ -23,6 +25,14 @@ Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:
 | N01 / uygulandı | Oturum bazlı token / dolar bütçe uyarısı | Frontend + backend + girişimci | Kullanıcı uygulamayı onayladı. 80/100 uyarıları, kalıcı tercih, bağımsız izleme ve yerel masaüstü bildirimi; sınırlar aşağıda. | 0.9.5 yerel adayda tamamlandı; SON kabul açık |
 | N02 / uygulandı | Uygulamadan yedek kurtarma ve masaüstü geçmiş seçimi | Frontend + backend | Güvenilir dosyayı incele, yeni konumu gör, açık onayla ayrı klasöre kurtar; masaüstünde aç ve önceki geçmişe dön. Normal açılış seçimi hatırlar; özel veri klasörü kapsamı korunur. | 0.9.13 yerel adayda uygulandı; kaynak kayıtları yerel Git’te; Q01/SON açık |
 | Q01 / SON | Son sabit paketin temiz Windows kabulü; ardından genel yayın kararı | Frontend + backend + girişimci | Açılış, kaynak okuma, klavye, kayıt/geri yükleme, güncelleme/geri dönüş, kapanış ve kaldırma aynı son adayda doğrulanır. | Kullanıcı isteğiyle SON görev, bekliyor |
+
+## 0.9.21 — Yayın eşitlemesi
+
+Kullanıcı site, dokümantasyon ve GitHub yayınını açıkça istedi. Kurucu ana indirme, ZIP/Python isteğe bağlı; eski URL/hashler korunur. Yayın kanıtı ../../reports/publish-0.9.21/REPORT.md. Q01gerçek ortam kabulü SON; E01değer veR02lisans/imza kararları açık.400aynı.
+
+## 0.9.21 — Kurulum incelemesi
+
+Claude kurucu/kısayol/Windows sürüm değişiklikleri korundu; setup/uninstall yarışları, çalışan uygulamanın değiştirilmesi ve junction hedeflerine dokunan temizlik düzeltildi. [Kurulum](SETUP.md), [kanıt](../../reports/setup-review-v1/REPORT.md). Mevcut kullanıcı kurulumu ve gerçek kayıtları değiştirilmedi; public0.9.11 ve400 aynı. Q01/SON, E01/R02 açık.
 
 ## 0.9.20 — Yükleme hareketi
 

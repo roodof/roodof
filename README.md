@@ -11,13 +11,16 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 ## Windows beta quick start
 
-**Local candidate 0.9.20:** Account limits, usage alerts and API price equivalent now use consistent names. Supporting screens and offline help share readable type and spacing. Public free beta remains0.9.11. [Terminology and readability](docs/TERMINOLOGY-READABILITY.md).
+**Free Windows beta 0.9.21 — 10 November 2026:** [Download the installer](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://pler-local-usage.oguzay5555.chatgpt.site/). [Installation and updates](docs/SETUP.md).
+
+For the Windows installer, close PLER, run **PLER-Setup-0.9.21.exe**, then open PLER from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with PLER-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
+
 
 
 **Free Windows desktop beta 0.9.11.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
 
 1. To explore invented records first, open `PLER-Demo.cmd`. Close the demo before opening your own records with `PLER.exe`; demo work is temporary.
-2. Choose **Open sessions** after PLER finds local Claude Code or Codex records. If none appear, widen the filters or use **Add a log folder** for a different installation or an already running WSL distribution. ChatGPT web conversations are outside this reader.
+2. Choose **See your sessions** after PLER finds local Claude Code or Codex records. If none appear, widen the filters or use **Add a log folder** for a different installation or an already running WSL distribution. ChatGPT web conversations are outside this reader.
 3. Create a named item in **My work**, then link a session from its details. The work total covers whole linked sessions; it is not an exact task cost.
 4. In a session's details, set an optional token or API list-price-equivalent budget. PLER warns at 80% and 100% while running. It monitors up to 20 selected sessions, approximately every 10 seconds; it does not stop the agent. Dollar figures are not your subscription bill.
 

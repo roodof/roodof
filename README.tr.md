@@ -11,13 +11,16 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Yerel aday 0.9.20:** Hesap kotaları, kullanım uyarıları ve API fiyat karşılığı tutarlı adlandırıldı. Yardımcı ekranlar ve çevrimdışı yardım ortak okunabilir yazı/boşluk düzeninde. Sitedeki ücretsiz beta0.9.11. [Kavramlar ve okunabilirlik](docs/TERMINOLOGY-READABILITY.md).
+**Ücretsiz Windows betası 0.9.21 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
+
+Windows kurulumu için PLER’i kapat, **PLER-Setup-0.9.21.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. PLER-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
+
 
 
 **Ücretsiz Windows masaüstü betası 0.9.11.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 
 1. Önce uydurma kayıtları incelemek için `PLER-Demo.cmd` dosyasını aç. Kendi kayıtlarını `PLER.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
-2. PLER yerel Claude Code veya Codex kayıtlarını bulunca **Oturumları aç** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
+2. PLER yerel Claude Code veya Codex kayıtlarını bulunca **Oturumlarını gör** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
 3. **İşlerim** bölümünde adlandırılmış bir iş oluştur, oturum ayrıntısından bu işe bağla. Toplam bağlı oturumların tamamını kapsar; görevin kesin maliyeti değildir.
 4. Oturum ayrıntısında isteğe bağlı token veya API liste fiyatı karşılığı bütçe koy. PLER çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
 

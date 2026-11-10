@@ -168,12 +168,45 @@ internal static class Setup {
     // ---------- files ----------
     private static void RemoveTree(string path) {
         if (!Directory.Exists(path)) return;
-        foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
-            File.SetAttributes(file, FileAttributes.Normal);
         for (int attempt = 0; ; attempt++) {
-            try { Directory.Delete(path, true); return; }
+            try { RemoveDirectory(new DirectoryInfo(path)); return; }
             catch (IOException) { if (attempt >= 4) throw; Thread.Sleep(500); }
             catch (UnauthorizedAccessException) { if (attempt >= 4) throw; Thread.Sleep(500); }
+        }
+    }
+    // Junctions/symlinks belong to the installation, their targets do not.
+    private static void RemoveDirectory(DirectoryInfo directory) {
+        if ((directory.Attributes & FileAttributes.ReparsePoint) != 0) { directory.Delete(); return; }
+        foreach (FileSystemInfo entry in directory.GetFileSystemInfos()) {
+            DirectoryInfo child = entry as DirectoryInfo;
+            if (child != null) RemoveDirectory(child);
+            else {
+                if ((entry.Attributes & FileAttributes.ReparsePoint) == 0) entry.Attributes = FileAttributes.Normal;
+                entry.Delete();
+            }
+        }
+        directory.Delete();
+    }
+    private static void RejectLinkedDirectory(string path) {
+        if (Directory.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+            throw new IOException(T("The PLER installation folder is a linked directory. Keep its contents and choose a normal installation folder.",
+                "PLER kurulum klasörü bağlantılı bir klasör. İçeriğini koruyun ve normal bir kurulum klasörü kullanın."));
+    }
+    // Hold across extraction, cleanup, replacement and registration, including uninstall.
+    private static int WithInstallLock(Func<int> work) {
+        RejectLinkedDirectory(Container);
+        Directory.CreateDirectory(Container);
+        RejectLinkedDirectory(Program);
+        string path = Path.Combine(Container, ".pler-setup.lock");
+        FileStream lease;
+        try { lease = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
+        catch (IOException) { throw new IOException(T("Another PLER setup is running. Wait for it to finish and try again.",
+            "Başka bir PLER kurulumu çalışıyor. Bitmesini bekleyip yeniden deneyin.")); }
+        try { return work(); }
+        finally {
+            lease.Dispose();
+            try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            try { if (Directory.GetFileSystemEntries(Container).Length == 0) Directory.Delete(Container); } catch (IOException) { } catch (UnauthorizedAccessException) { }
         }
     }
     private static void TryRemoveTree(string path) { try { RemoveTree(path); } catch (Exception) { } }
@@ -203,7 +236,13 @@ internal static class Setup {
     private static string MoveAside(Window window, bool quiet) {
         string old = Path.Combine(Container, ".pler-old-" + Guid.NewGuid().ToString("N"));
         while (true) {
-            try { Directory.Move(Program, old); return old; }
+            try {
+                // Check the same lease the launcher/updater holds. Close our probe before the
+                // rename: Windows refuses a parent-directory move while this handle is open.
+                using (FileStream lease = new FileStream(Path.Combine(Program, ".pler-running.lock"),
+                           FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None)) { }
+                Directory.Move(Program, old); return old;
+            }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
             if (quiet || window == null) throw new IOException(T("PLER is open. Close it and try again.", "PLER açık. Kapatıp yeniden deneyin."));
@@ -385,7 +424,7 @@ internal static class Setup {
 
     // ---------- install ----------
     private static int Install(bool noLaunch, bool quiet) {
-        return WithWindow(T("Installing PLER…", "PLER kuruluyor…"), quiet, delegate(Window window) {
+        return WithInstallLock(delegate { return WithWindow(T("Installing PLER…", "PLER kuruluyor…"), quiet, delegate(Window window) {
             Directory.CreateDirectory(Container);
             CleanLeftovers();
             int[] installed = Installed();
@@ -423,7 +462,7 @@ internal static class Setup {
             } finally {
                 if (stage != null) TryRemoveTree(stage);
             }
-        });
+        }); });
     }
 
     private static int[] PackagedVersion() {
@@ -496,6 +535,7 @@ internal static class Setup {
             try { using (Process process = Process.GetProcessById(parent)) process.WaitForExit(15000); } catch (ArgumentException) { }
         }
         try {
+            return WithInstallLock(delegate {
             bool removeHistory = false;
             if (!quiet && !Confirm(out removeHistory)) return 2;
             return WithWindow(T("Uninstalling PLER…", "PLER kaldırılıyor…"), quiet, delegate(Window window) {
@@ -527,11 +567,16 @@ internal static class Setup {
                 if (window != null) window.Fraction(1);
                 return 0;
             });
+            });
         } finally {
             // Remove this temporary copy once it has exited.
             string self = Assembly.GetExecutingAssembly().Location;
             if (SamePath(Path.GetDirectoryName(self), Path.GetTempPath())) {
-                ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/d /c ping -n 6 127.0.0.1 >nul & del /f /q \"" + self + "\"");
+                string script = "Wait-Process -Id " + Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) +
+                    " -ErrorAction SilentlyContinue; Remove-Item -LiteralPath '" + self.Replace("'", "''") + "' -Force";
+                string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
+                ProcessStartInfo info = new ProcessStartInfo(powershell, "-NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand " +
+                    Convert.ToBase64String(Encoding.Unicode.GetBytes(script)));
                 info.UseShellExecute = false; info.CreateNoWindow = true;
                 try { Process.Start(info).Dispose(); } catch (Exception) { }
             }

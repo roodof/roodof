@@ -1,3 +1,17 @@
+# Current release — PLER0.9.21, 10 November 2026
+
+Free Windows x64 desktop beta. The primary download is [PLER-Setup-0.9.21.exe](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe); portable ZIP and Python wheel remain optional. The setup installs for the current user, writes Start/desktop shortcuts and a Windows Apps entry, and keeps history by default on uninstall. [Setup details](SETUP.md).
+
+This release includes the0.9.14–0.9.20 session, settings, search, first-use, terminology, logo and loading-motion changes plus the reviewed installer safeguards in0.9.21. The400work picker remains unchanged. Recorded API price equivalents are not bills. Free beta needs no PLER account or payment.
+
+The updater remains format2, usage schema2, work3, backup1. Its signed feed retains the existing public trust key and points to the portable ZIP, which contains the same application source as the installer and wheel. The owner key stays outside product/Site/GitHub source. Update metadata signatures are separate from Authenticode; no Windows publisher signature was added.
+
+Publication artifacts, exact hashes, checks, GitHub source commit and live results are recorded in `../../reports/publish-0.9.21/REPORT.md`. Independent clean-Windows installation/update/removal, real-agent/WSL acceptance, real user value and license/signing decisions remain open. Source stays private; the public GitHub distribution repo holds binaries and release documentation only. Previous downloads retain immutable filenames and bytes.
+
+The older records below describe previous releases and checks; they are not current0.9.21acceptance.
+
+---
+
 # Release and support gates
 
 This is the maintainer's release procedure and evidence record. The current public beta and its open acceptance tasks are recorded below. The product is a personal application reading retained logs on the same computer. It has no team identity, access roles, shared server, complete account ledger or billing reconciliation.
