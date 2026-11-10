@@ -1,12 +1,12 @@
 # Güncel yayın —0.9.28
 
-Ayarlar→Genel, ayrı Kayıt incelemesi, toplam/uyarı sayacı, grafik/oturum ve Windows pencere uyumu yeni yayında eşitlenir. Kanıt ../../reports/publish-0.9.28/REPORT.md. Q01gerçek ortam kabulü SON/açık, E01değer veR02lisans/imza açık;400aynı. Aşağıdaki sürüm notları tarihseldir.
+0.9.28 ücretsiz beta site ve GitHub’da yayımlandı. Ayarlar→Genel, ayrı Kayıt incelemesi, toplam/uyarı sayacı, grafik/oturum ve Windows pencere uyumu eşitlendi; canlı 16 indirme (13 eski) ve EN/TR sayfalar doğrulandı. Kanıt ../../reports/publish-0.9.28/REPORT.md. Q01gerçek ortam kabulü SON/açık, E01değer veR02lisans/imza açık;400aynı. Aşağıdaki sürüm notları tarihseldir.
 
 ---
 
 # Güncel öncelik listesi — frontend, backend ve girişimci bakışları
 
-**10 Kasım 2026 yayın güncellemesi:** Ücretsiz beta0.9.21; Windows kurucusu ana indirme, ZIP/Python isteğe bağlı. Önceki sürüm/yayın kayıtları aşağıda tarihsel kanıttır.400 seçici ertelenmiş durumda. Gerçek ajan/WSL/kullanıcı/temiz Windows kabulü Q01/SON; E01değer veR02lisans/imza kararları açık.
+**10 Kasım 2026 yayın güncellemesi:** Ücretsiz beta0.9.28; Windows kurucusu ana indirme, ZIP/Python isteğe bağlı. Önceki sürüm/yayın kayıtları aşağıda tarihsel kanıttır.400 seçici ertelenmiş durumda. Gerçek ajan/WSL/kullanıcı/temiz Windows kabulü Q01/SON; E01değer veR02lisans/imza kararları açık.
 
 Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:** Kullanıcı 400 sınırına bir süre dokunulmamasını ve diğer işlere devam edilmesini istedi; F01 ertelendi, F02/F03 0.9.6 yerel adayında uygulandı. Aşağıdaki tarihli notlar geçmiş kanıt ve ayrıntılardır. 8 Kasım: Kullanıcı yeni gözlemleri kaydetmeyi ve N01 uyarı eşiğinin uygulanmasını istedi. Diğer açık işler bu tur kendiliğinden tamamlanmış sayılmaz. Ücretsiz masaüstü beta 0.9.11 siteye eşitlendi; canlı indirme ve sürüm imzası doğrulandı. Önceki 0.2.28–0.2.31 indirmelerinin baytları korundu. Temiz Windows ve gerçek kullanıcı kabulü Q01/SON olarak açık. B01b kullanıcı kontrollü ayar aktarımı 0.9.12 yerel adayda tamamlandı; sitedeki ücretsiz beta 0.9.11. Aşağıdaki eski tarihli B01b açık notları tarihsel kapsamı anlatır; güncel durum ilk tabloda ve 0.9.12 bölümündedir.
 
