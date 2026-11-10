@@ -1,8 +1,8 @@
 """Speed guard: large slowdowns fail CI before a release.
 
 CI machines differ in speed, so no test here compares with a fixed number of seconds. Each compares two
-timings taken in the same process on the same invented logs (speed_logs.py): PLER's work against plain
-json.loads of the same bytes, or one PLER path against another. The limits are about twice the largest ratio
+timings taken in the same process on the same invented logs (speed_logs.py): Roodof's work against plain
+json.loads of the same bytes, or one Roodof path against another. The limits are about twice the largest ratio
 seen on Windows and Linux with Python 3.9, 3.12 and 3.14 on 30 October 2026 (in the comments), so ordinary
 noise passes and a regression like 0.2.11's ninefold later read does not; smaller slowdowns are left to the
 recorded measurements. That the page's unchanged refresh merges nothing is checked by test_rescan.py.

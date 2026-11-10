@@ -1,3 +1,9 @@
+# Roodof 0.9.29 — ürün adı değişikliği
+
+PLER ürününün yeni adı Roodof. Görünen uygulama, masaüstü pencere/kurulum, yardım ve site adı güncellendi. Mevcut geçmiş, yedek biçimleri, imza güven kökü ve eski indirme/güncelleme adresleri uyumluluk için korunur. Önceki sürüm kayıtları tarihsel adlarını korur. 400 seçici değişmedi; gerçek ortam kabulü Q01 SON/açık.
+
+---
+
 # Güncel yayın —0.9.28
 
 0.9.28 ücretsiz beta site ve GitHub’da yayımlandı. Ayarlar→Genel, ayrı Kayıt incelemesi, toplam/uyarı sayacı, grafik/oturum ve Windows pencere uyumu eşitlendi; canlı 16 indirme (13 eski) ve EN/TR sayfalar doğrulandı. Kanıt ../../reports/publish-0.9.28/REPORT.md. Q01gerçek ortam kabulü SON/açık, E01değer veR02lisans/imza açık;400aynı. Aşağıdaki sürüm notları tarihseldir.

@@ -1,4 +1,4 @@
-"""`pler demo`: invented data that exercises every pilot task, written only into PLER's own demo folder."""
+"""`pler demo`: invented data that exercises every pilot task, written only into Roodof's own demo folder."""
 import json
 import os
 from pathlib import Path
@@ -79,8 +79,8 @@ class DemoTests(unittest.TestCase):
         def fake_serve(port, browser, lang, dashboard=None, desktop=False):
             captured.update(port=port, browser=browser, dashboard=dashboard)
             return 0
-        # The real demo folder is in PLER's cache folder, outside the system temporary folder, whose
-        # sessions PLER groups together; this test's own temporary folder must not look like one.
+        # The real demo folder is in Roodof's cache folder, outside the system temporary folder, whose
+        # sessions Roodof groups together; this test's own temporary folder must not look like one.
         with patch('pler.usage.projects.tempfile.gettempdir', return_value=str(self.root / 'system-temp')), \
                 patch.dict(os.environ, PLER_CACHE_DIR=str(self.root / 'cache')), patch.object(cli, 'serve', fake_serve), \
                 patch.object(claude_code, 'roots', side_effect=AssertionError('read the real Claude Code folder')), \

@@ -3,12 +3,12 @@
 Prices and limit ratios are the providers' published figures of PRICES_AS_OF, in US dollars before tax (the
 providers show local prices elsewhere). Only published ratios are used: Anthropic states that Max gives 5x
 Pro's usage every 5 hours and every week, and Ultra 10x Pro's weekly usage, with no 5-hour limit for verified accounts. OpenAI
-publishes no ratio between Plus and its Pro plans, so PLER never says which of them would be enough.
+publishes no ratio between Plus and its Pro plans, so Roodof never says which of them would be enough.
 
-A subscription also covers chat outside the coding agents, which PLER does not see: the API equivalent is the
+A subscription also covers chat outside the coding agents, which Roodof does not see: the API equivalent is the
 agents' recorded work only. Account-wide meter observations can include activity outside these logs.
 Codex logs its plan with its meter; Claude Code logs neither, so its plan is what the user chose here and its
-meter comes from PLER's status line. The choice is kept only on this computer (plan-choice.json).
+meter comes from Roodof's status line. The choice is kept only on this computer (plan-choice.json).
 """
 from datetime import timedelta
 import json
@@ -293,7 +293,7 @@ def _valid(value):
 
 
 class Choice:
-    """The Claude plan the user chose, in PLER's cache folder (or `base`); a file PLER cannot understand is
+    """The Claude plan the user chose, in Roodof's cache folder (or `base`); a file Roodof cannot understand is
     reported and never overwritten."""
 
     def __init__(self, base=None):

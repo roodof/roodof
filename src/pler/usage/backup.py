@@ -413,7 +413,7 @@ def _cleanup_stage(stage):
 def restore(data, target):
     """Validate first, stage/fsync fixed files, then publish a new local directory.
 
-    An existing folder is always refused. No current PLER data is replaced, no archived source is
+    An existing folder is always refused. No current Roodof data is replaced, no archived source is
     queried, and original reader keys remain unchanged. A post-publish directory-sync error can leave
     the complete new directory visible; an incomplete staged directory is never the target.
     """

@@ -94,7 +94,7 @@ class Store:
         if path is None:
             raise OSError('unsafe budget file')
         with _locked(path.parent):
-            entries = self.read()  # preserve other PLER windows' changes
+            entries = self.read()  # preserve other Roodof windows' changes
             result = action(entries)
             _write(path, dict(format=1, entries=validate(entries)))
             return result

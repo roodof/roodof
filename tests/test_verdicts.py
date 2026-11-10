@@ -1,5 +1,5 @@
 """Your one-click verdicts stay on this computer, name only page session codes and never replace a file
-PLER cannot read. Sessions, folders and caches are invented and isolated.
+Roodof cannot read. Sessions, folders and caches are invented and isolated.
 """
 import http.client
 import io

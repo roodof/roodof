@@ -132,7 +132,7 @@ class QuotaWriterSafetyTests(unittest.TestCase):
                 patch.object(sys, 'stdout', output), patch.object(statusline, 'record') as record:
             self.assertEqual(statusline.main([]), 0)
         self.assertEqual(source.requested, [65])
-        self.assertEqual(output.buffer.getvalue(), b'PLER')
+        self.assertEqual(output.buffer.getvalue(), b'Roodof')
         record.assert_called_once_with({})
 
     def test_invalid_times_remain_best_effort(self):

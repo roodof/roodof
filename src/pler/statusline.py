@@ -1,8 +1,8 @@
-"""Claude Code status line for PLER: shows context and subscription use, and keeps the subscription numbers.
+"""Claude Code status line for Roodof: shows context and subscription use, and keeps the subscription numbers.
 
 Claude Code pipes a JSON description of the session to its status line command. For Pro and Max subscribers it
 holds `rate_limits` (5-hour and 7-day used percentage and reset time), which Claude Code's own logs never record.
-Only those numbers and the time are appended to claude-quota.jsonl in PLER's cache folder, and only when they
+Only those numbers and the time are appended to claude-quota.jsonl in Roodof's cache folder, and only when they
 change; nothing else from the input is kept. It runs on every status refresh, so it imports almost nothing.
 
   pler statusline            what Claude Code runs: reads its JSON on stdin, prints one line
@@ -266,7 +266,7 @@ def line(data, found, lang=None):
         parts.append(say(lang, 'status.context', round(context['used_percentage'])))
     found = _windows(found)
     parts.extend(say(lang, 'status.' + minutes, round(found[minutes][0])) for minutes in ('300', '10080') if minutes in found)
-    return ' · '.join(parts) or 'PLER'
+    return ' · '.join(parts) or 'Roodof'
 
 
 def settings_path():

@@ -2,7 +2,7 @@
   "name": "pler-desktop",
   "version": "0.3.0",
   "private": true,
-  "description": "PLER desktop window",
+  "description": "Roodof desktop window",
   "main": "main.cjs",
   "scripts": {
     "test": "node --test policy.test.cjs window-state.test.cjs"

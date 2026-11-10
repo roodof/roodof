@@ -50,7 +50,7 @@ export function mountFirstUse({tr,settings,show,tour}) {
  for(const message of [
   text('Use Claude Code or Codex for a session on this Windows account, then look for records again. Installing the app alone does not create a session.','Bu Windows hesabında Claude Code veya Codex ile bir oturum kullan, ardından kayıtları yeniden ara. Yalnızca uygulamayı kurmak oturum oluşturmaz.'),
   text('For another local installation or a running WSL distribution, choose Add a log folder. Records on another computer are not read remotely.','Başka bir yerel kurulum veya çalışan WSL dağıtımı için Kayıt klasörü ekle seçeneğini kullan. Başka bilgisayardaki kayıtlar uzaktan okunmaz.'),
-  text('If you already have sessions, check that their local records are still present and readable. PLER can only show the records it can read.','Oturumların zaten varsa yerel kayıtlarının hâlâ bulunduğunu ve okunabildiğini kontrol et. PLER yalnız okuyabildiği kayıtları gösterebilir.')
+  text('If you already have sessions, check that their local records are still present and readable. Roodof can only show the records it can read.','Oturumların zaten varsa yerel kayıtlarının hâlâ bulunduğunu ve okunabildiğini kontrol et. Roodof yalnız okuyabildiği kayıtları gösterebilir.')
  ])guidance.append(make('p','',message));
  options.append(guidance);
  const reopen=make('button','secondary',text('Check record sources','Kayıt kaynaklarını kontrol et'));reopen.id='first-use-reopen';reopen.type='button';

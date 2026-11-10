@@ -49,7 +49,7 @@ function icon(node) { const svg=createElement(node,{width:19,height:19,'stroke-w
 const pages = {};
 const routes=[['sessions',ListFilter],['work',Layers],['overview',LayoutDashboard],['quota',Gauge],['review',ShieldCheck],['settings',Settings2]];
 const sidebar=el('aside','ws-sidebar');
-const brand=el('a','ws-brand','PLER');brand.href=location.pathname+location.search;brand.prepend(el('span','ws-symbol','∥')); sidebar.append(brand);
+const brand=el('a','ws-brand','Roodof');brand.href=location.pathname+location.search;brand.prepend(el('span','ws-symbol','∥')); sidebar.append(brand);
 // Home stays inside the mounted workspace: no document reload, lost language or drafts.
 function openHome(event){event.preventDefault();show('sessions',true);}
 brand.addEventListener('click',openHome);
@@ -93,7 +93,7 @@ function show(name,focus=false) {
   navigation.setActive(name);
   h1.textContent=words[name];intro.textContent=words[name+'Intro'];
   document.dispatchEvent(new CustomEvent('pler-screen-change',{detail:name}));
-  document.title='PLER · '+words[name];
+  document.title='Roodof · '+words[name];
   document.querySelector('.workspace-head .eyebrow').textContent=words.workspace+' / '+words[name];
   document.body.dataset.screen=name;
   syncSettingsSurface();

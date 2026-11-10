@@ -61,7 +61,7 @@ export function mountSearchRecovery({tr}){
     hasQuery?text('Bu aramada oturum bulunamadı','No sessions match this search'):text('Bu filtrelerde oturum bulunamadı','No sessions match these filters');
    note.textContent=failed?text('Seçimin korunuyor. Yeniden deneyebilir veya okuma sorununu inceleyebilirsin.','Your selection is kept. Try again or inspect the read issue.'):
     noRecords&&unreadable?text('Eksik kayıtların nedenini incele; klasör erişimini düzelttikten sonra yeniden oku.','Inspect why records are missing, then read again after fixing folder access.'):
-    noRecords&&!files?text('PLER bu bilgisayardaki Claude Code ve Codex kayıtlarını okur. Başka bir kurulum kullanıyorsan kayıt klasörünü ekle.','PLER reads Claude Code and Codex records on this computer. Add the log folder if you use another installation.'):
+    noRecords&&!files?text('Roodof bu bilgisayardaki Claude Code ve Codex kayıtlarını okur. Başka bir kurulum kullanıyorsan kayıt klasörünü ekle.','Roodof reads Claude Code and Codex records on this computer. Add the log folder if you use another installation.'):
     noRecords?text('Kayıt dosyaları bulundu. Kullanılabilir oturum çıkmamasının nedenini okuma durumunda incele.','Record files were found. Inspect read status to see why no usable sessions were available.'):
     f.days!=='0'?text('Dönemi genişleterek devam et. Arama metnin, ajan ve proje seçimin korunur.','Widen the period to continue. Your search text, agent and project stay selected.'):
     text('Bir filtreyi genişletebilir veya arama metnini değiştirebilirsin. Başka bir kurulumdaki kayıtlar için klasör ekle.','Broaden a filter or change your search text. Add a folder for records from another installation.');

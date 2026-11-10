@@ -33,7 +33,7 @@ AGENTS = {'claude-code': 'Claude Code', 'codex': 'Codex'}
 class Rescan:
     """scan() for a long-running page. A refresh whose inputs are all unchanged returns the previous sessions
     instead of merging every log again: the same found log files (path, size, modification time, file
-    identity), the same discovery issues and reader versions, and PLER's own cache, archive and retention files
+    identity), the same discovery issues and reader versions, and Roodof's own cache, archive and retention files
     as the previous scan left them. A result is reused for at most MAX_AGE seconds."""
     MAX_AGE = 3600
     ERROR_MAX_AGE = 5
@@ -90,8 +90,8 @@ class Rescan:
 def scan(claude_folders=None, codex_folders=None, retain=False, memo=None):
     """Sessions from the agents' log folders. Both readers' metadata extracts are cached (cache.py), so
     unchanged logs are not decompressed and parsed again; explicitly given folders are always read. With the
-    default folders, the Claude Code quota samples of PLER's status line come along in sources['claude_quota'].
-    Metadata of default (or environment-selected) folders is kept in PLER's archive after a source disappears;
+    default folders, the Claude Code quota samples of Roodof's status line come along in sources['claude_quota'].
+    Metadata of default (or environment-selected) folders is kept in Roodof's archive after a source disappears;
     explicitly given folders only with `retain`. `memo` (a Rescan) returns its previous result while every
     input is unchanged."""
     observed_at=datetime.now(timezone.utc).isoformat()

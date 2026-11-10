@@ -732,7 +732,7 @@ class UsageDashboard:
             return dict(ok=True,id=identity,followup=saved['followup'])
 
     def set_verdict(self, identity, verdict):
-        """Save the user's verdict for a session of the current snapshot; never one PLER has not shown."""
+        """Save the user's verdict for a session of the current snapshot; never one Roodof has not shown."""
         with self.lock:
             if not any(session_code(session) == identity for session in self.sessions):
                 return dict(ok=False, reason='missing')

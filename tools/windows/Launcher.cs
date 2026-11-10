@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-[assembly: AssemblyTitle("PLER")]
-[assembly: AssemblyProduct("PLER")]
+[assembly: AssemblyTitle("Roodof")]
+[assembly: AssemblyProduct("Roodof")]
 [assembly: AssemblyDescription("Local agent usage viewer")]
 
 internal static class Launcher {
@@ -27,7 +27,7 @@ internal static class Launcher {
     private static string Selected(string folder, string version) {
         string selected = version == null ? folder : Path.Combine(folder, ".pler-versions", version);
         if (!File.Exists(Path.Combine(selected, "runtime", "python.exe")) || !File.Exists(Path.Combine(selected, "app", "start.py")))
-            throw new IOException("The selected PLER version is incomplete. Keep your data and reinstall the complete package.");
+            throw new IOException("The selected Roodof version is incomplete. Keep your data and reinstall the complete package.");
         return selected;
     }
     private static void WritePointer(string folder, string version) {
@@ -46,12 +46,12 @@ internal static class Launcher {
         string pending = Path.Combine(folder, ".pler-pending");
         if (!File.Exists(pending)) return;
         using (FileStream lease = Lease(folder, true)) {
-            if (new FileInfo(pending).Length > 128) throw new IOException("PLER recovery needs inspection.");
+            if (new FileInfo(pending).Length > 128) throw new IOException("Roodof recovery needs inspection.");
             string[] lines = File.ReadAllLines(pending);
-            if (lines.Length != 2) throw new IOException("PLER recovery needs inspection.");
+            if (lines.Length != 2) throw new IOException("Roodof recovery needs inspection.");
             string next = VersionWord(lines[0]), old = lines[1] == "base" ? null : VersionWord(lines[1]);
             string current = Pointer(folder);
-            if (current != next && current != old) throw new IOException("PLER recovery needs inspection.");
+            if (current != next && current != old) throw new IOException("Roodof recovery needs inspection.");
             Selected(folder, old); WritePointer(folder, old); File.Delete(pending);
         }
     }
@@ -104,7 +104,7 @@ internal static class Launcher {
             string runtime = Path.Combine(selected, "runtime", "python.exe");
             string entry = Path.Combine(selected, "app", "start.py");
             if (!File.Exists(runtime) || !File.Exists(entry))
-                throw new IOException("Extract the complete PLER folder before opening the application.");
+                throw new IOException("Extract the complete Roodof folder before opening the application.");
             StringBuilder command = new StringBuilder("-I -S " + Quote(entry));
             foreach (string argument in check ? new string[] { "--version" } : args)
                 command.Append(' ').Append(Quote(argument));
@@ -126,15 +126,15 @@ internal static class Launcher {
                 Task<string> error = process.StandardError.ReadToEndAsync();
                 process.WaitForExit();
                 Task.WaitAll(output, error);
-                if (check) return process.ExitCode == 0 && output.Result.Trim().StartsWith("PLER ") ? 0 : 1;
+                if (check) return process.ExitCode == 0 && output.Result.Trim().StartsWith("Roodof ") ? 0 : 1;
                 if (process.ExitCode != 0)
-                    MessageBox.Show("PLER could not start. The original agent logs were not changed.\n\n" +
-                        error.Result, "PLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Roodof could not start. The original agent logs were not changed.\n\n" +
+                        error.Result, "Roodof", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return process.ExitCode;
             }
             }
         } catch (Exception error) {
-            if (!check) MessageBox.Show(error.Message, "PLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!check) MessageBox.Show(error.Message, "Roodof", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }

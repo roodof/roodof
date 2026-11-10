@@ -60,7 +60,7 @@ Codex özelliği, kurulu paket/portable/arayüz kanıtlarını tamamladı ve rap
 
 Kullanıcı aylık yaklaşık 3 dolar abonelik düşündüğünü, ürün içine sinmeden reklam veya deneyecek kişi arama başlatılmamasını söyledi. Bu fiyat kesinleşmiş değildir; ücretli talep veya düzenli fayda kanıtı yoktur. İlk yetkilendirilen geliştirme Y06 olarak uygulandı. Profesyonel pilot ve katılımcı arama kullanıcı ürünü hazır bulana kadar ertelendi; pilot ölçütleri değişmedi.
 
-`pler backup create/check/restore` ile yalnız kalıcı PLER üst bilgisi yedeklenir ve doğrulanır. Arşiv, saklama tercihi, değerlendirmeler ve kota örnekleri kapsanır; okuyucu/Git önbellekleri, demo, ajan ayarları ve erişim anahtarları kapsanmaz. Arayüz özel yedek indirme ve dosya denetimi sunar; geri yükleme komut satırından yalnız yeni, henüz var olmayan yerel klasöre yapılır. Mevcut klasörün üzerine yazma ve arayüzden tek tıkla geri yükleme bu adayda yoktur.
+`pler backup create/check/restore` ile yalnız kalıcı Roodof üst bilgisi yedeklenir ve doğrulanır. Arşiv, saklama tercihi, değerlendirmeler ve kota örnekleri kapsanır; okuyucu/Git önbellekleri, demo, ajan ayarları ve erişim anahtarları kapsanmaz. Arayüz özel yedek indirme ve dosya denetimi sunar; geri yükleme komut satırından yalnız yeni, henüz var olmayan yerel klasöre yapılır. Mevcut klasörün üzerine yazma ve arayüzden tek tıkla geri yükleme bu adayda yoktur.
 
 Geri yükleme, aynı bilgisayar/özgün seçili kaynak kökleri için kurtarmadır; kaynak yolları başka bilgisayara yeniden eşleştirilmez. Her açılışta `pler --data-dir KLASÖR` ile seçim gerekir. Özgün okuyucu anahtarı, zamanlar ve saklama tercihi korunur; çalışan sayfa ve varsayılan açılış kendiliğinden değiştirilmez. Yedek özel yollar/kimlikler taşır, şifreli veya anonim değildir; sağlama toplamı kazara hasarı kontrol eder, kaynağın güvenilirliğini kanıtlamaz.
 
@@ -128,9 +128,9 @@ Yeni özellik profesyonel kullanıcı kabulünü kanıtlamaz. Gerçek pilot, tem
 
 ## 29 Ekim: 0.2.11 — kayıtlar silinince geçmiş artık kaybolmuyor
 
-Claude Code varsayılan olarak 30 günden eski konuşmaları siliyor. PLER'in önbelleği de yalnız son okumada görülen dosyaları sakladığından, oturumlar sessizce kayboluyor ve aylık toplamlar küçülüyordu. Kullanıcı bunu fark edemiyordu.
+Claude Code varsayılan olarak 30 günden eski konuşmaları siliyor. Roodof'in önbelleği de yalnız son okumada görülen dosyaları sakladığından, oturumlar sessizce kayboluyor ve aylık toplamlar küçülüyordu. Kullanıcı bunu fark edemiyordu.
 
-- **Düzeltme:** PLER, varsayılan ve ortam değişkeniyle seçilen klasörlerdeki her dosyanın izinli üst bilgisini sınırlı bir yerel arşivde tutuyor. Silinen kaynağın oturumları sayılmaya devam ediyor ve "kaynak silindi, PLER arşivinden" diye işaretleniyor. Metin tutulmuyor.
+- **Düzeltme:** Roodof, varsayılan ve ortam değişkeniyle seçilen klasörlerdeki her dosyanın izinli üst bilgisini sınırlı bir yerel arşivde tutuyor. Silinen kaynağın oturumları sayılmaya devam ediyor ve "kaynak silindi, Roodof arşivinden" diye işaretleniyor. Metin tutulmuyor.
 - **Önce ve sonra (uydurma kayıtlar):**
   - Kaynak silinince 0.2.10'da 350 token 0'a düşüyor, 0.2.11'de 350 kalıyor.
   - Arşivdeki yanıtları kopyalayan devam oturumu iki kez sayılmıyor (410 token, 3 çağrı).
@@ -150,7 +150,7 @@ Claude Code varsayılan olarak 30 günden eski konuşmaları siliyor. PLER'in ö
 
 **Sınır:**
 - **Arşivin yükü:** Arşiv önbellek kadar özel bir üst bilgi dosyası; proje ve dosya yolları da içinde. Yük sınırlı ama sıfır değil: 24,5 MB ve sıcak okumada yaklaşık 1,8 sn.
-- **Kaybolan geçmiş:** Silinmeden önce PLER'in hiç okumadığı kayıtlar geri gelmez.
+- **Kaybolan geçmiş:** Silinmeden önce Roodof'in hiç okumadığı kayıtlar geri gelmez.
 
 ## 28 Ekim: 0.2.10 — açıkça seçilen WSL kayıtları
 
@@ -162,7 +162,7 @@ Windows 3.9 ve 3.12'de 278 test geçti; yerleşik çözücü isteyen dokuz test 
 
 ## 28 Ekim: 0.2.9 — taşınmış kayıt klasörü artık "kayıt yok" göstermiyor
 
-Kayıt klasörünü (`~/.claude`, `~/.codex` ya da içindeki `projects`/`sessions`) başka bir diske taşıyıp yerine sembolik bağlantı veya Windows junction'ı bırakan biri, PLER'de hiç kayıt görmüyordu. PLER bu bağlantıyı güvensiz yol sayıp atlıyordu. Pilotta böyle bir katılımcı, ürünü bozuk sanıp yanlış bir "veri yok" sonucu verirdi.
+Kayıt klasörünü (`~/.claude`, `~/.codex` ya da içindeki `projects`/`sessions`) başka bir diske taşıyıp yerine sembolik bağlantı veya Windows junction'ı bırakan biri, Roodof'de hiç kayıt görmüyordu. Roodof bu bağlantıyı güvensiz yol sayıp atlıyordu. Pilotta böyle bir katılımcı, ürünü bozuk sanıp yanlış bir "veri yok" sonucu verirdi.
 
 - **Düzeltme:** Kullanıcının seçtiği kayıt klasörüne giden kendi bağlantısı artık izleniyor: varsayılan klasör, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` ve `--codex-dir`.
   - Bağlantının hedefi açılmadan önce okunuyor. Ağ, birim ya da aygıt yazımına giden hedef, oraya hiç dokunulmadan reddediliyor.
@@ -178,7 +178,7 @@ Kayıt klasörünü (`~/.claude`, `~/.codex` ya da içindeki `projects`/`session
 
 ## 28 Ekim: 0.2.8 — pilot başlatılabilir durumda
 
-Kalan en büyük açık, gerçek bir profesyonelin PLER'le farklı bir karar verip vermediği. Bunu yalnız bir pilot gösterebilir. Pilot için hazırlananlar:
+Kalan en büyük açık, gerçek bir profesyonelin Roodof'le farklı bir karar verip vermediği. Bunu yalnız bir pilot gösterebilir. Pilot için hazırlananlar:
 - **Deneme modu:** `pler demo`, uydurma kayıtlar ve uydurma bir Git deposuyla sayfayı açıyor. Ajan klasörlerine dokunmuyor, sayfada açık bir "uydurma veri" uyarısı var. Protokoldeki 8 görevin her biri bu veriyle yapılabiliyor.
 - **Pilot kiti:**
   - Python'suz Windows paketi (Python 3.14) ve wheel;
@@ -209,7 +209,7 @@ Oturum sırasında kaydedilen her commit için şu soru cevaplanıyor: hâlâ ye
 
 ## 28 Ekim: 0.2.6 — “ccusage'dan farkı ne?”: oturumlar değiştirdikleri depoya bağlanıyor
 
-PLER'in token saymanın ötesindeki asıl farkı, oturumu Git'teki sonucuyla yan yana koymak. Codex'in 26 Ekim'deki ilk sürümü yalnız oturumun açıldığı klasöre bakıyordu. Bu bilgisayarda bu yaklaşım hiçbir şey göstermedi.
+Roodof'in token saymanın ötesindeki asıl farkı, oturumu Git'teki sonucuyla yan yana koymak. Codex'in 26 Ekim'deki ilk sürümü yalnız oturumun açıldığı klasöre bakıyordu. Bu bilgisayarda bu yaklaşım hiçbir şey göstermedi.
 
 **Nedeni:** Ajan çoğu zaman bir üst klasörde başlatılıyor ve içerideki bir depoyu değiştiriyor. Bazı oturumların proje bilgisi de belirsiz.
 
@@ -268,7 +268,7 @@ Codex'in yarıda kalan turu Claude tarafından tamamlandı. [Kanıt, yöntem ve 
 - **Yanlış alarm düzeltildi.** Codex'in ilk kuralı, gerçek kayıtlarda alt ajanların aynı oturumdaki ana iş parçacığını ebeveyn göstermesini "çelişki" sayıyordu. Sabit 128 gerçek dosyada 4 oturum yanlışlıkla atıf belirsiz, 2'si token eksik görünüyordu. Bu 4 oturumun hiçbirinde oturum dışını gösteren ebeveyn yoktu. Oturum içi bağlar artık ebeveyn kanıtı sayılmıyor. Düzeltmeden sonra 0.2.4'e göre oturum, token, çağrı ve kalite bayrakları aynı.
 - **"Benim sistemimde denenmemiş" kısmen azaldı.** Linux'ta (WSL2 Ubuntu, Python 3.14.4, standart kütüphane zstd çözücüsü) tam takım 236/236 geçti. İlk koşuda iki kusur çıktı ve düzeltildi:
   - Windows'a özgü `/\sunucu` yazımı Linux'ta ağ yolu sayılmıyordu.
-  - Geçici klasör macOS'taki gibi işletim sisteminin kısayolu arkasındayken 236 testin 176'sı düşüyordu. PLER, macOS'ta `/var` ve `/tmp`, bazı Linux'larda `/home` gibi root'a ait sistem bağlantılarını reddediyordu. Bu bilgisayarlarda kayıtlar ve önbellek kullanılamaz kalırdı.
+  - Geçici klasör macOS'taki gibi işletim sisteminin kısayolu arkasındayken 236 testin 176'sı düşüyordu. Roodof, macOS'ta `/var` ve `/tmp`, bazı Linux'larda `/home` gibi root'a ait sistem bağlantılarını reddediyordu. Bu bilgisayarlarda kayıtlar ve önbellek kullanılamaz kalırdı.
   - Artık macOS/Linux'ta root'a ait bağlantılar izleniyor; kullanıcı bağlantıları ve Windows'taki tüm bağlantılar eskisi gibi reddediliyor.
 - **İlk gerçek macOS çalıştırması.** Kod özel bir GitHub deposuna yüklendi ve hazırlanan CI çalıştırıldı. Her iş testleri kaynaktan ve yeni ortama kurulmuş wheel'den koşturdu, sürümü denetledi ve paketi kaldırdı.
   - Windows Server 2025, Ubuntu 24.04 ve macOS 26 arm64'te Python 3.9, 3.12, 3.14 ve isteğe bağlı `zstandard`: 12 işin 12'si geçti.
@@ -294,7 +294,7 @@ Kurulmuş pakette 63/63 kabul testi geçti; 0.2.4 yerel ekranda doğrulandı. Sa
 
 Sabit 131 dosyada ilk okuma 51,45 → 46,33 saniye (%9,96), önbellekli okuma 2,22 → 1,82 saniye (%17,84). Bütün oturum metadata'sı ve sorun listesi birebir aynı kaldı. Gerçek kullanım kaydını seçme ve önbellek yazımı hızlandı; sıkıştırma yardımcı tablosu küçültüldü. 128 sıkıştırılmış dosyanın açılmış baytları önceki sürümle aynı. İki Python sürümünde 177/177, tarayıcı mantığında 18/18 ve kurulmuş pakette 52/52 test geçti. [Ölçüm, testler ve sınırlar](../reports/cold-start-v1/REPORT.md).
 
-Bu ölçüm boş PLER metadata önbelleğiyle, işletim sistemi disk önbelleği temizlenmeden yapıldı. Tek bilgisayarın ölçümüdür; genel açılış garantisi değildir. İlk okumanın yaklaşık 46 saniye sürmesi hâlâ kabul engelidir. Sayımın kalan geçmiş sınırları, kurulum, platformlar ve profesyonel pilot açık kalır.
+Bu ölçüm boş Roodof metadata önbelleğiyle, işletim sistemi disk önbelleği temizlenmeden yapıldı. Tek bilgisayarın ölçümüdür; genel açılış garantisi değildir. İlk okumanın yaklaşık 46 saniye sürmesi hâlâ kabul engelidir. Sayımın kalan geçmiş sınırları, kurulum, platformlar ve profesyonel pilot açık kalır.
 
 ## 28 Ekim: 0.2.2 — tek dosya uyarısı çözüldü
 
@@ -335,7 +335,7 @@ Bu önceki değerlendirmede ürün kodu değiştirilmedi. Mevcut 124 test yenide
 
 | Öncelik | İtiraz | Bu turdaki bulgu ve karşılık | Durum / kapanış ölçütü |
 |---|---|---|---|
-| P0 | “Ayarlarımı bozabilir.” | Komutunda `pler` ve `statusline` geçen başka bir durum satırı PLER'in sanılıp silinebiliyordu. Yalnız üretilen ayarın tam eşleşmesi kabul ediliyor. Onay beklerken değişen ayar korunuyor; yazma hatası anlaşılır biçimde dönüyor. | Somut kusurlar regresyonla giderildi. Taşınmış/eski kurulumun ayarı otomatik silinmez; belirsizlikte koruma tercih edilir. |
+| P0 | “Ayarlarımı bozabilir.” | Komutunda `pler` ve `statusline` geçen başka bir durum satırı Roodof'in sanılıp silinebiliyordu. Yalnız üretilen ayarın tam eşleşmesi kabul ediliyor. Onay beklerken değişen ayar korunuyor; yazma hatası anlaşılır biçimde dönüyor. | Somut kusurlar regresyonla giderildi. Taşınmış/eski kurulumun ayarı otomatik silinmez; belirsizlikte koruma tercih edilir. |
 | P0 | “Eski sayıyı güncel kota gibi gösteriyor.” | Bir saat eski ölçümden dolma tahmini çıkabiliyordu. 30 dakika / 24 saat güncellik sınırı, geçmiş dolma zamanı denetimi ve açık sayfada saatten güncelleme eklendi. Eski yüzde tarihli bilgi olarak kalır, güncel çubuk ve uyarı kaldırılır. | Somut kusur giderildi. Anlık hesap verisi sağlandığı iddia edilmez. |
 | P0 | “Rakamlarım eksik; haberim yok.” | Açma ve okuma ortası hataları, bozuk/yarım JSON ve geçersiz yanıt kimlikleri tek dosya uyarısına giriyor. Sağlam satırlar korunuyor; Codex önbelleğinde de uyarı sürüyor. Sabit kimlikli kopya Claude istekleri ve araç çağrıları bir kez sayılıyor. | Yeniden üretilen kusurlar giderildi. Her ajan sürümünün şeması için tamlık garantisi yok; kimliksiz kayıtları güvenle tekilleştirme açık. |
 | P0 | “Bir bozuk sayı uygulamayı çökertebilir.” | NaN bağlam yüzdesi durum satırını çökertiyor; negatif/sonsuz kota kabul ediliyordu. Yüzde ve zaman doğrulaması, bozuk önbellek satırını atlama ve budama düzeltildi. | Yeniden üretilen durumlar giderildi. Her olası dosya bozulması için genel garanti verilmez. |

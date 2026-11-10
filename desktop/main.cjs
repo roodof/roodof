@@ -5,12 +5,12 @@ const { accessURL, localURL, externalURL } = require('./policy.cjs');
 const windowState = require('./window-state.cjs');
 const { normalizeView } = require('./view-preferences.cjs');
 
-app.setName('PLER');
+app.setName('Roodof');
 nativeTheme.themeSource = 'dark';
 let window;
 const fs = require('node:fs');
 const path = require('node:path');
-// One taskbar identity: the running window, a pinned button and Start shortcuts group as PLER.
+// One taskbar identity: the running window, a pinned button and Start shortcuts group as Roodof.
 const APP_ID = 'PLER.Desktop';
 // Notifications need a Start shortcut carrying this ID and toast CLSID. A fixed CLSID matches the
 // shortcut PLER-Setup writes; otherwise Electron makes a random one each run and its own extra shortcut.
@@ -29,7 +29,8 @@ function launcherPath() {
   let found = null, folder = path.dirname(process.execPath);
   for (let level = 0; level < 4; level += 1) {
     folder = path.dirname(folder);
-    const candidate = path.join(folder, 'PLER.exe');
+    const named = path.join(folder, 'Roodof.exe');
+    const candidate = fs.existsSync(named) ? named : path.join(folder, 'PLER.exe');
     if (fs.existsSync(candidate)) found = candidate;
   }
   return found;
@@ -46,7 +47,7 @@ const timeout = setTimeout(() => app.exit(1), 30000);
 
 function fail() {
   clearTimeout(timeout);
-  dialog.showErrorBox('PLER', 'The desktop window could not open. Close PLER and extract the complete package again.');
+  dialog.showErrorBox('Roodof', 'The desktop window could not open. Close Roodof and extract the complete package again.');
   app.exit(1);
 }
 
@@ -67,7 +68,7 @@ async function open(value) {
   const titleBar = process.platform === 'win32'
     ? { titleBarStyle: 'hidden', titleBarOverlay: { color: '#101012', symbolColor: '#b0b0bb', height: 36 } } : {};
   window = new BrowserWindow({
-    title: 'PLER', width: remembered.width, height: remembered.height, x: remembered.x, y: remembered.y,
+    title: 'Roodof', width: remembered.width, height: remembered.height, x: remembered.x, y: remembered.y,
     minWidth: windowState.LIMITS.minWidth, minHeight: windowState.LIMITS.minHeight, ...titleBar, icon,
     backgroundColor: '#101012', show: false, autoHideMenuBar: true,
     webPreferences: { session: isolated, preload: path.join(__dirname, 'preload.cjs'), nodeIntegration: false, contextIsolation: true,
@@ -79,7 +80,7 @@ async function open(value) {
   const launcher = process.platform === 'win32' ? launcherPath() : null;
   if (launcher) {
     window.setAppDetails({ appId: APP_ID, appIconPath: icon || launcher, appIconIndex: 0,
-      relaunchCommand: '"' + launcher + '"', relaunchDisplayName: 'PLER' });
+      relaunchCommand: '"' + launcher + '"', relaunchDisplayName: 'Roodof' });
   }
   window.webContents.on('will-navigate', (event, target) => {
     if (!localURL(target, url.origin)) {

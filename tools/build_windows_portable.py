@@ -89,13 +89,13 @@ shutil.copytree(PRODUCT/'src'/'pler', app/'pler', ignore=shutil.ignore_patterns(
 (app/'bootstrap.py').write_text('from pler.update_bootstrap import main\nraise SystemExit(main())\n','utf-8')
 # Bytes, not text: text mode on Windows would turn each \r\n into \r\r\n.
 (out/'PLER.cmd').write_bytes(b'@echo off\r\n"%~dp0runtime\\python.exe" -I -S "%~dp0app\\bootstrap.py" %*\r\n')
-# Double-click to try the page with invented data only; the window closes at once, PLER keeps running.
+# Double-click to try the page with invented data only; the window closes at once, Roodof keeps running.
 (out/'PLER-Demo.cmd').write_bytes(b'@echo off\r\nstart "" "%~dp0PLER.exe" demo\r\n')
 desktop = out/'desktop'
 shutil.copytree(desktop_source, desktop, ignore=shutil.ignore_patterns('default_app.asar'))
 (desktop/'electron.exe').rename(desktop/'PLER-Desktop.exe')
 # Electron names the Start shortcut it keeps for notifications after this file's ProductName, so the
-# version strings say PLER instead of Electron (same byte layout; the value ends at its first NUL).
+# version strings say Roodof instead of Electron (same byte layout; the value ends at its first NUL).
 import ctypes
 from ctypes import wintypes
 kernel = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -121,7 +121,7 @@ for key in ('ProductName', 'FileDescription'):
     value = version_info.find('Electron\0'.encode('utf-16-le'), at)
     if at < 0 or value < 0 or value - at > len(old) + 4:
         raise SystemExit('Unexpected Electron version information.')
-    version_info = version_info[:value] + 'PLER\0\0\0\0\0'.encode('utf-16-le') + version_info[value + 18:]
+    version_info = version_info[:value] + 'Roodof\0\0\0'.encode('utf-16-le') + version_info[value + 18:]
 update = kernel.BeginUpdateResourceW(str(desktop/'PLER-Desktop.exe'), False)
 if not update or not kernel.UpdateResourceW(update, 16, 1, 0x0409, version_info, len(version_info)) or not kernel.EndUpdateResourceW(update, False):
     raise SystemExit('Could not update the desktop version information.')
@@ -131,19 +131,23 @@ for name in ('main.cjs', 'policy.cjs', 'window-state.cjs', 'view-preferences.cjs
     shutil.copy2(PRODUCT/'desktop'/name, desktop_app/name)
 # Window, taskbar and pinned-shortcut icon; the same file is compiled into PLER.exe below.
 shutil.copy2(PRODUCT/'assets/icon/pler.ico', desktop_app/'pler.ico')
-(desktop_app/'package.json').write_text(json.dumps(dict(name='pler-desktop', productName='PLER',
+(desktop_app/'package.json').write_text(json.dumps(dict(name='pler-desktop', productName='Roodof',
     version=__version__, main='main.cjs')), 'utf-8')
 subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64',
                 '/reference:System.Windows.Forms.dll', '/win32icon:'+str(PRODUCT/'assets/icon/pler.ico'),
                 '/out:'+str(out/'PLER.exe'),
                 str(PRODUCT/'tools/windows/Launcher.cs')], check=True, capture_output=True, text=True)
+# Roodof is the visible launcher; PLER names remain for already installed updaters.
+shutil.copy2(out/'PLER.exe', out/'Roodof.exe')
+shutil.copy2(out/'PLER.cmd', out/'Roodof.cmd')
+(out/'Roodof-Demo.cmd').write_bytes(b'@echo off\r\nstart "" "%~dp0Roodof.exe" demo\r\n')
 (out/'README.txt').write_text(
-    'PLER '+__version__+' - Windows x64 '+('early beta' if public_beta else 'local candidate')+'\n\n'
+    'Roodof '+__version__+' - Windows x64 '+('early beta' if public_beta else 'local candidate')+'\n\n'
     '1. Extract the whole ZIP file into a folder.\n'
-    '2. Open PLER.exe. Python is not required.\n'
-    '   To try it with invented data only, open PLER-Demo.cmd instead.\n'
-    '3. PLER opens in its own desktop window. Close the window to stop the application.\n'
-    'Terminal report: PLER.cmd report --json\n\n'
+    '2. Open Roodof.exe. Python is not required.\n'
+    '   To try it with invented data only, open Roodof-Demo.cmd instead.\n'
+    '3. Roodof opens in its own desktop window. Close the window to stop the application.\n'
+    'Terminal report: Roodof.cmd report --json\n\n'
     + ('Unsigned early beta.\n' if public_beta else 'This candidate is unsigned; public distribution has not been approved.\n') +
     'Do not bypass a SmartScreen/security warning. Clean-machine acceptance is pending.\n'
     'Uninstall: close the application and delete this extracted folder.\n'
@@ -155,7 +159,7 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'Support: plersolutions1st@gmail.com\n'
     'First useful result: open Help in the app for the demo-to-own-records walkthrough.\n'
     'Data: %LOCALAPPDATA%\\pler by default; a chosen data folder stays separate too.\n'
-    'Removing the extracted package does not remove saved PLER history.\n'
+    'Removing the extracted package does not remove saved Roodof history.\n'
     'Updates: use Updates in the app. Checking on launch is optional and initially off.\n'
     'Updates contact the release site; agent records and project data are not sent.\n'
     'For the first manual upgrade, extract into a new folder and close the older app.\n'
@@ -163,14 +167,14 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'Do not send recovery folders to support or remove an active update.\n'
     'Turkish: OKU.txt\n', 'utf-8')
 (out/'OKU.txt').write_text(
-    'PLER '+__version__+' — Windows x64 '+('erken beta' if public_beta else 'yerel aday')+'\n\n'
+    'Roodof '+__version__+' — Windows x64 '+('erken beta' if public_beta else 'yerel aday')+'\n\n'
     '1. ZIP dosyasinin tamamini bir klasore cikarin.\n'
-    '2. PLER.exe dosyasini acin. Python kurmaniz gerekmez.\n'
-    '   Yalniz uydurma verilerle denemek icin PLER-Demo.cmd dosyasini acin.\n'
-    '3. PLER kendi masaustu penceresinde acilir. Pencereyi kapatinca uygulama durur.\n'
+    '2. Roodof.exe dosyasini acin. Python kurmaniz gerekmez.\n'
+    '   Yalniz uydurma verilerle denemek icin Roodof-Demo.cmd dosyasini acin.\n'
+    '3. Roodof kendi masaustu penceresinde acilir. Pencereyi kapatinca uygulama durur.\n'
     'Tarayici veya WebView kurulumu gerekmez; Electron paketle birlikte gelir.\n'
     '0.2.31 ve oncesinden gecis: masaustu paketini yeni klasore cikarin.\n'
-    'Terminal raporu: PLER.cmd report --json\n\n'
+    'Terminal raporu: Roodof.cmd report --json\n\n'
     + ('Imzasiz erken beta.\n' if public_beta else 'Bu aday imzasizdir; genel dagitim onayi verilmemistir.\n') +
     'SmartScreen/guvenlik uyarisini atlatmayin. Temiz makine kabul testi bekliyor.\n'
     'Kaldirma: uygulamayi kapatip bu cikartilan klasoru silin.\n'
@@ -180,16 +184,16 @@ subprocess.run([str(args.compiler), '/nologo', '/target:winexe', '/platform:x64'
     'Destek: plersolutions1st@gmail.com\n'
     'Ilk sonuc: demodan kendi kayitlarina gecis icin uygulamadaki Yardim bolumunu ac.\n'
     'Veri: varsayilan %LOCALAPPDATA%\\pler; sectigin veri klasoru de paketten ayri kalir.\n'
-    'Paket klasorunu kaldirmak kayitli PLER gecmisini silmez.\n', 'utf-8')
+    'Paket klasorunu kaldirmak kayitli Roodof gecmisini silmez.\n', 'utf-8')
 (out/'THIRD-PARTY-NOTICES.txt').write_text(
-    ('PLER early beta - bundled component notices.\n' if public_beta else 'Private local candidate; no public redistribution has been authorized.\n') +
+    ('Roodof early beta - bundled component notices.\n' if public_beta else 'Private local candidate; no public redistribution has been authorized.\n') +
     'CPython '+python_version+' is bundled unmodified; its complete supplied notice is runtime/LICENSE.txt.\n'
     'The Python runtime is copied from the supplied '+('official embeddable package' if embedded else 'local installation')+'.\n'
     'Microsoft runtime components accompany that runtime.\n'
     'Electron '+desktop_version+' and Chromium notices: desktop/LICENSE and desktop/LICENSES.chromium.html.\n'
     'UI component notices: app/pler/web/THIRD-PARTY.txt; font license: app/pler/web/Manrope-OFL.txt.\n'
-    'These component notices grant no new license to the PLER application.\n'
-    'PLER contact: plersolutions1st@gmail.com\n', 'utf-8')
+    'These component notices grant no new license to the Roodof application.\n'
+    'Roodof contact: plersolutions1st@gmail.com\n', 'utf-8')
 files = [p for p in out.rglob('*') if p.is_file()]
 manifest = dict(version=__version__,platform='windows-x64',private_candidate=not public_beta,channel=args.channel,signed=False,
                 runtime='CPython '+python_version,desktop='Electron '+desktop_version,files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()

@@ -1,8 +1,8 @@
-// PLER per-user installer and uninstaller (one source, compiled twice by tools/build_windows_setup.py).
+// Roodof per-user installer and uninstaller (one source, compiled twice by tools/build_windows_setup.py).
 // Install: no questions, no administrator rights. The verified package goes to
-// %LOCALAPPDATA%\Programs\PLER\program; Start menu and desktop shortcuts and a per-user Apps entry
-// are written, then PLER opens. Saved PLER history (%LOCALAPPDATA%\pler) is never touched by install.
-// The in-app updater keeps working: it stages beside the program folder, inside the PLER folder.
+// %LOCALAPPDATA%\Programs\Roodof\program; Start menu and desktop shortcuts and a per-user Apps entry
+// are written, then Roodof opens. Saved Roodof history (%LOCALAPPDATA%\pler) is never touched by install.
+// The in-app updater keeps working: it stages beside the program folder, inside the Roodof folder.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,10 +21,10 @@ using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-[assembly: AssemblyTitle("PLER Setup")]
-[assembly: AssemblyProduct("PLER")]
-[assembly: AssemblyCompany("PLER")]
-[assembly: AssemblyDescription("Installs PLER for the current user")]
+[assembly: AssemblyTitle("Roodof Setup")]
+[assembly: AssemblyProduct("Roodof")]
+[assembly: AssemblyCompany("Roodof")]
+[assembly: AssemblyDescription("Installs Roodof for the current user")]
 
 internal static class Setup {
     private const string AppId = "PLER.Desktop";
@@ -36,13 +36,13 @@ internal static class Setup {
     private static readonly string Container = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "PLER");
     private static readonly string Program = Path.Combine(Container, "program");
-    private static readonly string Uninstaller = Path.Combine(Container, "Uninstall PLER.exe");
+    private static readonly string Uninstaller = Path.Combine(Container, "Uninstall Roodof.exe");
     private static readonly string History = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "pler");
     private static readonly string StartLink = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.Programs), "PLER.lnk");
+        Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Roodof.lnk");
     private static readonly string DesktopLink = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "PLER.lnk");
+        Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Roodof.lnk");
 
     private static string T(string english, string turkish) { return Turkish ? turkish : english; }
 
@@ -60,7 +60,7 @@ internal static class Setup {
             if (!hasPayload || Array.IndexOf(args, "/uninstall") >= 0) return UninstallStart(quiet);
             return Install(Array.IndexOf(args, "/no-launch") >= 0, quiet);
         } catch (Exception error) {
-            if (!quiet) MessageBox.Show(error.Message, "PLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!quiet) MessageBox.Show(error.Message, "Roodof", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }
@@ -121,7 +121,7 @@ internal static class Setup {
         public readonly ProgressBar Bar = new ProgressBar();
         public bool Busy = true;
         public Window(string message) {
-            Text = "PLER";
+            Text = "Roodof";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false; MinimizeBox = false; ShowInTaskbar = true;
             StartPosition = FormStartPosition.CenterScreen;
@@ -142,7 +142,7 @@ internal static class Setup {
         }
         public DialogResult Ask(string text, MessageBoxButtons buttons, MessageBoxIcon icon) {
             DialogResult answer = DialogResult.Cancel;
-            Invoke((MethodInvoker)delegate { answer = MessageBox.Show(this, text, "PLER", buttons, icon); });
+            Invoke((MethodInvoker)delegate { answer = MessageBox.Show(this, text, "Roodof", buttons, icon); });
             return answer;
         }
     }
@@ -189,8 +189,8 @@ internal static class Setup {
     }
     private static void RejectLinkedDirectory(string path) {
         if (Directory.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
-            throw new IOException(T("The PLER installation folder is a linked directory. Keep its contents and choose a normal installation folder.",
-                "PLER kurulum klasörü bağlantılı bir klasör. İçeriğini koruyun ve normal bir kurulum klasörü kullanın."));
+            throw new IOException(T("The Roodof installation folder is a linked directory. Keep its contents and choose a normal installation folder.",
+                "Roodof kurulum klasörü bağlantılı bir klasör. İçeriğini koruyun ve normal bir kurulum klasörü kullanın."));
     }
     // Hold across extraction, cleanup, replacement and registration, including uninstall.
     private static int WithInstallLock(Func<int> work) {
@@ -200,8 +200,8 @@ internal static class Setup {
         string path = Path.Combine(Container, ".pler-setup.lock");
         FileStream lease;
         try { lease = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
-        catch (IOException) { throw new IOException(T("Another PLER setup is running. Wait for it to finish and try again.",
-            "Başka bir PLER kurulumu çalışıyor. Bitmesini bekleyip yeniden deneyin.")); }
+        catch (IOException) { throw new IOException(T("Another Roodof setup is running. Wait for it to finish and try again.",
+            "Başka bir Roodof kurulumu çalışıyor. Bitmesini bekleyip yeniden deneyin.")); }
         try { return work(); }
         finally {
             lease.Dispose();
@@ -232,7 +232,7 @@ internal static class Setup {
         return false;
     }
 
-    // A running PLER keeps files in the program folder open, so the folder cannot be renamed.
+    // A running Roodof keeps files in the program folder open, so the folder cannot be renamed.
     private static string MoveAside(Window window, bool quiet) {
         string old = Path.Combine(Container, ".pler-old-" + Guid.NewGuid().ToString("N"));
         while (true) {
@@ -245,9 +245,9 @@ internal static class Setup {
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
-            if (quiet || window == null) throw new IOException(T("PLER is open. Close it and try again.", "PLER açık. Kapatıp yeniden deneyin."));
-            DialogResult answer = window.Ask(T("PLER is open. Close the PLER window, then select Retry.",
-                "PLER açık. PLER penceresini kapatın, sonra Yeniden Dene'yi seçin."), MessageBoxButtons.RetryCancel, MessageBoxIcon.Information);
+            if (quiet || window == null) throw new IOException(T("Roodof is open. Close it and try again.", "Roodof açık. Kapatıp yeniden deneyin."));
+            DialogResult answer = window.Ask(T("Roodof is open. Close the Roodof window, then select Retry.",
+                "Roodof açık. Roodof penceresini kapatın, sonra Yeniden Dene'yi seçin."), MessageBoxButtons.RetryCancel, MessageBoxIcon.Information);
             if (answer != DialogResult.Retry) return null;
         }
     }
@@ -280,7 +280,7 @@ internal static class Setup {
             foreach (ZipArchiveEntry entry in archive.Entries) total += entry.Length;
             DriveInfo drive = new DriveInfo(Path.GetPathRoot(stage));
             if (drive.AvailableFreeSpace < total + 256L * 1024 * 1024)
-                throw new IOException(T("There is not enough free disk space to install PLER.", "PLER'i kurmak için yeterli boş disk alanı yok."));
+                throw new IOException(T("There is not enough free disk space to install Roodof.", "Roodof'i kurmak için yeterli boş disk alanı yok."));
             HashSet<string> seen = new HashSet<string>();
             byte[] buffer = new byte[1 << 20];
             foreach (ZipArchiveEntry entry in archive.Entries) {
@@ -318,8 +318,8 @@ internal static class Setup {
         info.UseShellExecute = false; info.CreateNoWindow = true; info.WorkingDirectory = folder;
         using (Process process = Process.Start(info)) {
             if (!process.WaitForExit(180000)) { try { process.Kill(); } catch (Exception) { } throw new IOException("package check timed out"); }
-            if (process.ExitCode != 0) throw new IOException(T("The PLER package could not start. Nothing was changed.",
-                "PLER paketi başlatılamadı. Hiçbir şey değiştirilmedi."));
+            if (process.ExitCode != 0) throw new IOException(T("The Roodof package could not start. Nothing was changed.",
+                "Roodof paketi başlatılamadı. Hiçbir şey değiştirilmedi."));
         }
     }
 
@@ -390,11 +390,13 @@ internal static class Setup {
 
     private static void Register(int[] version) {
         Shortcut(StartLink, Path.Combine(Program, "desktop", "PLER-Desktop.exe"));
-        Shortcut(DesktopLink, Path.Combine(Program, "PLER.exe"));
+        Shortcut(DesktopLink, Path.Combine(Program, "Roodof.exe"));
+        RemoveLegacyShortcut(Environment.SpecialFolder.Programs);
+        RemoveLegacyShortcut(Environment.SpecialFolder.DesktopDirectory);
         using (RegistryKey key = Registry.CurrentUser.CreateSubKey(UninstallKey)) {
-            key.SetValue("DisplayName", "PLER");
+            key.SetValue("DisplayName", "Roodof");
             key.SetValue("DisplayVersion", Text(version));
-            key.SetValue("Publisher", "PLER");
+            key.SetValue("Publisher", "Roodof");
             key.SetValue("DisplayIcon", "\"" + Path.Combine(Program, "PLER.exe") + "\",0");
             key.SetValue("InstallLocation", Container);
             key.SetValue("UninstallString", "\"" + Uninstaller + "\"");
@@ -404,6 +406,24 @@ internal static class Setup {
             key.SetValue("NoRepair", 1, RegistryValueKind.DWord);
             key.SetValue("EstimatedSize", (int)Math.Min(int.MaxValue, FolderKilobytes(Program)), RegistryValueKind.DWord);
         }
+    }
+
+    // Remove only a legacy shortcut that targets this exact installation. Never remove
+    // a user's unrelated shortcut merely because its filename happens to be PLER.lnk.
+    private static void RemoveLegacyShortcut(Environment.SpecialFolder location) {
+        string old = Path.Combine(Environment.GetFolderPath(location), "PLER.lnk");
+        if (!File.Exists(old) || (File.GetAttributes(old) & FileAttributes.ReparsePoint) != 0) return;
+        IShellLinkW link = (IShellLinkW)new ShellLink();
+        try {
+            ((IPersistFile)link).Load(old, 0);
+            StringBuilder target = new StringBuilder(32768);
+            link.GetPath(target, target.Capacity, IntPtr.Zero, 0);
+            string actual = Path.GetFullPath(target.ToString());
+            if (string.Equals(actual, Path.Combine(Program, "PLER.exe"), StringComparison.OrdinalIgnoreCase)
+                || string.Equals(actual, Path.Combine(Program, "desktop", "PLER-Desktop.exe"), StringComparison.OrdinalIgnoreCase))
+                File.Delete(old);
+        } catch (Exception) { /* A foreign or unreadable shortcut is preserved. */ }
+        finally { Marshal.ReleaseComObject(link); }
     }
 
     private static void WriteUninstaller() {
@@ -417,34 +437,34 @@ internal static class Setup {
     }
 
     private static void Launch() {
-        ProcessStartInfo info = new ProcessStartInfo(Path.Combine(Program, "PLER.exe"));
+        ProcessStartInfo info = new ProcessStartInfo(Path.Combine(Program, "Roodof.exe"));
         info.UseShellExecute = true; info.WorkingDirectory = Program;
         Process.Start(info).Dispose();
     }
 
     // ---------- install ----------
     private static int Install(bool noLaunch, bool quiet) {
-        return WithInstallLock(delegate { return WithWindow(T("Installing PLER…", "PLER kuruluyor…"), quiet, delegate(Window window) {
+        return WithInstallLock(delegate { return WithWindow(T("Installing Roodof…", "Roodof kuruluyor…"), quiet, delegate(Window window) {
             Directory.CreateDirectory(Container);
             CleanLeftovers();
             int[] installed = Installed();
             int[] packaged = PackagedVersion();
             if (installed != null && Compare(installed, packaged) >= 0) {
                 // Same or newer (an in-app update may be ahead): keep it, repair shortcuts, open it.
-                if (window != null) { window.Say(T("Opening PLER…", "PLER açılıyor…")); window.Fraction(1); }
+                if (window != null) { window.Say(T("Opening Roodof…", "Roodof açılıyor…")); window.Fraction(1); }
                 if (!File.Exists(Uninstaller)) WriteUninstaller();
                 Register(installed);
                 if (!noLaunch) Launch();
                 return 0;
             }
-            if (UpdateRunning()) throw new IOException(T("PLER is installing an update. Try again when it finishes.",
-                "PLER bir güncelleme kuruyor. Bittiğinde yeniden deneyin."));
+            if (UpdateRunning()) throw new IOException(T("Roodof is installing an update. Try again when it finishes.",
+                "Roodof bir güncelleme kuruyor. Bittiğinde yeniden deneyin."));
             string stage = Path.Combine(Container, ".pler-setup-" + Guid.NewGuid().ToString("N"));
             string old = null;
             try {
                 Directory.CreateDirectory(stage);
                 int[] version = Extract(stage, window);
-                if (window != null) window.Say(T("Checking PLER…", "PLER denetleniyor…"));
+                if (window != null) window.Say(T("Checking Roodof…", "Roodof denetleniyor…"));
                 SelfCheck(stage);
                 if (Directory.Exists(Program)) {
                     old = MoveAside(window, quiet);
@@ -456,7 +476,7 @@ internal static class Setup {
                 if (old != null) TryRemoveTree(old);
                 WriteUninstaller();
                 Register(version);
-                if (window != null) window.Say(T("Opening PLER…", "PLER açılıyor…"));
+                if (window != null) window.Say(T("Opening Roodof…", "Roodof açılıyor…"));
                 if (!noLaunch) Launch();
                 return 0;
             } finally {
@@ -499,7 +519,7 @@ internal static class Setup {
     private static bool Confirm(out bool removeHistory) {
         removeHistory = false;
         using (Form form = new Form()) {
-            form.Text = T("Uninstall PLER", "PLER'i kaldır");
+            form.Text = T("Uninstall Roodof", "Roodof'i kaldır");
             form.FormBorderStyle = FormBorderStyle.FixedDialog;
             form.MaximizeBox = false; form.MinimizeBox = false;
             form.StartPosition = FormStartPosition.CenterScreen;
@@ -509,11 +529,11 @@ internal static class Setup {
             Size wrap = new Size(Scaled(420), 0);
             Label message = new Label();
             message.AutoSize = true; message.MaximumSize = wrap; message.Margin = new Padding(0, 0, 0, Scaled(12));
-            message.Text = T("PLER will be removed from this computer. Your agent logs are not changed.",
-                "PLER bu bilgisayardan kaldırılacak. Ajan kayıtlarınız değişmez.");
+            message.Text = T("Roodof will be removed from this computer. Your agent logs are not changed.",
+                "Roodof bu bilgisayardan kaldırılacak. Ajan kayıtlarınız değişmez.");
             CheckBox history = new CheckBox();
             history.AutoSize = true; history.MaximumSize = wrap; history.Margin = new Padding(0, 0, 0, Scaled(16));
-            history.Text = T("Also delete saved PLER history", "Kayıtlı PLER geçmişini de sil");
+            history.Text = T("Also delete saved Roodof history", "Kayıtlı Roodof geçmişini de sil");
             Button remove = new Button(); remove.Text = T("Uninstall", "Kaldır"); remove.AutoSize = true;
             remove.DialogResult = DialogResult.OK;
             Button cancel = new Button(); cancel.Text = T("Cancel", "Vazgeç"); cancel.AutoSize = true;
@@ -538,10 +558,10 @@ internal static class Setup {
             return WithInstallLock(delegate {
             bool removeHistory = false;
             if (!quiet && !Confirm(out removeHistory)) return 2;
-            return WithWindow(T("Uninstalling PLER…", "PLER kaldırılıyor…"), quiet, delegate(Window window) {
+            return WithWindow(T("Uninstalling Roodof…", "Roodof kaldırılıyor…"), quiet, delegate(Window window) {
                 if (window != null) window.Fraction(0.2);
-                if (UpdateRunning()) throw new IOException(T("PLER is installing an update. Try again when it finishes.",
-                    "PLER bir güncelleme kuruyor. Bittiğinde yeniden deneyin."));
+                if (UpdateRunning()) throw new IOException(T("Roodof is installing an update. Try again when it finishes.",
+                    "Roodof bir güncelleme kuruyor. Bittiğinde yeniden deneyin."));
                 if (Directory.Exists(Program)) {
                     string old = MoveAside(window, quiet);
                     if (old == null) return 2;

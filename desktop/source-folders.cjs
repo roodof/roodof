@@ -16,7 +16,7 @@ function install({ ipcMain, dialog, window, origin }) {
     busy = true;
     try {
       const result = await dialog.showOpenDialog(window, {
-        title: 'PLER — Log folder / Kayıt klasörü', properties: ['openDirectory', 'dontAddToRecent']
+        title: 'Roodof — Log folder / Kayıt klasörü', properties: ['openDirectory', 'dontAddToRecent']
       });
       if (!authorized(event, window, origin) || result.canceled || result.filePaths.length !== 1) return null;
       return result.filePaths[0];

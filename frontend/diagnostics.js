@@ -61,7 +61,7 @@ export function mountDiagnostics({tr,settings,show,reveal}){
    const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)+'\n'],{type:'application/json'}));
    const link=el('a');link.href=url;link.download='pler-diagnostics-'+value.version+'.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
    message.textContent=text('Tanılama dosyası hazırlandı. Otomatik gönderilmedi.','Diagnostic file prepared. It was not sent automatically.');
-  }catch{message.textContent=text('Tanılama indirilemedi. PLER bağlantısını kontrol edip yeniden dene.','Could not download diagnostics. Check the PLER connection and retry.');}
+  }catch{message.textContent=text('Tanılama indirilemedi. Roodof bağlantısını kontrol edip yeniden dene.','Could not download diagnostics. Check the Roodof connection and retry.');}
   finally{busy=false;download.disabled=usageState.stopped;}
  });
  document.addEventListener('pler-open-diagnostics',()=>{if(reveal)reveal(panel);else show('settings',true);heading.focus({preventScroll:true});panel.scrollIntoView({block:'start',behavior:'instant'});});

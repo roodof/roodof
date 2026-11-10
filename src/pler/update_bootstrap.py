@@ -18,6 +18,6 @@ def main():
         env.update(PLER_INSTALL_ROOT=str(root),PLER_LAUNCHER_PID=str(os.getpid()))
         return subprocess.call([str(run/'runtime/python.exe'),'-I','-S',str(run/'app/start.py'),*sys.argv[1:]],env=env)
     except Exception:
-        print('PLER could not select a safe installed version. Retry after any update finishes.',file=sys.stderr);return 1
+        print('Roodof could not select a safe installed version. Retry after any update finishes.',file=sys.stderr);return 1
     finally:
         if lease:lease.close()

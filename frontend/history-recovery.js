@@ -6,10 +6,10 @@ export function mountHistoryRecovery({tr,settings,show,reveal}){
  const number=n=>new Intl.NumberFormat(tr?'tr-TR':'en-US').format(n??0);
  const panel=el('section','history-recovery');panel.id='history-recovery';panel.setAttribute('aria-labelledby','history-recovery-title');
  const title=el('h3','',text('Yedekten geçmiş kurtar','Recover history from a backup'));title.id='history-recovery-title';title.tabIndex=-1;
- const intro=el('p','section-note',text('Güvendiğin PLER yedeğini seç. İçeriği incele, ayrı bir klasöre kurtar ve hazır olduğunda o geçmişi aç.','Choose a trusted PLER backup. Review its contents, recover it into a separate folder, then open that history when ready.'));
+ const intro=el('p','section-note',text('Güvendiğin Roodof yedeğini seç. İçeriği incele, ayrı bir klasöre kurtar ve hazır olduğunda o geçmişi aç.','Choose a trusted Roodof backup. Review its contents, recover it into a separate folder, then open that history when ready.'));
  const current=el('p','recovery-current section-note');current.id='recovery-current';
  const status=el('p','recovery-status section-note');status.id='recovery-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- const inputLabel=el('label','',text('PLER yedek dosyası','PLER backup file'));inputLabel.htmlFor='recovery-file';
+ const inputLabel=el('label','',text('Roodof yedek dosyası','Roodof backup file'));inputLabel.htmlFor='recovery-file';
  const file=el('input','');file.id='recovery-file';file.type='file';file.accept='.zip,application/zip';
  const inspect=button('recovery-inspect',text('İçeriği incele','Review contents'));
  const choose=el('div','recovery-file-row');choose.append(inputLabel,file,inspect);
@@ -42,15 +42,15 @@ export function mountHistoryRecovery({tr,settings,show,reveal}){
  // Keep the old standalone check available to the legacy page, with one file workflow here.
  for(const node of [document.querySelector('.backup-check'),document.getElementById('usage-backup-check-help'),document.getElementById('usage-backup-result')])if(node)node.hidden=true;
  let data=null,busy=false,loading=false,destinationDirty=false,fileDirty=false;
- const reasons={invalid:text('Yedek veya istek geçersiz. Güvendiğin özgün PLER yedeğini seç.','Invalid backup or request. Choose a trusted original PLER backup.'),
+ const reasons={invalid:text('Yedek veya istek geçersiz. Güvendiğin özgün Roodof yedeğini seç.','Invalid backup or request. Choose a trusted original Roodof backup.'),
   unsupported:text('Yedeğin sürümü ya da veri biçimi bu uygulamayla uyumlu değil.','This backup version or data format is not supported.'),
   limit:text('Dosya desteklenen boyut veya içerik sınırını aşıyor.','The file exceeds a supported size or content limit.'),
   unsafe_path:text('Var olan yerel bir konum seç. Açık veri veya uygulama klasörünün içine kurtarma yapılamaz.','Choose an existing local location outside the open data and application folders.'),
   exists:text('Hedef konum artık var. Konumu yeniden hazırla; mevcut klasör değiştirilmedi.','The destination now exists. Prepare the location again; the existing folder was kept.'),
   conflict:text('İnceleme süresi dolmuş veya başka bir pencerede değişmiş. Durumu yenile ve dosyayı yeniden incele.','The review expired or changed in another window. Reload status and review the file again.'),
   busy:text('Başka bir işlem sürüyor. Tamamlanınca yeniden dene.','Another operation is running. Retry when it finishes.'),
-  demo:text('Deneme modunda kurtarma kapalı. Normal PLER penceresini aç.','Recovery is disabled in demo mode. Open the normal PLER window.'),
-  desktop_required:text('Geçmişi açmak için PLER masaüstü uygulamasını kullan.','Use the PLER desktop app to open this history.'),
+  demo:text('Deneme modunda kurtarma kapalı. Normal Roodof penceresini aç.','Recovery is disabled in demo mode. Open the normal Roodof window.'),
+  desktop_required:text('Geçmişi açmak için Roodof masaüstü uygulamasını kullan.','Use the Roodof desktop app to open this history.'),
   io:text('Dosya işlemi tamamlanamadı. Konumu ve boş alanı kontrol edip durumu yenile.','The file operation could not finish. Check the location and free space, then reload status.')};
  function message(value,error=false){status.textContent=value;status.dataset.state=error?'error':'ready';}
  function sync(){
@@ -67,8 +67,8 @@ export function mountHistoryRecovery({tr,settings,show,reveal}){
  }
  function render(){
   const p=data?.preview;details.hidden=!p;summary.replaceChildren();
-  if(p){const s=p.summary;for(const [label,value] of [[text('Yedek tarihi','Backup date'),new Date(s.created_at).toLocaleString(tr?'tr-TR':'en-US')],[text('PLER sürümü','PLER version'),s.version],[text('Saklanan kaynak','Retained sources'),number(s.archive_files)],[text('İş / bağlantı','Works / links'),number(s.work_items)+' / '+number(s.work_links)],[text('Değerlendirme / kota örneği','Reviews / quota samples'),number(s.verdicts)+' / '+number(s.quota_samples)]])summary.append(el('dt','',label),el('dd','',value));}
-  target.textContent=p?.target?text('Oluşturulacak klasör: ','Folder to create: ')+p.target:text('Bir üst konum seç; PLER orada yeni bir klasör hazırlayacak.','Choose a parent location; PLER will prepare a new folder there.');
+  if(p){const s=p.summary;for(const [label,value] of [[text('Yedek tarihi','Backup date'),new Date(s.created_at).toLocaleString(tr?'tr-TR':'en-US')],[text('Roodof sürümü','Roodof version'),s.version],[text('Saklanan kaynak','Retained sources'),number(s.archive_files)],[text('İş / bağlantı','Works / links'),number(s.work_items)+' / '+number(s.work_links)],[text('Değerlendirme / kota örneği','Reviews / quota samples'),number(s.verdicts)+' / '+number(s.quota_samples)]])summary.append(el('dt','',label),el('dd','',value));}
+  target.textContent=p?.target?text('Oluşturulacak klasör: ','Folder to create: ')+p.target:text('Bir üst konum seç; Roodof orada yeni bir klasör hazırlayacak.','Choose a parent location; Roodof will prepare a new folder there.');
   success.hidden=!data?.restored;recoveredPath.textContent=data?.restored?.target||'';
   open.hidden=!data?.restored;previous.hidden=!data?.previous;switchArea.hidden=!data?.restored&&!data?.previous;
   current.textContent=data?.current?text('Açık geçmiş: ','Open history: ')+data.current:'';

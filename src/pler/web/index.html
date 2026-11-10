@@ -6,7 +6,7 @@
   <meta name="pler-session" content="__SESSION_TOKEN__">
   <meta name="pler-backup-max" content="__BACKUP_MAX_BYTES__">
   <meta name="pler-updater" content="__UPDATER_CAPABLE__">
-  <title>PLER · My usage</title>
+  <title>Roodof · My usage</title>
   <link rel="stylesheet" href="/app.css">
   <link rel="stylesheet" href="/updates.css">
   <script src="/ui-state.js" defer></script>
@@ -20,7 +20,7 @@
   <!-- Visible words come from app.js (I18N) by data-i18n key; the English here is only the default. -->
   <a class="skip" href="#workspace" data-i18n="skip">Skip to content</a>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="PLER home" data-i18n-label="brand_label"><span class="brand-mark" aria-hidden="true">∥</span>PLER<span class="brand-caption" data-i18n="caption">Your agent usage, from your own logs.</span></a>
+    <a class="brand" href="/" aria-label="Roodof home" data-i18n-label="brand_label"><span class="brand-mark" aria-hidden="true">∥</span>Roodof<span class="brand-caption" data-i18n="caption">Your agent usage, from your own logs.</span></a>
     <div class="top-actions"><span class="local"><span aria-hidden="true"></span><span data-i18n="local">This computer only</span></span><button id="usage-update-open" class="quiet" hidden>Updates</button><a id="usage-help" href="/help" data-i18n="help">Help</a><button id="lang-toggle" class="quiet" data-i18n="lang_toggle" data-i18n-label="lang_toggle_label">Türkçe</button></div>
   </header>
   <main id="workspace" tabindex="-1">
@@ -33,7 +33,7 @@
       <div class="usage-filters"><div><label for="usage-period" data-i18n="period_label">Active sessions</label><select id="usage-period"><option value="7" data-i18n="period_7">Active in the last 7 days</option><option value="30" selected data-i18n="period_30">Active in the last 30 days</option><option value="90" data-i18n="period_90">Active in the last 90 days</option><option value="0" data-i18n="period_all">All sessions</option></select></div><div><label for="usage-agent" data-i18n="agent_label">Agent</label><select id="usage-agent"><option value="all" data-i18n="agent_all">All agents</option><option value="claude-code">Claude Code</option><option value="codex">Codex</option></select></div><div><label for="usage-project" data-i18n="project_label">Project</label><select id="usage-project"><option value="all" data-i18n="project_all">All projects</option></select></div></div>
       <p id="usage-status" class="usage-status" role="status" data-i18n="status_preparing">Preparing local logs…</p><progress id="usage-progress" class="usage-progress" aria-label="Reading agent logs" data-i18n-label="progress_label" hidden></progress>
       <p id="usage-quota-alert" class="notice quota-alert" role="alert" hidden></p>
-      <div id="usage-live" class="live-controls" hidden><label class="check-label"><input id="usage-live-watch" type="checkbox"><span data-i18n="live_watch">Watch the quota live</span></label><button id="usage-live-notify" class="quiet" type="button" data-i18n="live_notify_on">Turn on desktop notifications</button><small id="usage-live-note" role="status"></small><small class="live-help" data-i18n="live_watch_help">While this page is open, PLER reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this browser remembers the choice.</small></div>
+      <div id="usage-live" class="live-controls" hidden><label class="check-label"><input id="usage-live-watch" type="checkbox"><span data-i18n="live_watch">Watch the quota live</span></label><button id="usage-live-notify" class="quiet" type="button" data-i18n="live_notify_on">Turn on desktop notifications</button><small id="usage-live-note" role="status"></small><small class="live-help" data-i18n="live_watch_help">While this page is open, Roodof reads the logs again every 5 minutes and warns when a limit will fill within an hour (a weekly limit: within a day). Each read uses some processor time; this browser remembers the choice.</small></div>
       <p class="usage-scope" data-i18n="scope">Tokens cover the selected sessions in full. The period selects sessions by their last activity; it is not spending split by day.</p>
       <details id="usage-archive-controls" class="metadata-controls" hidden>
         <summary><span data-i18n="metadata_settings">Local history and reader cache</span> · <span id="usage-retention-summary"></span></summary>
@@ -47,11 +47,11 @@
           <button id="usage-backup-download" class="secondary" data-i18n="backup_download" aria-describedby="usage-backup-help">Download private backup</button>
           <p id="usage-backup-download-result" class="section-note" role="status" hidden><span data-i18n="backup_prepared">Backup prepared. Check your browser downloads; if it did not start,</span> <a id="usage-backup-download-link" data-i18n="export_retry">Download again</a></p>
           <div class="backup-check"><label for="usage-backup-file" data-i18n="backup_file">Backup file to check</label><input id="usage-backup-file" type="file" accept=".zip,application/zip" aria-describedby="usage-backup-check-help"><button id="usage-backup-check" class="secondary" disabled data-i18n="backup_check">Check backup</button></div>
-          <p id="usage-backup-check-help" class="section-note" data-i18n="backup_check_help">Checking sends this file only to PLER on this computer, keeps it in memory, and does not restore or change history.</p>
+          <p id="usage-backup-check-help" class="section-note" data-i18n="backup_check_help">Checking sends this file only to Roodof on this computer, keeps it in memory, and does not restore or change history.</p>
           <p id="usage-backup-result" class="section-note" role="status" hidden></p>
           <a id="usage-backup-guide" href="/help#backup" data-i18n="backup_guide">How to restore into a new folder</a>
         </section>
-        <button id="usage-cache-reset" class="secondary" data-i18n="cache_reset" aria-describedby="usage-cache-help">Rebuild reader cache</button><p id="usage-cache-help" class="section-note" data-i18n="cache_reset_help">Archive, quota samples and preferences stay unchanged.</p><button id="usage-archive-clear" class="quiet" data-i18n="archive_clear" aria-describedby="usage-archive-help">Clear PLER archive</button><p id="usage-archive-help" class="section-note" data-i18n="archive_clear_help">Clears the whole PLER archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.</p>
+        <button id="usage-cache-reset" class="secondary" data-i18n="cache_reset" aria-describedby="usage-cache-help">Rebuild reader cache</button><p id="usage-cache-help" class="section-note" data-i18n="cache_reset_help">Archive, quota samples and preferences stay unchanged.</p><button id="usage-archive-clear" class="quiet" data-i18n="archive_clear" aria-describedby="usage-archive-help">Clear Roodof archive</button><p id="usage-archive-help" class="section-note" data-i18n="archive_clear_help">Clears the whole Roodof archive. Agent logs stay unchanged; copies of deleted sources cannot be recovered.</p>
       </details>
       <div id="usage-content" hidden>
         <div id="usage-totals" class="usage-totals"></div>
@@ -60,7 +60,7 @@
           <h2 id="usage-data-guidance-title" data-i18n="coverage_title">Before comparing these records</h2>
           <p class="section-note" data-i18n="coverage_scope">File access warnings cover all selected log folders. Session and pricing limits follow the main filters.</p>
           <ul id="usage-data-guidance-items" class="coverage-notices"></ul>
-          <p class="section-note" data-i18n="coverage_boundary">PLER cannot tell whether logs were deleted before its first read. It cannot recover records it never read. A successful read does not prove complete account history.</p>
+          <p class="section-note" data-i18n="coverage_boundary">Roodof cannot tell whether logs were deleted before its first read. It cannot recover records it never read. A successful read does not prove complete account history.</p>
           <button id="usage-quality-show" class="text-button quality-jump" hidden data-i18n="quality_show">Show affected sessions</button>
           <a id="usage-coverage-help" href="/help#coverage" data-i18n="coverage_help">How to check or recover records</a>
           <details id="usage-quality-details" hidden><summary data-i18n="coverage_details">Recorded quality reasons</summary><p id="usage-quality" class="section-note"></p></details>
@@ -77,7 +77,7 @@
             <form id="usage-work-rename-form" class="work-form work-rename"><label for="usage-work-rename-title" data-i18n="work_edit_title">Work title</label><div class="work-input-action"><input id="usage-work-rename-title" maxlength="240" autocomplete="off"><button id="usage-work-rename" class="secondary" type="submit" data-i18n="work_rename">Save title</button><button id="usage-work-delete" class="quiet" type="button" data-i18n="work_delete">Delete work…</button></div></form>
             <section class="work-outcome" aria-labelledby="usage-work-outcome-title">
               <h3 id="usage-work-outcome-title" data-i18n="work_outcome_title">Goal and outcome</h3>
-              <p class="section-note" data-i18n="work_outcome_scope">Your entry applies to the whole work, independently of filters. PLER does not infer completion or quality from tests, Git or usage.</p>
+              <p class="section-note" data-i18n="work_outcome_scope">Your entry applies to the whole work, independently of filters. Roodof does not infer completion or quality from tests, Git or usage.</p>
               <p id="usage-work-goal-view" class="work-detail-text"></p><p id="usage-work-outcome-view" class="work-outcome-value"></p><p id="usage-work-result-view" class="work-detail-text" hidden></p><p id="usage-work-outcome-time" class="section-note" hidden></p>
               <details id="usage-work-details-editor"><summary data-i18n="work_details_edit">Edit goal and outcome</summary>
                 <form id="usage-work-details-form" class="work-details-form">
@@ -113,7 +113,7 @@
           </div>
           <p class="section-note" data-i18n="work_scope">Usage follows the main filters and covers whole sessions, not the cost of one change. Search and data-quality list filters do not change this scope. A session may belong to several works; their totals cannot be added. The summary counts each linked session once.</p>
           <p class="section-note" data-i18n="work_api_note">API equivalents use available prices; unpriced usage may be omitted. They are not your subscription bill.</p>
-          <p class="section-note" data-i18n="work_privacy">Titles and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; PLER does not attach a different session automatically.</p>
+          <p class="section-note" data-i18n="work_privacy">Titles and links stay on this computer and are excluded from normal JSON summaries. Private backups include them. Missing sessions remain linked by their saved codes; Roodof does not attach a different session automatically.</p>
         </section>
         <section id="usage-mix" class="usage-panel"><div class="section-heading"><div><span class="eyebrow" data-i18n="mix_eyebrow">Usage mix</span><h2 data-i18n="mix_title">What did the agents read and produce?</h2></div></div><div id="usage-agents"></div><div class="token-legend"><span class="token-input" data-i18n="token_input">New input</span><span class="token-cache" data-i18n="token_cache">Read from cache</span><span class="token-write" data-i18n="token_write">Written to cache</span><span class="token-output" data-i18n="token_output">Output</span></div><p class="section-note" data-i18n="mix_note">These four parts are separate and add up to the total. Reasoning is part of output and is not added twice. Reading from the cache also uses resources.</p></section>
         <section id="usage-quota" class="usage-panel" hidden></section>

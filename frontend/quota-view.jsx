@@ -1,4 +1,4 @@
-// Limits page: one gauge per quota window with a "when does it fill" time track, from the forecast PLER
+// Limits page: one gauge per quota window with a "when does it fill" time track, from the forecast Roodof
 // already computes (outlook). Long explanatory notes move into Base UI popovers next to their heading.
 import React from 'react';
 import { createRoot } from 'react-dom/client';

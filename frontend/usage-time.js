@@ -1,4 +1,4 @@
-// Usage over time: the dated responses PLER already counts, by local day and by hour of the week.
+// Usage over time: the dated responses Roodof already counts, by local day and by hour of the week.
 // The engine sends UTC hours (usage/timeline.py); grouping into the viewer's own days happens here.
 // Sums always equal the dated total; whole-session totals are never spread over time.
 import { init, use } from 'echarts/core';

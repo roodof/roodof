@@ -1,4 +1,4 @@
-# PLER
+# Roodof
 
 **English** · [Türkçe](README.tr.md)
 
@@ -6,25 +6,25 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 - **Calls no model.** Measuring costs zero tokens.
 - **Agent data stays local.** The page opens on this computer only (`127.0.0.1`). Usage analysis works offline. Optional update checks/downloads contact the release service without agent records or project data. Explicit local WSL roots are supported; other network shares stay refused.
-- **Agent logs stay unchanged.** PLER keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
+- **Agent logs stay unchanged.** Roodof keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
 - **Any programming language.** It reads agent logs. The local Git line observation also reads committed file names and contents in memory; only counts are stored or shown.
 
 ## Windows beta quick start
 
-**Free Windows beta 0.9.28 — 10 November 2026:** [Download the installer](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.28.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://pler-local-usage.oguzay5555.chatgpt.site/). [Installation and updates](docs/SETUP.md).
+**Free Windows beta 0.9.29 — 10 November 2026:** [Download the installer](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/Roodof-Setup-0.9.29.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://pler-local-usage.oguzay5555.chatgpt.site/). [Installation and updates](docs/SETUP.md).
 
-For the Windows installer, close PLER, run **PLER-Setup-0.9.28.exe**, then open PLER from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with PLER-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
+For the Windows installer, close Roodof, run **Roodof-Setup-0.9.29.exe**, then open Roodof from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with Roodof-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
 
-**Optional portable edition.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
+**Optional portable edition.** Download the Windows x64 ZIP from [the Roodof site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `Roodof.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
 
-1. To explore invented records first, open `PLER-Demo.cmd`. Close the demo before opening your own records with `PLER.exe`; demo work is temporary.
-2. Choose **See your sessions** after PLER finds local Claude Code or Codex records. If none appear, widen the filters or use **Add a log folder** for a different installation or an already running WSL distribution. ChatGPT web conversations are outside this reader.
+1. To explore invented records first, open `Roodof-Demo.cmd`. Close the demo before opening your own records with `Roodof.exe`; demo work is temporary.
+2. Choose **See your sessions** after Roodof finds local Claude Code or Codex records. If none appear, widen the filters or use **Add a log folder** for a different installation or an already running WSL distribution. ChatGPT web conversations are outside this reader.
 3. Create a named item in **My work**, then link a session from its details. The work total covers whole linked sessions; it is not an exact task cost.
-4. In a session's details, set an optional token or dollar usage alert. Dollar thresholds use the API price equivalent. PLER warns at 80% and 100% while running. It monitors up to 20 selected sessions, approximately every 10 seconds; it does not stop the agent. Dollar figures are not your subscription bill.
+4. In a session's details, set an optional token or dollar usage alert. Dollar thresholds use the API price equivalent. Roodof warns at 80% and 100% while running. It monitors up to 20 selected sessions, approximately every 10 seconds; it does not stop the agent. Dollar figures are not your subscription bill.
 
-**Upgrading from 0.2.31 or earlier:** close the old app and run the installer, or extract the portable ZIP into a new folder. The browser-era updater cannot install the desktop transition. Keep a checked private backup; saved PLER data stays separate from the package. Desktop updater format 2 is retained for compatible future releases.
+**Upgrading from 0.2.31 or earlier:** close the old app and run the installer, or extract the portable ZIP into a new folder. The browser-era updater cannot install the desktop transition. Keep a checked private backup; saved Roodof data stays separate from the package. Desktop updater format 2 is retained for compatible future releases.
 
-The beta is free, requires no PLER account and has no payment signup. Help is included in English and Turkish. Support: plersolutions1st@gmail.com. The executable is unsigned; clean-Windows and real-user acceptance remain the final pending task. [Desktop scope](docs/DESKTOP.md) · [Update details](docs/UPDATES.md).
+The beta is free, requires no Roodof account and has no payment signup. Help is included in English and Turkish. Support: plersolutions1st@gmail.com. The executable is unsigned; clean-Windows and real-user acceptance remain the final pending task. [Desktop scope](docs/DESKTOP.md) · [Update details](docs/UPDATES.md).
 
 ## Install
 
@@ -55,7 +55,7 @@ pler report --json      # machine-readable
 pler demo               # the page with invented logs and an invented Git repository
 ```
 
-**Try it without your own data:** `pler demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside PLER's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `PLER-Demo.cmd` for the same.
+**Try it without your own data:** `pler demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside Roodof's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `Roodof-Demo.cmd` for the same.
 
 **Language:** the page follows your browser and has an English / Türkçe switch at the top. The terminal speaks Turkish on a Turkish system and English elsewhere; choose with `PLER_LANG=en` or `PLER_LANG=tr`.
 
@@ -92,13 +92,13 @@ For terminal commands, the portable package uses `PLER.cmd` instead of `pler`. R
 
 ## WSL log folders on Windows
 
-PLER does not search WSL distributions automatically. Open the distribution yourself, then explicitly select its log root with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` or `--codex-dir`. Both `\\wsl.localhost\Ubuntu\...` and `\\wsl$\Ubuntu\...` are supported. An environment variable names the agent home/config folder; the command options name the projects/sessions folder.
+Roodof does not search WSL distributions automatically. Open the distribution yourself, then explicitly select its log root with `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` or `--codex-dir`. Both `\\wsl.localhost\Ubuntu\...` and `\\wsl$\Ubuntu\...` are supported. An environment variable names the agent home/config folder; the command options name the projects/sessions folder.
 
-Before reading a selected WSL root, PLER runs only the fixed local `wsl.exe --list --running --quiet` status query from Windows System32. A stopped or unknown distribution is skipped with an explanation; no launch, install or discovery command is used. The state is checked again before the reader phase. A concurrent external shutdown between the status check and Windows filesystem access is not an atomic isolation boundary.
+Before reading a selected WSL root, Roodof runs only the fixed local `wsl.exe --list --running --quiet` status query from Windows System32. A stopped or unknown distribution is skipped with an explanation; no launch, install or discovery command is used. The state is checked again before the reader phase. A concurrent external shutdown between the status check and Windows filesystem access is not an atomic isolation boundary.
 
 Git/project paths, cache paths and links inside log roots keep their stricter rules. A local link cannot silently redirect the scan into WSL or another network share. Ordinary UNC, device and volume paths are refused before probing.
 
-Alternatively run PLER inside WSL and explicitly select Windows log folders through `/mnt/c` with the same options. Keep the cache inside that Linux environment. This route uses normal local mount paths and needs no Windows WSL status query.
+Alternatively run Roodof inside WSL and explicitly select Windows log folders through `/mnt/c` with the same options. Keep the cache inside that Linux environment. This route uses normal local mount paths and needs no Windows WSL status query.
 
 ## What it shows
 
@@ -118,9 +118,9 @@ Search narrows only the session list. The summary at the top and the downloaded 
 
 **Recorded usage and plan prices:** dated responses from the last 30 days at API list prices alongside the selected/logged plan's monthly list price, across all selected source folders and projects independently of page filters. Actual payment and complete account history are not established. Missing or unpriced records never imply free usage or switching savings. A conditional lower-plan threshold comparison needs fresh, consistent samples on 14 separate UTC dates spanning at least 14 days, with no gap over two days; it does not prove that the smaller plan would be enough. Known source, pricing, usage, plan-change or account-scope limitations withhold unsupported conclusions. Codex plan labels come from retained logs; Claude's choice stays on this computer. No billing account is queried.
 
-**Did it pay off?** Mark a session **Useful** or **Wasted** with one click (in the list or in its details). PLER sums tokens and the list-price equivalent per verdict for the selection, so you can see what the wasted sessions cost. Verdicts are saved only on this computer; PLER never guesses one.
+**Did it pay off?** Mark a session **Useful** or **Wasted** with one click (in the list or in its details). Roodof sums tokens and the list-price equivalent per verdict for the selection, so you can see what the wasted sessions cost. Verdicts are saved only on this computer; Roodof never guesses one.
 
-**Tests and builds the agents ran.** PLER recognises test and build commands in the agents' logs and shows how the last visible run ended in each session. The command text is read only in memory and never stored. When the agent piped the output into another command (for example `| tail`), the exit code is not the test's, so the result is shown as not visible.
+**Tests and builds the agents ran.** Roodof recognises test and build commands in the agents' logs and shows how the last visible run ended in each session. The command text is read only in memory and never stored. When the agent piped the output into another command (for example `| tail`), the exit code is not the test's, so the result is shown as not visible.
 
 **Dated usage within the period** is a separate, conservative view of complete, unambiguous, dated response records. Cumulative totals and unresolved histories cannot be allocated to dates and are excluded with coverage counts. Its interval ends at the scan's fixed observation time. It does not replace the full totals of selected active sessions or establish complete account coverage. The page and terminal show it only when every selected session's usage could be dated; otherwise the JSON export carries it with coverage counts.
 
@@ -138,9 +138,9 @@ Period/agent/project filters choose earlier sessions; later evidence comes from 
 
 ## Local Git activity
 
-On **Read logs again**, PLER also checks `.git/logs/HEAD` in the repositories each session is linked to. A repository is linked when the session's working folder is in it, or when the session edited a file inside it: Claude Code edit tools and Codex patches name their target files. An agent started in a parent folder is therefore still linked to the repository it changed. Repository paths stay in memory; the page only shows how many were checked. For each commit recorded during the session, PLER also checks whether it is still on a local or remote-tracking branch, or was amended, rebased, reset or left on a deleted branch. It reads only the parent links and times of commit objects, never names or messages. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
+On **Read logs again**, Roodof also checks `.git/logs/HEAD` in the repositories each session is linked to. A repository is linked when the session's working folder is in it, or when the session edited a file inside it: Claude Code edit tools and Codex patches name their target files. An agent started in a parent folder is therefore still linked to the repository it changed. Repository paths stay in memory; the page only shows how many were checked. For each commit recorded during the session, Roodof also checks whether it is still on a local or remote-tracking branch, or was amended, rebased, reset or left on a deleted branch. It reads only the parent links and times of commit objects, never names or messages. Linked worktrees and submodules with a `gitdir` file are supported. This is a snapshot: changing filters does not re-read Git files.
 
-For those commits that are still in the current HEAD's history, PLER also counts how many of the lines they added are still in place at HEAD. It reads the changed files from Git's own objects in memory only and keeps just the counts. Merges, first commits, binary and very large files are left out. A line rewritten in place or a moved file counts as not kept. See the [exact rule](ACCOUNTING.md#lines-still-in-place-0219).
+For those commits that are still in the current HEAD's history, Roodof also counts how many of the lines they added are still in place at HEAD. It reads the changed files from Git's own objects in memory only and keeps just the counts. Merges, first commits, binary and very large files are left out. A line rewritten in place or a moved file counts as not kept. See the [exact rule](ACCOUNTING.md#lines-still-in-place-0219).
 
 Only event time, a fixed action category, whether a recorded commit is still on a branch, line counts and the first eight characters of the destination commit are sent to the page and JSON. Author names, email addresses, commit messages, branch names, file names, file contents and Git configuration are not included. The only Git-derived data in the persistent cache is the four line counts per measured commit (`git-survival.json`), each under a one-way digest of repository folder, HEAD and commit, so that a restart does not read the same files again; no path, commit id, name or text is written there.
 
@@ -155,12 +155,12 @@ pler statusline --install
 ```
 
 - **What happens:** you see the line that will be added to Claude Code's `settings.json` and are asked to confirm. A backup of the file is made first.
-- **If you already have a status line:** it is left alone, and you are shown how your own script can pass the data to PLER.
-- **Afterwards:** Claude Code's status line shows something like `ctx 37% · 5h 24% · week 41%`. PLER keeps only the quota percentages and reset times, when they change, in its cache folder; no conversation, folder or session information.
+- **If you already have a status line:** it is left alone, and you are shown how your own script can pass the data to Roodof.
+- **Afterwards:** Claude Code's status line shows something like `ctx 37% · 5h 24% · week 41%`. Roodof keeps only the quota percentages and reset times, when they change, in its cache folder; no conversation, folder or session information.
 - **On the page:** the Claude Code quota appears with the same "when does it fill" forecast as Codex.
 - **To undo:** `pler statusline --remove`
 
-Only the exact, unmodified line generated by the current PLER installation is removed. A custom wrapper, an edited line or a command pointing to another installation is left alone. Settings changed while confirmation is pending are not overwritten; retry after checking them.
+Only the exact, unmodified line generated by the current Roodof installation is removed. A custom wrapper, an edited line or a command pointing to another installation is left alone. Settings changed while confirmation is pending are not overwritten; retry after checking them.
 
 ## What it reads
 
@@ -169,15 +169,15 @@ Only the exact, unmodified line generated by the current PLER installation is re
 | Claude Code | `~/.claude/projects`, `~/.config/claude/projects` | `CLAUDE_CONFIG_DIR` |
 | Codex | `~/.codex/sessions`, `~/.codex/archived_sessions` (compressed ones included) | `CODEX_HOME` |
 
-If you moved one of these folders to another disk and left a link (a symlink or a Windows junction) in its place, PLER follows that link to the real local folder. Links inside the log folders, and links that point to a network location, are not followed.
+If you moved one of these folders to another disk and left a link (a symlink or a Windows junction) in its place, Roodof follows that link to the real local folder. Links inside the log folders, and links that point to a network location, are not followed.
 
 Codex's compressed logs are read without installing anything. On Python 3.14 or newer the standard library decompresses them quickly. On older Python, the optional `zstandard` decoder can be installed using this source checkout's `pip install ".[fast]"`; installing that extra may download the dependency. Without either, the built-in decoder works but is slower: on one test computer a past candidate's first read took 23 seconds instead of 7. These figures are not a speed guarantee for the current candidate or a different history. Later reads use the cache.
 
-The dependency-free reader avoids repeated checkpoint comparisons and writes metadata caches in one encoded document. Large cold reads still take time; the [recorded performance checks](../reports/cold-start-v1/REPORT.md) distinguish an empty PLER cache from later cached reads.
+The dependency-free reader avoids repeated checkpoint comparisons and writes metadata caches in one encoded document. Large cold reads still take time; the [recorded performance checks](../reports/cold-start-v1/REPORT.md) distinguish an empty Roodof cache from later cached reads.
 
 The [earlier source scale check](../reports/scale-v1/REPORT.md) uses 102.61 MiB of expanded invented logs, 385 sessions, Git, 200 work items and 20,000 links. On one Windows machine, the median full scan through first usable JSON report was 8.85 seconds with Python 3.14 and 20.09/27.50 seconds with Python 3.12/3.9 fallback; unchanged refresh was 2.23–2.62 seconds. Three rounds per runtime preserved accounting and met fixed budgets. A [later single current-source check](../reports/compatibility-v1/REPORT.md) preserved counts but missed refresh/Git/HTTP budgets; current performance acceptance remains open. These checks do not measure visual first paint, flush the OS disk cache or establish a speed guarantee for other histories/platforms. Source acceptance is separate from the published package.
 
-Metadata extracted from unchanged Claude Code and Codex logs is kept in a cache, so later reads do not reparse the original conversations. A plain log that has only grown since, such as the transcript of an agent that is still working, is read on from where the last read ended. That needs the same file, unchanged first bytes and unchanged bytes up to that point; otherwise the log is read from the start. Compressed Codex logs are always read whole. While the page stays open, a refresh in which no log, discovery result or PLER cache, archive or retention file has changed reuses the previous result for up to an hour. The cache holds counts, timestamps, identifiers, project paths and tool metadata; no prompt, reply, command or tool output text. It is private local metadata, not an anonymous file. Location:
+Metadata extracted from unchanged Claude Code and Codex logs is kept in a cache, so later reads do not reparse the original conversations. A plain log that has only grown since, such as the transcript of an agent that is still working, is read on from where the last read ended. That needs the same file, unchanged first bytes and unchanged bytes up to that point; otherwise the log is read from the start. Compressed Codex logs are always read whole. While the page stays open, a refresh in which no log, discovery result or Roodof cache, archive or retention file has changed reuses the previous result for up to an hour. The cache holds counts, timestamps, identifiers, project paths and tool metadata; no prompt, reply, command or tool output text. It is private local metadata, not an anonymous file. Location:
 - Windows: `%LOCALAPPDATA%\pler`
 - macOS: `~/Library/Caches/pler`
 - Linux: `~/.cache/pler`
@@ -188,21 +188,21 @@ An update that changes a reader or its validation helpers rebuilds the affected 
 
 ### History after logs are deleted
 
-Claude Code deletes transcripts older than 30 days by default. So that monthly comparisons do not silently shrink, PLER keeps the metadata it extracted in an archive next to the cache (`metadata-archive.json`). When a log disappears, its sessions still count. They are marked "Source deleted · from the PLER archive" on the page and in the export.
+Claude Code deletes transcripts older than 30 days by default. So that monthly comparisons do not silently shrink, Roodof keeps the metadata it extracted in an archive next to the cache (`metadata-archive.json`). When a log disappears, its sessions still count. They are marked "Source deleted · from the Roodof archive" on the page and in the export.
 - **What is kept:** The same fields as the cache: counts, times, identifiers, models, project paths, branch names and edited file paths. No prompt, reply, command or tool output is kept.
 - **Which folders:** The default folders and those selected with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`. Folders named with `--claude-dir`/`--codex-dir` are read but never archived.
 - **Limits:** A file is dropped after 365 days without being seen. The archive is capped at 2,048 files and 64 MB, oldest first, and the page says when coverage was lost.
 - **Control:** The page shows retention state even while source logs are still live. `pler archive off` stops archive use and new retention without deleting saved history; `pler archive on` enables it again. Live sources remain readable. Do not confuse pausing retention with permanently clearing it.
 - **Copies:** A resumed session that copies archived replies is counted once. Archived metadata from an older reader, or from a source that is present but unreadable, is shown with a quality warning.
-- **Clearing:** Use **Clear PLER archive** on the page (it asks first) or `pler archive clear`. Agent logs and quota samples are not touched. Copies of deleted logs cannot be recovered afterwards.
+- **Clearing:** Use **Clear Roodof archive** on the page (it asks first) or `pler archive clear`. Agent logs and quota samples are not touched. Copies of deleted logs cannot be recovered afterwards.
 
-Removing PLER does not automatically delete this private data folder. Close PLER before making a private archive backup. Do not attach a cache or archive to a support report.
+Removing Roodof does not automatically delete this private data folder. Close Roodof before making a private archive backup. Do not attach a cache or archive to a support report.
 
 ## Trust and data quality
 
 Quota histories from several contributing selected source groups are kept separate by withholding the combined meter and forecast. Codex `sessions` and `archived_sessions` under one home remain one group. Choose a single local agent home/source group when you need its meter; no provider account IDs are collected. Compatible samples within one group still do not prove one account. Switching accounts inside the same log home remains outside verified account coverage.
 
-The page shows a dated snapshot. PLER withholds forecasts from samples older than 30 minutes for short windows and 24 hours for day-long or weekly windows. These are PLER's conservative freshness limits, not provider rules. An elapsed reset or a forecast deadline that has already passed makes the current level unknown. An open page updates those labels from its clock without fetching an account; it reads the logs again only on **Read logs again** or with **Watch the quota live**.
+The page shows a dated snapshot. Roodof withholds forecasts from samples older than 30 minutes for short windows and 24 hours for day-long or weekly windows. These are Roodof's conservative freshness limits, not provider rules. An elapsed reset or a forecast deadline that has already passed makes the current level unknown. An open page updates those labels from its clock without fetching an account; it reads the logs again only on **Read logs again** or with **Watch the quota live**.
 
 Claude Code and Codex files that cannot be fully read are counted. Valid rows are retained when a file contains broken JSON, invalid record identities or an unfinished last line; the totals are marked as potentially incomplete. The warning persists when either agent's file is served from cache. A directory with no records is distinguished from an incomplete read. Malformed quota numbers are discarded. A file count is discovery coverage; it is not proof that every transcript line was valid or that every agent version is supported.
 
@@ -212,7 +212,7 @@ Repeated Claude prompts and tool calls are counted once when the logs supply sta
 
 Token use is not a price or a measured saving. Neither the page export nor `pler report --json --sessions` includes source file paths, raw session IDs, branch names, edited file paths or arbitrary log notes. They still contain shortened project names, times, model names and counts; they are not anonymous sharing files. Detailed terminal JSON now uses the page's session allowlist. It no longer has a `days` series: periods select active sessions and include each selected session's full totals, not daily spending.
 
-For an update from this repository root, close PLER, run `pip install --upgrade .`, then reopen it. From an enclosing workspace use `pip install --upgrade ./product` instead. `pler --version` identifies the installed release. A running page keeps the assets it started with; restart PLER to use updated code. Preserve retained history when updating or rolling back. Release and JSON changes are listed in the [changelog](CHANGELOG.md).
+For an update from this repository root, close Roodof, run `pip install --upgrade .`, then reopen it. From an enclosing workspace use `pip install --upgrade ./product` instead. `pler --version` identifies the installed release. A running page keeps the assets it started with; restart Roodof to use updated code. Preserve retained history when updating or rolling back. Release and JSON changes are listed in the [changelog](CHANGELOG.md).
 
 The [quality register](QUALITY.md) separates fixed defects from unresolved reasons to reject the product. Automated tests pass on Windows, Linux and macOS with Python 3.9 to 3.14. A signed Python-free installation, real-browser acceptance on each system and proven usefulness in professionals' daily work remain open.
 

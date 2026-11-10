@@ -1,4 +1,4 @@
-"""What PLER promises: normal usage analysis calls no service/model and only reads logs.
+"""What Roodof promises: normal usage analysis calls no service/model and only reads logs.
 Exceptions are the fixed WSL status query, bundled local desktop window and explicit/opted-in signed updates.
 
 The source is checked statically (no module that can open a connection or start a process is imported), and a
@@ -155,7 +155,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(self.connections, [])
         with self.assertRaises(SystemExit) as stopped, contextlib.redirect_stdout(io.StringIO()) as shown:
             cli.main(['--version'])
-        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'PLER ' + __version__))
+        self.assertEqual((stopped.exception.code, shown.getvalue().strip()), (0, 'Roodof ' + __version__))
 
 
 if __name__ == '__main__':

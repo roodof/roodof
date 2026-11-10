@@ -1,4 +1,4 @@
-# PLER workspace UI
+# Roodof workspace UI
 
 Run npm ci, then npm run build from this folder. Production uses only bundled local JS/CSS/fonts.
 workspace.js is the editable UI source; src/pler/web/workspace.js is generated with esbuild.

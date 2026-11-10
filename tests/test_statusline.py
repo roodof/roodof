@@ -54,7 +54,7 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(statusline.limits(dict(model=dict(id='x'))), {})
         self.assertFalse(statusline.record({}, self.temp))
         self.assertFalse((self.temp / statusline.FILE).exists())
-        self.assertEqual(statusline.line({}, {}), 'PLER')
+        self.assertEqual(statusline.line({}, {}), 'Roodof')
         broken = status(10, None, 'soon')
         self.assertEqual(statusline.limits(broken), {})
 
@@ -89,7 +89,7 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(result.stdout.decode('utf-8'), 'ctx 37% · 5h 42% · week 7%')
         self.assertEqual(statusline.samples(self.temp)[0][2], 42.0)
         garbage = subprocess.run(statusline.command(), input=b'{broken', **run)
-        self.assertEqual((garbage.returncode, garbage.stdout), (0, b'PLER'))
+        self.assertEqual((garbage.returncode, garbage.stdout), (0, b'Roodof'))
 
 
 class SettingsTests(unittest.TestCase):

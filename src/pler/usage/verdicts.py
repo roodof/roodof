@@ -2,7 +2,7 @@
 
 The file holds the page's session code (a 24-character hash; never a path, project name, prompt or
 command), one of the two words and the second it was set. Clearing the archive or the reader cache keeps
-it. A file PLER cannot understand (damaged, or written by a newer version) is never overwritten.
+it. A file Roodof cannot understand (damaged, or written by a newer version) is never overwritten.
 """
 import hashlib
 import json
@@ -113,7 +113,7 @@ class Memory:
 
 
 class Folder:
-    """Verdicts in PLER's cache folder (or `base`)."""
+    """Verdicts in Roodof's cache folder (or `base`)."""
 
     def __init__(self, base=None):
         self.base = base

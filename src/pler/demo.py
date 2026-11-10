@@ -1,6 +1,6 @@
-"""Invented Claude Code and Codex logs and a small Git repository, for trying PLER without private data.
+"""Invented Claude Code and Codex logs and a small Git repository, for trying Roodof without private data.
 
-`pler demo` writes them into a `demo` folder inside PLER's own cache folder (never into the agents'
+`pler demo` writes them into a `demo` folder inside Roodof's own cache folder (never into the agents'
 folders), then opens the page reading only that folder. Every name, number and time is invented; times
 are relative to now so the period filters have something to show. The pilot tasks in docs/PILOT.md can
 all be done with it: two agents, several projects, a quota forecast, a data-quality warning, sessions
@@ -154,7 +154,7 @@ def _codex(folder, name, cwd, start, calls, patches=(), quota=None, week=None, c
 
 
 def create(folder=None, now=None):
-    """Write the invented data into `folder` (default: the demo folder in PLER's cache) and return its paths.
+    """Write the invented data into `folder` (default: the demo folder in Roodof's cache) and return its paths.
 
     An existing folder is replaced only when it holds the demo marker; anything else is refused."""
     base = Path(folder) if folder is not None else (cache_folder() / 'demo' if cache_folder() is not None else None)
@@ -162,10 +162,10 @@ def create(folder=None, now=None):
         raise ValueError('no_folder')   # no safe local cache folder (e.g. PLER_CACHE_DIR on a network)
     if base.exists():
         if not (base / MARKER).is_file():
-            raise ValueError('not_demo')  # never delete a folder PLER did not create
+            raise ValueError('not_demo')  # never delete a folder Roodof did not create
         shutil.rmtree(base)
     base.mkdir(parents=True)
-    (base / MARKER).write_text('Invented PLER demo data. Safe to delete.\n', 'utf-8')
+    (base / MARKER).write_text('Invented Roodof demo data. Safe to delete.\n', 'utf-8')
     now = (now or datetime.now(timezone.utc)).replace(microsecond=0)
     work = base / 'work'
     shop, api, docs = work / 'shop', work / 'api', work / 'docs'

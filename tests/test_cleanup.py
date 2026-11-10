@@ -79,7 +79,7 @@ class BadMeterTests(unittest.TestCase):
                         rate_limits=dict(five_hour=dict(used_percentage=invalid, resets_at=100)))
             with self.subTest(invalid=str(invalid)[:20]):
                 self.assertEqual(statusline.limits(data), {})
-                self.assertEqual(statusline.line(data, {}, 'en'), 'PLER')
+                self.assertEqual(statusline.line(data, {}, 'en'), 'Roodof')
                 self.assertFalse(statusline.record({'300': [invalid, 100]}, self.folder))
         self.assertFalse((self.folder/statusline.FILE).exists())
         self.assertEqual(statusline.line(dict(context_window=dict(used_percentage=0)), {}, 'en'), 'ctx 0%')

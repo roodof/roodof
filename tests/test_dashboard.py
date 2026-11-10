@@ -151,7 +151,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.server.server_address[0], '127.0.0.1')
         code, headers, page = self.request('/')
         self.assertEqual(code, 200)
-        self.assertIn('PLER · My usage', page.decode())
+        self.assertIn('Roodof · My usage', page.decode())
         self.assertNotIn(self.server.token, page.decode())
         self.assertIn("default-src 'self'", headers['Content-Security-Policy'])
         for path in ('/app.js', '/app.css'):

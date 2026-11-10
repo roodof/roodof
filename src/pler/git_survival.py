@@ -6,7 +6,7 @@ same file at HEAD. Blank lines and lines without a letter or digit (a lone `}`) 
 
 File names and contents are read only in memory, through git_objects.py; only counts leave this module.
 No Git program runs and nothing is written to the repository; with a Saved store, the counts alone are kept
-in PLER's cache folder. Merge/root commits and traversal-limited histories are not measurable; binary,
+in Roodof's cache folder. Merge/root commits and traversal-limited histories are not measurable; binary,
 very large or unreadable files are skipped. Renames are not followed: additions are per-path count
 increases, not proof of newly written code. A line moved within its file counts as kept; a rewritten
 line or a file moved to another path does not.
@@ -66,7 +66,7 @@ def _version():
 
 
 class Saved:
-    """Counts kept in PLER's cache folder (git-survival.json), so that a restart does not read the same files
+    """Counts kept in Roodof's cache folder (git-survival.json), so that a restart does not read the same files
     again. Each key is a one-way digest of repository folder, HEAD and commit; each value is the four counts.
     No path, commit id, name or text is written. The file is rebuildable: cache reset removes it, and a
     damaged file or one written by other counting code is ignored."""

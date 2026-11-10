@@ -23,6 +23,7 @@ classifiers = [
 fast = ["zstandard"]
 
 [project.scripts]
+roodof = "pler.cli:main"
 pler = "pler.cli:main"
 
 [tool.setuptools.dynamic]

@@ -21,7 +21,7 @@ test('native delivery acknowledges only after show and does not repeat on the ne
  try {
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(shown.length, 1); assert.equal(calls.length, 0);
-  assert.equal(shown[0].options.title, 'PLER · Kullanım uyarısı');
+  assert.equal(shown[0].options.title, 'Roodof · Kullanım uyarısı');
   assert.ok(!shown[0].options.body.includes('a'.repeat(64)));
   shown[0].emit('show'); await monitor.tick();
   assert.equal(shown.length, 1); assert.equal(calls[0].level, 100);

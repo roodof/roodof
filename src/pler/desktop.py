@@ -28,7 +28,7 @@ class Window:
         # carries the credential; the temporary directory holds only nonsecret lifetime markers.
         env.update(PLER_DESKTOP_URL=server.access_url, PLER_DESKTOP_SESSION=str(self.control),
                    PLER_DESKTOP_PARENT=str(os.getpid()))
-        # Window geometry, language and bounded view choices; kept with PLER's local data.
+        # Window geometry, language and bounded view choices; kept with Roodof's local data.
         folder = cache_folder()
         if folder is not None:
             env['PLER_DESKTOP_STATE'] = str(folder / 'desktop-window.json')

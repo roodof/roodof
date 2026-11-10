@@ -1,6 +1,6 @@
 """Where a subscription meter is heading: the current window, its pace, and whether it fills first.
 
-Codex logs its meter in every rollout. Claude Code logs none; its samples come from PLER's status line
+Codex logs its meter in every rollout. Claude Code logs none; its samples come from Roodof's status line
 (statusline.py), when the user has turned it on.
 
 The meter is account-wide and moves only while agents work, so the pace depends on the window:

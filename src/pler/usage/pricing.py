@@ -1,7 +1,7 @@
 """What the recorded tokens would cost at the providers' public API list prices.
 
 This is an equivalent for comparison with a subscription or a budget, never a bill: subscriptions are flat fees,
-and PLER does not know discounts, taxes or which account paid. Each accepted response is priced once, by its own
+and Roodof does not know discounts, taxes or which account paid. Each accepted response is priced once, by its own
 model and prompt size, at the standard tier. A response is left unpriced (and counted as such) when its model is
 not in the table, its prompt is above a tier the table covers, or it ran at a different speed or region price.
 Cumulative totals without per-response usage are never priced. No network is used; prices are fixed below.

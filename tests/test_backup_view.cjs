@@ -29,7 +29,7 @@ test('private download requires acknowledgement and repeated clicks create only 
   const blob=new Blob(['invented ZIP bytes'],{type:'application/zip'});p.resolve({ok:true,blob:async()=>blob});await run;
   assert.equal(p.requests[0].route,'/api/usage/backup?lang=en');assert.equal(p.requests[0].options.body,'{}');
   assert.equal(p.requests[0].options.headers['X-PLER-Token'],'a'.repeat(64));
-  assert.equal(p.made[0],blob);assert.equal(p.elements['usage-backup-download-link'].download,'PLER-backup.zip');
+  assert.equal(p.made[0],blob);assert.equal(p.elements['usage-backup-download-link'].download,'Roodof-backup.zip');
   assert.equal(p.elements['usage-backup-download-link'].clicks,1);assert.equal(p.elements['usage-backup-download-result'].hidden,false);
   assert.equal(p.elements['usage-backup-download'].disabled,false);assert.equal(p.revoked.length,0);
 });

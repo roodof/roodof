@@ -1,15 +1,15 @@
-"""pler: what your AI coding agents used, read from their own logs on this computer.
+"""roodof: what your AI coding agents used, read from their own logs on this computer.
 
-  pler             open the usage page in your browser (stop with Ctrl+C)
-  pler report      the same summary in the terminal (pler report --help for options)
-  pler statusline --install
-                   show context and Claude subscription use in Claude Code's status line, and let PLER
+  roodof             open the usage page in your browser (stop with Ctrl+C)
+  roodof report      the same summary in the terminal (roodof report --help for options)
+  roodof statusline --install
+                   show context and Claude subscription use in Claude Code's status line, and let Roodof
                    read the Claude Code quota from there (asks before changing Claude Code's settings)
-  pler demo        try the page with invented logs and an invented Git repository, not your own
-  pler backup     create, check or restore a private local metadata backup
-  pler --data-dir <folder>
-                   open using the explicitly selected local PLER data folder
-  pler --version
+  roodof demo        try the page with invented logs and an invented Git repository, not your own
+  roodof backup     create, check or restore a private local metadata backup
+  roodof --data-dir <folder>
+                   open using the explicitly selected local Roodof data folder
+  roodof --version
 
 No model is called and logs are only read. Optional updates contact the release service without agent data.
 """
@@ -111,11 +111,11 @@ def _serve_once(port, browser, lang, dashboard, desktop, profile=None):
             if not pending:break
             time.sleep(.05)
         if not stopped or pending:
-            print('PLER is still closing its readers. Reopen the desktop app to use the selected history.',file=sys.stderr)
+            print('Roodof is still closing its readers. Reopen the desktop app to use the selected history.',file=sys.stderr)
             return 1, None
     print(say(lang, 'cli.closed'))
     if desktop_errors:
-        print('The PLER desktop window stopped unexpectedly. Reopen the complete desktop package.', file=sys.stderr)
+        print('The Roodof desktop window stopped unexpectedly. Reopen the complete desktop package.', file=sys.stderr)
         return 1, None
     return None, server.next_data_dir
 
@@ -126,7 +126,7 @@ def main(argv=None):
         sys.stdout.reconfigure(encoding='utf-8')
     # One global folder option works before or after any existing subcommand.
     # Keep it process-local: a completed command never rewrites a saved profile
-    # or changes another running PLER's folder.
+    # or changes another running Roodof's folder.
     from .backup_cli import _Parser, _Arguments, _failure
     parser = _Parser(add_help=False, allow_abbrev=False)
     parser.add_argument('--data-dir', action='append')
@@ -204,10 +204,10 @@ def _main(argv):
     demo = argv[:1] == ['demo']
     parser = argparse.ArgumentParser(prog='pler demo' if demo else 'pler', description=__doc__.split('\n')[0],
                                      epilog=say(lang, 'cli.demo_epilog' if demo else 'cli.epilog'))
-    parser.add_argument('--version', action='version', version='PLER ' + __version__)
+    parser.add_argument('--version', action='version', version='Roodof ' + __version__)
     parser.add_argument('--port', type=int, default=PORT, help=say(lang, 'cli.port', PORT))
     parser.add_argument('--no-browser', action='store_true', help=say(lang, 'cli.no_browser'))
-    parser.add_argument('--desktop', action='store_true', help='Open the bundled PLER desktop window.')
+    parser.add_argument('--desktop', action='store_true', help='Open the bundled Roodof desktop window.')
     # The global parser removes this option before routing. Advertising it here
     # keeps the normal page help discoverable without reading any local data.
     parser.add_argument('--data-dir', metavar='FOLDER', help=say(lang, 'backup.data_dir_help'))

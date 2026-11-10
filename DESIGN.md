@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: PLER Workbench
+name: Roodof Workbench
 description: A dense local record browser for Claude Code and Codex work. Monochrome surfaces, explicit provenance and keyboard-first navigation.
 colors:
   canvas: "#101012"
@@ -89,23 +89,23 @@ components:
 
 # Product and visual direction
 
-PLER is a Windows desktop tool for finding an agent session, inspecting its recorded use,
+Roodof is a Windows desktop tool for finding an agent session, inspecting its recorded use,
 and connecting it to a named piece of work. Its signature is the record row: a recognizable
 work/project name, agent and time, aligned token count, factual record status, recorded model and known/unknown call count. Real user
 work takes precedence over promotional copy. A test result describes a recorded test, never overall code quality.
 
 The user selected Linear/Vercel/Raycast craft: compact controls, precise alignment, shallow
-surface layers and physical selection feedback. These are PLER decisions inspired by those
+surface layers and physical selection feedback. These are Roodof decisions inspired by those
 products, not claims to reproduce their official internal design tokens.
 
 ## Data colors
 
-Charts may tell the two agents apart: Claude Code uses the clay of the PLER mark (`agent-claude`),
+Charts may tell the two agents apart: Claude Code uses the clay of the Roodof mark (`agent-claude`),
 Codex a light neutral (`agent-codex`). These appear only in data marks and agent legends, never in
 navigation or status. Intensity maps (when you work) use a single warm ramp, `heat-1` to `heat-5`,
 taken from the Radix Colors bronze dark scale (steps 4, 6, 8, 9, 11; github.com/radix-ui/colors, MIT),
 so each step is perceptually even on the dark canvas. When the chart counts model calls instead of tokens it
-switches to a cool set (`calls-claude`, `calls-codex`, `calls-heat-1` to `calls-heat-5`; PLER's own values), so the
+switches to a cool set (`calls-claude`, `calls-codex`, `calls-heat-1` to `calls-heat-5`; Roodof's own values), so the
 two views cannot be mistaken for each other; agent order and legend stay the same. Status colors keep their meaning.
 
 ## Surface hierarchy and density
@@ -169,11 +169,11 @@ fake prompts/log contents, invented session names, invented savings or dead demo
 ## Sources and their application
 
 - [anti-slop](https://github.com/miqdadbadjuber/anti-slop): purposeful visual treatments and real interactions. README saved as `.anti-slop-rules.md`; the filter is archived under docs/design-references.
-- [Google DESIGN.md format](https://github.com/google-labs-code/design.md/blob/main/docs/spec.md): YAML tokens plus rationale. The requested root `/main/DESIGN.md` is absent; this file is authored for PLER using its actual format specification.
-- [oh-my-design](https://github.com/kwakseongjae/oh-my-design): sourced values and role separation; archived Vercel/Raycast references are inspiration, not PLER defaults.
+- [Google DESIGN.md format](https://github.com/google-labs-code/design.md/blob/main/docs/spec.md): YAML tokens plus rationale. The requested root `/main/DESIGN.md` is absent; this file is authored for Roodof using its actual format specification.
+- [oh-my-design](https://github.com/kwakseongjae/oh-my-design): sourced values and role separation; archived Vercel/Raycast references are inspiration, not Roodof defaults.
 - [coss ui / Origin UI](https://github.com/cosscom/ui/tree/main/apps/ui/registry/default/ui): compact native controls, inset highlights, visible focus/pressed/busy states. The supplied cosscom/coss now contains a wider platform; cosscom/ui has the directly relevant UI sources.
 - [OpenDesign](https://github.com/nexu-io/open-design): reusable design-system roles and Raycast surface reference, adapted to a local record tool.
-- [Motion Primitives](https://github.com/ibelick/motion-primitives/blob/main/components/core/animated-background.tsx): shared-layout selection pattern. PLER implements its own small navigation/filter components using installed Motion; it does not claim the complete React component kit is installed.
+- [Motion Primitives](https://github.com/ibelick/motion-primitives/blob/main/components/core/animated-background.tsx): shared-layout selection pattern. Roodof implements its own small navigation/filter components using installed Motion; it does not claim the complete React component kit is installed.
 
 Source URLs and SHA256s are saved in docs/design-references/sources.json and patterns.json.
 `frontend/tokens.json` emits CSS variables at build time. `frontend/workspace.css` and

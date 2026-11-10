@@ -133,7 +133,7 @@ class Server(ThreadingHTTPServer):
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = 'PLER'
+    server_version = 'Roodof'
 
     def handle(self):
         try:

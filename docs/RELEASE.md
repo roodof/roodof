@@ -1,3 +1,9 @@
+# Roodof 0.9.29 — ürün adı değişikliği
+
+PLER ürününün yeni adı Roodof. Görünen uygulama, masaüstü pencere/kurulum, yardım ve site adı güncellendi. Mevcut geçmiş, yedek biçimleri, imza güven kökü ve eski indirme/güncelleme adresleri uyumluluk için korunur. Önceki sürüm kayıtları tarihsel adlarını korur. 400 seçici değişmedi; gerçek ortam kabulü Q01 SON/açık.
+
+---
+
 # Current release — PLER0.9.28, 10 November 2026
 
 Free Windows beta. Settings → General holds language, Help and Updates. Record review separates warnings/observations/method/chart notes from Usage; counters distinguish totals and warnings. Includes the0.9.22–0.9.27 UI fixes and Windows inspector fit. [Download](https://pler-local-usage.oguzay5555.chatgpt.site/). Publication evidence: ../../reports/publish-0.9.28/REPORT.md.400and updater2/schema2/work3/backup1 unchanged. Clean Windows/agent/WSL/user acceptance and licensing/Authenticode remain open. Older records below are historical.

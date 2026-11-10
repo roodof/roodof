@@ -60,7 +60,7 @@ Run all tasks with the same invented fixture and record the browser/OS version. 
 5. At 200% zoom and an actual narrow viewport, read all labels and values. The table may scroll in its named keyboard-focusable region; the page itself should not require sideways scrolling for primary controls. Check 400% zoom separately on the selected release browser.
 6. With Windows NVDA and macOS VoiceOver, read the title, language, filter labels, loading/status changes, quality warnings, quota state, table headers, row actions, download result and dialog. Confirm no unreachable controls or focus trap. Automated DOM checks do not substitute for this run.
 7. With reduced motion, forced colors/high contrast and dark/light OS settings, confirm visible focus, legible values, identifiable warnings and usable buttons. Check that no meaning depends on color alone.
-8. Close PLER; controls become inactive and explain how to reopen. No provider API/model request or real Claude configuration change should occur during these tasks.
+8. Close Roodof; controls become inactive and explain how to reopen. No provider API/model request or real Claude configuration change should occur during these tasks.
 
 For the 0.2.13 candidate also verify that quality warnings lead to affected sessions, ambiguous project suffixes remain consistent across filters, temporary repositories stay separate, mixed-meter examples withhold forecasts, and dated-period usage does not include unallocatable cumulative totals. The date cutoff stays fixed until a new read. Check that local Help explains archive deletion before any history-clearing action.
 

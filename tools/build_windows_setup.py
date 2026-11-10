@@ -32,7 +32,7 @@ with zipfile.ZipFile(args.package) as archive:
     manifest = json.loads(archive.read(tops.pop() + '/manifest.json'))
 version = manifest['version']
 if manifest.get('platform') != 'windows-x64' or not re.fullmatch(r'\d+\.\d+\.\d+', version):
-    raise SystemExit('Not a Windows x64 PLER package.')
+    raise SystemExit('Not a Windows x64 Roodof package.')
 
 
 def compile(output, resources=()):

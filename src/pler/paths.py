@@ -1,4 +1,4 @@
-"""Local-only locations for PLER's small files. Kept lightweight for every Claude status refresh."""
+"""Local-only locations for Roodof's small files. Kept lightweight for every Claude status refresh."""
 import os
 from pathlib import Path
 import stat

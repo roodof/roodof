@@ -2,7 +2,7 @@
 
 Yerel aday 0.9.13 uygulamadan yedek kurtarma ve geçmiş değiştirmeyi içerir; public beta 0.9.11. [Kurtarma kapsamı](HISTORY-RECOVERY.md), [son geliştirici kanıtı](../../reports/history-recovery-v1/REPORT.md). Temiz Windows kabulü hâlâ SON görevdir.
 
-Kullanıcı Windows PLER'i tarayıcı yerine kendi penceresinde istedi. Aynı kaynak ve ölçüm
+Kullanıcı Windows Roodof'i tarayıcı yerine kendi penceresinde istedi. Aynı kaynak ve ölçüm
 motoru korunur. Kaynak sürüm 0.9.11; ücretsiz masaüstü beta için site, paket ve ilk kullanım eşitleniyor. Önceki kamu sürümü 0.2.31 tarayıcıda açılır; masaüstüne ilk geçiş yeni klasöre elle çıkarılarak yapılır. Yayın sonucu RELEASE.md ve reports/beta-alignment-v1 altında kaydedilir. Kişilere davet gönderilmez.
 
 ## Görev sırası
@@ -11,7 +11,7 @@ motoru korunur. Kaynak sürüm 0.9.11; ücretsiz masaüstü beta için site, pak
 2. Kapanışta arka plan işlemini durdurma; demo, yardım ve dosya indirme akışları.
 3. Windows portable paket; Electron/Python ve bileşen lisanslarını birlikte taşıma.
 4. Güncellemede sürüm seçimi/masaüstü yeniden açılışı; kaynak ve geliştirici doğrulaması.
-5. **SON GÖREV — Temiz Windows kabulü (bekliyor).** Sabitlenmiş son paketi Python/PLER
+5. **SON GÖREV — Temiz Windows kabulü (bekliyor).** Sabitlenmiş son paketi Python/Roodof
    olmayan ortamda dene: normal/demo açılışı, standart kullanıcı, ASCII dışı yol, dolu port,
    yedek/dışa aktarım, süreç kapanışı, güncelleme, başarısız açılışta geri dönüş ve kaldırma.
 

@@ -1,4 +1,4 @@
-"""E02: what PLER can tell about account scope without reading any account identity.
+"""E02: what Roodof can tell about account scope without reading any account identity.
 
 Codex logs its plan with every meter sample. A plan change is evidence that later percentages measure another
 limit (another plan or another account), so forecasts and limit counts start at the latest change. A switch
@@ -77,7 +77,7 @@ class PlanBoundaryTests(unittest.TestCase):
 class SameFolderAccountTests(unittest.TestCase):
     def test_a_same_plan_switch_with_a_later_reset_reads_as_a_new_window_not_as_one_proven_account(self):
         # Account A at 80% resetting in 1 hour; account B starts at 5% with its own later reset. The logs carry no
-        # identity, and a single real meter also restarts windows early, so PLER shows B's window and claims no
+        # identity, and a single real meter also restarts windows early, so Roodof shows B's window and claims no
         # account continuity: no plan boundary, no conflict, and the scope notes stay in place.
         samples = [(NOW - timedelta(minutes=50), 300, 80, NOW + timedelta(hours=1), 'plus'),
                    (NOW - timedelta(minutes=30), 300, 5, NOW + timedelta(hours=4), 'plus'),

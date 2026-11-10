@@ -1,7 +1,7 @@
 """Bounded, private local metadata archive. Never opens a retained source to replay its rows.
 
 The archive contains the same narrow projections as the readers' disposable caches, not Session totals.
-Everything PLER stores crosses the allowlist below, and stored rows cross it again before they are used.
+Everything Roodof stores crosses the allowlist below, and stored rows cross it again before they are used.
 A shared file lock and generation guard make clear atomic with respect to concurrent saves. No agent
 settings, conversation text or account IDs are read.
 
@@ -639,7 +639,7 @@ def archive_generation():
 
 
 def clear_archive():
-    """Forget only PLER's archive. Generation changes before removal, under the shared save lock."""
+    """Forget only Roodof's archive. Generation changes before removal, under the shared save lock."""
     base=cache_folder()
     result=dict(ok=False,cleared_files=0,errors=0,clear_generation=0)
     if base is None:

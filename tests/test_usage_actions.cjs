@@ -59,7 +59,7 @@ test('discarding a prepared export revokes its URL and removes the outdated link
   assert.deepEqual(p.revoked,['blob:test-1']);assert.equal(p.elements['usage-download-result'].hidden,true);
   assert.equal(p.elements['usage-download-link'].href,undefined);
 });
-test('clearing the PLER archive asks first and changes nothing when cancelled',async()=>{
+test('clearing the Roodof archive asks first and changes nothing when cancelled',async()=>{
   for(const answer of [false,true]){
     const p=page();let asked=0,posts=0;
     p.elements['usage-archive-clear']={disabled:false,hidden:false,attributes:{},isConnected:true,focus(){},

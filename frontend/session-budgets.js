@@ -15,8 +15,8 @@ export function mountBudgets({tr, settings, before}) {
  const banner=el('section','budget-banner');banner.hidden=true;banner.setAttribute('aria-label',t('usage_alerts'));before.before(banner);
  const watch=el('section','budget-watch usage-panel');watch.id='budget-watch';
  watch.append(el('h2','',t('usage_alerts')),
-  el('p','section-note',text('Bir oturum için kendi token veya dolar eşiğini belirle; hesap kotaların değişmez. PLER açıkken %80 ve %100’de haber verir. En fazla 20 oturum.',
-  'Set your own token or dollar threshold for a session; account limits stay unchanged. Get notified at 80% and 100% while PLER is open. Up to 20 sessions.')));
+  el('p','section-note',text('Bir oturum için kendi token veya dolar eşiğini belirle; hesap kotaların değişmez. Roodof açıkken %80 ve %100’de haber verir. En fazla 20 oturum.',
+  'Set your own token or dollar threshold for a session; account limits stay unchanged. Get notified at 80% and 100% while Roodof is open. Up to 20 sessions.')));
  const add=el('button','secondary budget-add',text('Oturum bul ve uyarı kur','Find a session and set an alert'));add.type='button';
  add.addEventListener('click',()=>{window.plerUI.setScreen('sessions');document.getElementById('usage-session-search').focus();});watch.append(add);
  const watchStatus=el('p','section-note');watchStatus.setAttribute('role','status');
@@ -105,8 +105,8 @@ export function mountBudgets({tr, settings, before}) {
   panel=el('section','session-budget');panel.id='session-budget';panel.dataset.revision=data.items.find(r=>r.id===session.id)?.revision||'';
   const heading=el('div','budget-heading');heading.append(el('h3','',t('usage_alert')));
   const summary=el('div','budget-readout');
-  const description=el('p','section-note',text('PLER açıkken %80 ve %100’de haber verir. Oturumu durdurmaz.',
-   'Notifies you at 80% and 100% while PLER is open. Does not stop the session.'));
+  const description=el('p','section-note',text('Roodof açıkken %80 ve %100’de haber verir. Oturumu durdurmaz.',
+   'Notifies you at 80% and 100% while Roodof is open. Does not stop the session.'));
   const editor=el('details','budget-editor');editor.append(el('summary','',text('Uyarı kur','Set an alert')));
   const form=el('form','budget-form');const fieldset=el('fieldset','');
   const metricLabel=el('label','',text('Uyarı türü','Alert type'));const select=el('select','');select.id='budget-metric';metricLabel.htmlFor=select.id;
@@ -145,8 +145,8 @@ export function mountBudgets({tr, settings, before}) {
   const message=el('p','budget-message');message.setAttribute('role','status');
   const connection=el('p','section-note budget-connection');connection.hidden=true;
   const help=el('details','budget-help');help.append(el('summary','',text('Uyarı nasıl çalışır?','How does the alert work?')),
-   el('p','section-note',text('Yaklaşık 10 saniyede bir kontrol edilir. Kayıt gecikebilir, eşik aşılabilir. Reasoning ikinci kez eklenmez; token eşiği bağlam penceresi veya hesap kotası değildir. Değişen eşik bildirimleri yeniden etkinleştirir. PLER kapanınca izleme durur.',
-    'Checked about every 10 seconds. Logs may arrive late and usage may exceed the threshold. Reasoning is not counted twice; a token threshold is not a context window or account quota. Changing the threshold re-enables notifications. Closing PLER stops monitoring.')));
+   el('p','section-note',text('Yaklaşık 10 saniyede bir kontrol edilir. Kayıt gecikebilir, eşik aşılabilir. Reasoning ikinci kez eklenmez; token eşiği bağlam penceresi veya hesap kotası değildir. Değişen eşik bildirimleri yeniden etkinleştirir. Roodof kapanınca izleme durur.',
+    'Checked about every 10 seconds. Logs may arrive late and usage may exceed the threshold. Reasoning is not counted twice; a token threshold is not a context window or account quota. Changing the threshold re-enables notifications. Closing Roodof stops monitoring.')));
   editor.append(form,off,help);panel.append(heading,description,summary,editor,message,connection);
   const anchor=container.querySelector('.wb-session-usage,.wb-session-metrics');if(anchor)anchor.after(panel);else container.prepend(panel);
   render();load();

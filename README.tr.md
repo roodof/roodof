@@ -1,4 +1,4 @@
-# PLER
+# Roodof
 
 [English](README.md) · **Türkçe**
 
@@ -6,25 +6,25 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 - **Model çağırmaz.** Ölçmek için tek bir token harcamaz.
 - **Ajan verisi yerel kalır.** Sayfa yalnız bu bilgisayardan açılır (`127.0.0.1`); kullanım analizi çevrimdışı çalışır. İsteğe bağlı güncelleme kontrolü ve indirme yayın hizmetine bağlanır; ajan kayıtları veya proje bilgileri gönderilmez.
-- **Ajan kayıtlarını değiştirmez.** PLER üst bilgi önbelleği tutar; istek, yanıt, komut ve araç çıktısı ekrana ve önbelleğe girmez. İsteğe bağlı durum satırı, Claude Code ayarını onaydan sonra ve yedek alarak değiştirir.
+- **Ajan kayıtlarını değiştirmez.** Roodof üst bilgi önbelleği tutar; istek, yanıt, komut ve araç çıktısı ekrana ve önbelleğe girmez. İsteğe bağlı durum satırı, Claude Code ayarını onaydan sonra ve yedek alarak değiştirir.
 - **Her dilde çalışır.** Ajan kayıtlarını inceler. Yerel Git satır gözlemi ayrıca commit'lerdeki dosya adlarını ve içeriklerini bellekte okur; yalnız sayılar saklanır veya gösterilir.
 
 ## Windows betasında ilk adımlar
 
-**Ücretsiz Windows betası 0.9.28 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.28.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
+**Ücretsiz Windows betası 0.9.29 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/Roodof-Setup-0.9.29.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
 
-Windows kurulumu için PLER’i kapat, **PLER-Setup-0.9.28.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. PLER-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
+Windows kurulumu için Roodof’i kapat, **Roodof-Setup-0.9.29.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. Roodof-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
 
-**İsteğe bağlı taşınabilir sürüm.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
+**İsteğe bağlı taşınabilir sürüm.** [Roodof sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `Roodof.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 
-1. Önce uydurma kayıtları incelemek için `PLER-Demo.cmd` dosyasını aç. Kendi kayıtlarını `PLER.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
-2. PLER yerel Claude Code veya Codex kayıtlarını bulunca **Oturumlarını gör** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
+1. Önce uydurma kayıtları incelemek için `Roodof-Demo.cmd` dosyasını aç. Kendi kayıtlarını `Roodof.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
+2. Roodof yerel Claude Code veya Codex kayıtlarını bulunca **Oturumlarını gör** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
 3. **İşlerim** bölümünde adlandırılmış bir iş oluştur, oturum ayrıntısından bu işe bağla. Toplam bağlı oturumların tamamını kapsar; görevin kesin maliyeti değildir.
-4. Oturum ayrıntısında isteğe bağlı token veya dolar kullanım uyarısı kur. Dolar eşiği API fiyat karşılığını kullanır. PLER çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
+4. Oturum ayrıntısında isteğe bağlı token veya dolar kullanım uyarısı kur. Dolar eşiği API fiyat karşılığını kullanır. Roodof çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
 
-**0.2.31 veya öncesinden geçiş:** eski uygulamayı kapatıp kurucuyu çalıştır veya taşınabilir ZIP’i yeni bir klasöre çıkar. Eski tarayıcı sürümünün güncelleyicisi masaüstüne geçişi kuramaz. Denetlenmiş özel yedeğini koru; kayıtlı PLER verisi uygulama klasöründen ayrı kalır. Masaüstü güncelleyici biçimi 2, gelecekteki uyumlu sürümler için korunur.
+**0.2.31 veya öncesinden geçiş:** eski uygulamayı kapatıp kurucuyu çalıştır veya taşınabilir ZIP’i yeni bir klasöre çıkar. Eski tarayıcı sürümünün güncelleyicisi masaüstüne geçişi kuramaz. Denetlenmiş özel yedeğini koru; kayıtlı Roodof verisi uygulama klasöründen ayrı kalır. Masaüstü güncelleyici biçimi 2, gelecekteki uyumlu sürümler için korunur.
 
-Beta ücretsizdir; PLER hesabı veya ödeme kaydı gerekmez. Türkçe ve İngilizce yardım pakete dahildir. Destek: plersolutions1st@gmail.com. Çalıştırılabilir dosya imzasızdır; temiz Windows ve gerçek kullanıcı kabulü en sondaki açık görevdir. [Masaüstü kapsamı](docs/DESKTOP.md) · [Güncelleme ayrıntıları](docs/UPDATES.md).
+Beta ücretsizdir; Roodof hesabı veya ödeme kaydı gerekmez. Türkçe ve İngilizce yardım pakete dahildir. Destek: plersolutions1st@gmail.com. Çalıştırılabilir dosya imzasızdır; temiz Windows ve gerçek kullanıcı kabulü en sondaki açık görevdir. [Masaüstü kapsamı](docs/DESKTOP.md) · [Güncelleme ayrıntıları](docs/UPDATES.md).
 
 ## Kurulum
 
@@ -59,13 +59,13 @@ pler report --json      # makinenin okuyacağı biçim
 pler demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
 ```
 
-**Kendi verin olmadan dene:** `pler demo`, uydurma Claude Code ve Codex kayıtlarıyla küçük bir Git deposunu PLER'in önbellek klasöründeki `demo` klasörüne yazar. Sayfa yalnız bu klasörü okur ve en üstte verilerin uydurma olduğunu söyler. Denemede şunlar görünür:
+**Kendi verin olmadan dene:** `pler demo`, uydurma Claude Code ve Codex kayıtlarıyla küçük bir Git deposunu Roodof'in önbellek klasöründeki `demo` klasörüne yazar. Sayfa yalnız bu klasörü okur ve en üstte verilerin uydurma olduğunu söyler. Denemede şunlar görünür:
 - iki ajan ve birkaç proje;
 - kota tahmini;
 - bir veri kalitesi uyarısı;
 - dalda olan ve olmayan commit'ler.
 
-Her **Kayıtları yeniden oku**, verileri şimdiki zamana göre yeniden kurar. Windows'un Python'suz paketinde aynı iş için `PLER-Demo.cmd` var.
+Her **Kayıtları yeniden oku**, verileri şimdiki zamana göre yeniden kurar. Windows'un Python'suz paketinde aynı iş için `Roodof-Demo.cmd` var.
 
 ## Oturumları yaptığın işe göre düzenle
 
@@ -98,13 +98,13 @@ Taşınabilir paketin terminal komutlarında `pler` yerine `PLER.cmd` kullanıl�
 
 ## Windows'ta WSL kayıt klasörleri
 
-PLER WSL dağıtımlarını otomatik aramaz. Dağıtımı kendiniz açıp kayıt kökünü `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` veya `--codex-dir` ile açıkça seçin. Hem `\\wsl.localhost\Ubuntu\...` hem `\\wsl$\Ubuntu\...` desteklenir. Ortam değişkenleri ajanın ana/ayar klasörünü, komut seçenekleri projects/sessions klasörünü gösterir.
+Roodof WSL dağıtımlarını otomatik aramaz. Dağıtımı kendiniz açıp kayıt kökünü `CLAUDE_CONFIG_DIR`, `CODEX_HOME`, `--claude-dir` veya `--codex-dir` ile açıkça seçin. Hem `\\wsl.localhost\Ubuntu\...` hem `\\wsl$\Ubuntu\...` desteklenir. Ortam değişkenleri ajanın ana/ayar klasörünü, komut seçenekleri projects/sessions klasörünü gösterir.
 
-PLER okumadan önce yalnız Windows System32 içindeki sabit `wsl.exe --list --running --quiet` durum sorgusunu çalıştırır. Kapalı veya durumu öğrenilemeyen dağıtım açıklamayla atlanır; başlatma, kurulum veya otomatik bulma komutu kullanılmaz. Okuyucu aşamasından önce durum yeniden denetlenir. Durum kontrolü ile Windows dosya erişimi arasında dağıtımın başka bir işlem tarafından kapatılmasına karşı atomik yalıtım sağlanmaz.
+Roodof okumadan önce yalnız Windows System32 içindeki sabit `wsl.exe --list --running --quiet` durum sorgusunu çalıştırır. Kapalı veya durumu öğrenilemeyen dağıtım açıklamayla atlanır; başlatma, kurulum veya otomatik bulma komutu kullanılmaz. Okuyucu aşamasından önce durum yeniden denetlenir. Durum kontrolü ile Windows dosya erişimi arasında dağıtımın başka bir işlem tarafından kapatılmasına karşı atomik yalıtım sağlanmaz.
 
 Git/proje ve önbellek yolları ile kayıt klasörünün içindeki bağlantılar daha sıkı kurallarını korur. Yerel bir bağlantı taramayı sessizce WSL'ye ya da ağ paylaşımına yönlendiremez. Gerçek UNC, aygıt ve birim yolları sorgulanmadan reddedilir.
 
-Alternatif olarak PLER'i WSL içinde çalıştırıp Windows kayıt klasörlerini `/mnt/c` üzerinden aynı seçeneklerle seçebilirsiniz. Önbelleği Linux ortamında tutun. Bu yol normal yerel bağlama yollarını kullanır; Windows WSL durum sorgusu gerekmez.
+Alternatif olarak Roodof'i WSL içinde çalıştırıp Windows kayıt klasörlerini `/mnt/c` üzerinden aynı seçeneklerle seçebilirsiniz. Önbelleği Linux ortamında tutun. Bu yol normal yerel bağlama yollarını kullanır; Windows WSL durum sorgusu gerekmez.
 
 ## Ne gösterir
 
@@ -123,9 +123,9 @@ Arama yalnız oturum listesini daraltır. Sayfanın üstündeki özet ve indiril
 
 **API liste fiyatıyla**, kayıtlı yanıtların sağlayıcıların yayımlanmış standart fiyatlarıyla ne tutacağını gösterir. Fiyatlar tarihleriyle birlikte pakete gömülüdür; her yanıt kendi modeli ve istem büyüklüğüyle fiyatlanır. Bunu aboneliğine ödediğin tutarla karşılaştır; fatura değildir. Eksik model fiyatı, bilinmeyen önbelleğe yazma süresi veya çelişen fiyat bilgisi bir yanıtı fiyatlama dışında bırakabilir; tokenları toplamda kalır ve fiyatlanan pay gösterilir. Bakım için [uyumluluk kaydı](docs/COMPATIBILITY.md), desteklenen örnekleri ve tarihli fiyat kontrollerini tutar.
 
-**İşe yaradı mı?** Bir oturumu tek tıkla **İşe yaradı** ya da **Boşa gitti** diye işaretle (listede veya ayrıntısında). PLER seçimdeki tokenları ve liste fiyatı karşılığını değerlendirmeye göre toplar; böylece boşa giden oturumların neye mal olduğunu görürsün. Değerlendirmeler yalnız bu bilgisayarda saklanır; PLER hiçbirini tahmin etmez.
+**İşe yaradı mı?** Bir oturumu tek tıkla **İşe yaradı** ya da **Boşa gitti** diye işaretle (listede veya ayrıntısında). Roodof seçimdeki tokenları ve liste fiyatı karşılığını değerlendirmeye göre toplar; böylece boşa giden oturumların neye mal olduğunu görürsün. Değerlendirmeler yalnız bu bilgisayarda saklanır; Roodof hiçbirini tahmin etmez.
 
-**Ajanların çalıştırdığı testler ve derlemeler.** PLER, ajan kayıtlarındaki test ve derleme komutlarını tanır ve her oturumda görünen son çalıştırmanın nasıl bittiğini gösterir. Komut metni yalnız bellekte okunur, hiçbir yerde saklanmaz. Ajan çıktıyı başka bir komuta aktardıysa (örneğin `| tail`) çıkış kodu testin kendisine ait olmaz; sonuç görünmüyor diye gösterilir.
+**Ajanların çalıştırdığı testler ve derlemeler.** Roodof, ajan kayıtlarındaki test ve derleme komutlarını tanır ve her oturumda görünen son çalıştırmanın nasıl bittiğini gösterir. Komut metni yalnız bellekte okunur, hiçbir yerde saklanmaz. Ajan çıktıyı başka bir komuta aktardıysa (örneğin `| tail`) çıkış kodu testin kendisine ait olmaz; sonuç görünmüyor diye gösterilir.
 
 **Dönem içindeki tarihli kullanım**, tam, belirsizliği giderilmiş ve zamanlı yanıt kayıtlarının ayrı, temkinli görünümüdür. Birikimli toplamlar ve çözülemeyen geçmiş tarihlere dağıtılamaz; kapsam sayılarıyla dışlanır. Aralık taramanın sabit gözlem zamanında biter. Seçilen etkin oturumların tam toplamının yerine geçmez ve hesabın eksiksiz kapsandığını kanıtlamaz. Sayfa ve terminal bunu yalnız seçilen her oturumun kullanımı tarihlenebildiğinde gösterir; aksi hâlde JSON dışa aktarımı kapsam sayılarıyla taşır.
 
@@ -151,9 +151,9 @@ Oturumu açınca, ilk ve son kaydı arasındaki yerel Git hareketleri de görün
 
 Böylece üst klasörde başlatılan bir ajan da değiştirdiği depoya bağlanır. Depo yolları yalnız bellekte tutulur; sayfada yalnız kaç depoya bakıldığı görünür.
 
-Oturum sırasında kaydedilen her commit için PLER, commit'in hâlâ yerel ya da uzak izleme dalında durup durmadığını da kontrol eder. Commit düzeltilmiş (amend), yeniden sıralanmış (rebase), reset edilmiş ya da silinen bir dalda kalmış olabilir. Bunun için commit nesnelerinin yalnız ebeveyn bağları ve zamanları okunur; isim ve mesaj okunmaz. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
+Oturum sırasında kaydedilen her commit için Roodof, commit'in hâlâ yerel ya da uzak izleme dalında durup durmadığını da kontrol eder. Commit düzeltilmiş (amend), yeniden sıralanmış (rebase), reset edilmiş ya da silinen bir dalda kalmış olabilir. Bunun için commit nesnelerinin yalnız ebeveyn bağları ve zamanları okunur; isim ve mesaj okunmaz. `gitdir` dosyası kullanan worktree ve alt depolar desteklenir. Filtre değiştirmek Git dosyalarını yeniden okutmaz.
 
-Güncel HEAD geçmişinde duran bu commit'ler için PLER, ekledikleri satırların kaçının HEAD'de hâlâ yerinde olduğunu da sayar. Değişen dosyaları Git'in kendi nesnelerinden yalnız bellekte okur ve yalnız sayıları tutar. Birleştirmeler, ilk commit'ler, ikili ve çok büyük dosyalar dışarıda kalır. Yerinde yeniden yazılan satır ya da taşınan dosya yerinde sayılmaz. Ayrıntı [hesap kurallarında](ACCOUNTING.md#lines-still-in-place-0219).
+Güncel HEAD geçmişinde duran bu commit'ler için Roodof, ekledikleri satırların kaçının HEAD'de hâlâ yerinde olduğunu da sayar. Değişen dosyaları Git'in kendi nesnelerinden yalnız bellekte okur ve yalnız sayıları tutar. Birleştirmeler, ilk commit'ler, ikili ve çok büyük dosyalar dışarıda kalır. Yerinde yeniden yazılan satır ya da taşınan dosya yerinde sayılmaz. Ayrıntı [hesap kurallarında](ACCOUNTING.md#lines-still-in-place-0219).
 
 Ekrana ve JSON'a yalnız olay zamanı, sabit işlem türü, commit'in hâlâ dalda olup olmadığı, satır sayıları ve hedef commit'in ilk sekiz karakteri gider. Yazar adı, e-posta, commit mesajı, dal adı, dosya adları, dosya içerikleri ve Git ayarları dahil edilmez. Git komutu çalıştırılmaz ve bu bilgiler kalıcı önbelleğe yazılmaz. Kalıcı önbellekteki tek Git kaynaklı veri, ölçülen her commit için dört satır sayısıdır (`git-survival.json`). Her biri depo klasörü, HEAD ve commit'in tek yönlü özetiyle saklanır; böylece yeniden başlatmada aynı dosyalar tekrar okunmaz. Bu dosyaya yol, commit kimliği, ad ya da metin yazılmaz.
 
@@ -168,12 +168,12 @@ pler statusline --install
 ```
 
 - **Ne olur:** Claude Code'un `settings.json` dosyasına hangi satırın ekleneceği gösterilir ve onayın sorulur. Önce dosyanın bir yedeği alınır.
-- **Mevcut durum satırın varsa:** Ona dokunulmaz. Kendi betiğinden PLER'e nasıl veri verebileceğin yazılır.
-- **Sonrasında:** Claude Code'un alt satırında `bağlam %37 · 5 saat %24 · hafta %41` gibi bir satır görünür. PLER bu satırdan yalnız kota yüzdelerini ve sıfırlanma zamanlarını, değiştiklerinde önbellek klasörüne yazar; konuşma, klasör ve oturum bilgisi saklanmaz.
+- **Mevcut durum satırın varsa:** Ona dokunulmaz. Kendi betiğinden Roodof'e nasıl veri verebileceğin yazılır.
+- **Sonrasında:** Claude Code'un alt satırında `bağlam %37 · 5 saat %24 · hafta %41` gibi bir satır görünür. Roodof bu satırdan yalnız kota yüzdelerini ve sıfırlanma zamanlarını, değiştiklerinde önbellek klasörüne yazar; konuşma, klasör ve oturum bilgisi saklanmaz.
 - **Ekranda:** Claude Code kotası Codex'inki gibi "ne zaman dolar" tahminiyle görünür.
 - **Geri almak için:** `pler statusline --remove`
 
-Yalnız mevcut PLER kurulumunun ürettiği, değiştirilmemiş satır kaldırılır. Özel betik, düzenlenmiş satır veya başka kurulum yoluna işaret eden komut korunur. Onay beklerken değişen ayarın üzerine yazılmaz; kontrol ettikten sonra yeniden dene.
+Yalnız mevcut Roodof kurulumunun ürettiği, değiştirilmemiş satır kaldırılır. Özel betik, düzenlenmiş satır veya başka kurulum yoluna işaret eden komut korunur. Onay beklerken değişen ayarın üzerine yazılmaz; kontrol ettikten sonra yeniden dene.
 
 ## Neyi okur
 
@@ -182,15 +182,15 @@ Yalnız mevcut PLER kurulumunun ürettiği, değiştirilmemiş satır kaldırıl
 | Claude Code | `~/.claude/projects`, `~/.config/claude/projects` | `CLAUDE_CONFIG_DIR` |
 | Codex | `~/.codex/sessions`, `~/.codex/archived_sessions` (sıkıştırılmış olanlar dahil) | `CODEX_HOME` |
 
-Bu klasörlerden birini başka bir diske taşıyıp yerine bir bağlantı (sembolik bağlantı veya Windows junction'ı) bıraktıysan, PLER bu bağlantıyı izleyip asıl yerel klasörü okur. Kayıt klasörlerinin içindeki bağlantılar ve ağ konumuna giden bağlantılar izlenmez.
+Bu klasörlerden birini başka bir diske taşıyıp yerine bir bağlantı (sembolik bağlantı veya Windows junction'ı) bıraktıysan, Roodof bu bağlantıyı izleyip asıl yerel klasörü okur. Kayıt klasörlerinin içindeki bağlantılar ve ağ konumuna giden bağlantılar izlenmez.
 
 Codex'in sıkıştırılmış kayıtları ek kurulum gerektirmeden okunur. Python 3.14 ve üstünde standart kütüphane bunları hızlı açar. Daha eski Python'da isteğe bağlı `zstandard` çözücüsü bu kaynak kopyadan `pip install ".[fast]"` ile kurulabilir; bu ekin kurulması bağımlılık indirebilir. İkisi de yoksa yerleşik çözücü çalışır ama yavaştır: bir test bilgisayarında geçmiş bir adayın ilk okuması 7 yerine 23 saniye sürdü. Bu değerler güncel aday veya başka geçmiş için hız garantisi değildir. Sonraki okumalar önbellekten gelir.
 
-Bağımlılıksız okuyucuda tekrarlanan sayaç karşılaştırmaları ve önbelleğin yazılması iyileştirildi. Büyük arşivlerin ilk okunması hâlâ zaman alır; [hız doğrulaması](../reports/cold-start-v1/REPORT.md), boş PLER önbelleğiyle okumayı sonraki okumalardan ayrı ölçer.
+Bağımlılıksız okuyucuda tekrarlanan sayaç karşılaştırmaları ve önbelleğin yazılması iyileştirildi. Büyük arşivlerin ilk okunması hâlâ zaman alır; [hız doğrulaması](../reports/cold-start-v1/REPORT.md), boş Roodof önbelleğiyle okumayı sonraki okumalardan ayrı ölçer.
 
 [Önceki kaynak ölçek kontrolü](../reports/scale-v1/REPORT.md), 102,61 MiB açılmış yapay kayıt, 385 oturum, Git, 200 iş ve 20.000 bağlantı kullanır. Bir Windows bilgisayarında tam taramadan ilk kullanılabilir JSON raporuna ortanca süre Python 3.14'te 8,85 sn, Python 3.12/3.9 uyumluluk çözücüsünde 20,09/27,50 sn; değişmeyen yenileme 2,23–2,62 sn oldu. Sürüm başına üç koşuda sayım korundu ve sabit hedefler karşılandı. [Daha sonraki güncel kaynak kontrolü](../reports/compatibility-v1/REPORT.md) tek koşuda sayımı korudu fakat yenileme/Git/HTTP hedeflerini aştı; güncel performans kabulü açık. Görsel ilk boyama ölçülmedi, işletim sistemi disk önbelleği temizlenmedi; başka geçmiş/platform için hız garantisi değildir. Kaynak kabulü yayımlanmış paketten ayrıdır.
 
-Değişmeyen Claude Code ve Codex kayıtlarının üst bilgileri önbellekte tutulur; sonraki okumada özgün konuşma tekrar ayrıştırılmaz. Yalnızca sonuna ekleme yapılmış düz bir kayıt, örneğin hâlâ çalışan bir ajanın kaydı, son okumanın bittiği yerden okunmaya devam eder. Bunun için dosyanın aynı dosya olması, ilk baytlarının ve o noktaya kadarki baytlarının değişmemiş olması gerekir; aksi hâlde kayıt baştan okunur. Sıkıştırılmış Codex kayıtları her zaman baştan okunur. Sayfa açık kaldığı sürece, hiçbir kaydın, bulunan klasörlerin ve PLER'in önbellek, arşiv ve saklama dosyalarının değişmediği bir yenileme önceki sonucu en çok bir saat yeniden kullanır. Önbellek sayı, zaman, kimlik, proje yolu ve araç üst bilgisi içerir; istek, yanıt, komut ve araç çıktısı metni içermez. Özel yerel üst bilgidir, anonim dosya değildir. Yeri:
+Değişmeyen Claude Code ve Codex kayıtlarının üst bilgileri önbellekte tutulur; sonraki okumada özgün konuşma tekrar ayrıştırılmaz. Yalnızca sonuna ekleme yapılmış düz bir kayıt, örneğin hâlâ çalışan bir ajanın kaydı, son okumanın bittiği yerden okunmaya devam eder. Bunun için dosyanın aynı dosya olması, ilk baytlarının ve o noktaya kadarki baytlarının değişmemiş olması gerekir; aksi hâlde kayıt baştan okunur. Sıkıştırılmış Codex kayıtları her zaman baştan okunur. Sayfa açık kaldığı sürece, hiçbir kaydın, bulunan klasörlerin ve Roodof'in önbellek, arşiv ve saklama dosyalarının değişmediği bir yenileme önceki sonucu en çok bir saat yeniden kullanır. Önbellek sayı, zaman, kimlik, proje yolu ve araç üst bilgisi içerir; istek, yanıt, komut ve araç çıktısı metni içermez. Özel yerel üst bilgidir, anonim dosya değildir. Yeri:
 - Windows: `%LOCALAPPDATA%\pler`
 - macOS: `~/Library/Caches/pler`
 - Linux: `~/.cache/pler`
@@ -201,19 +201,19 @@ Okuyucuyu veya doğrulama yardımcılarını değiştiren güncellemeden sonra i
 
 ### Kayıtlar silindikten sonra geçmiş
 
-Claude Code varsayılan olarak 30 günden eski konuşmaları siler. Aylık karşılaştırmalar sessizce küçülmesin diye PLER, çıkardığı üst bilgiyi önbelleğin yanındaki bir arşivde (`metadata-archive.json`) tutar. Kayıt silinince oturumları sayılmaya devam eder. Sayfada ve dışa aktarmada "Kaynak silindi · PLER arşivinden" diye işaretlenirler.
+Claude Code varsayılan olarak 30 günden eski konuşmaları siler. Aylık karşılaştırmalar sessizce küçülmesin diye Roodof, çıkardığı üst bilgiyi önbelleğin yanındaki bir arşivde (`metadata-archive.json`) tutar. Kayıt silinince oturumları sayılmaya devam eder. Sayfada ve dışa aktarmada "Kaynak silindi · Roodof arşivinden" diye işaretlenirler.
 - **Ne tutulur:** Önbellektekiyle aynı alanlar: sayılar, zamanlar, kimlikler, modeller, proje yolları, dal adları ve düzenlenen dosya yolları. İstek, yanıt, komut ve araç çıktısı tutulmaz.
 - **Hangi klasörler:** Varsayılan klasörler ile `CLAUDE_CONFIG_DIR` ya da `CODEX_HOME` ile seçilenler. `--claude-dir`/`--codex-dir` ile verilen klasörler okunur ama arşivlenmez.
 - **Sınırlar:** 365 gün görülmeyen dosya düşer. Arşiv en çok 2.048 dosya ve 64 MB tutar, önce en eskiler gider; kapsam kaybı sayfada söylenir.
 - **Denetim:** Kaynak kayıtları hâlâ canlıyken de sayfada saklama durumu görünür. `pler archive off` saklanan geçmişi silmeden arşiv kullanımını ve yeni saklamayı durdurur; `pler archive on` yeniden açar. Canlı kaynaklar yine okunabilir. Saklamayı durdurmak ile kalıcı olarak silmek farklı işlemlerdir.
 - **Kopyalar:** Arşivdeki yanıtları kopyalayan devam oturumu bir kez sayılır. Eski okuyucuyla çıkarılmış ya da kaynağı yerinde olduğu hâlde okunamayan arşiv verisi kalite uyarısıyla gösterilir.
-- **Silmek:** Sayfadaki **PLER arşivini sil** düğmesi (önce onay ister) ya da `pler archive clear`. Ajan kayıtlarına ve kota örneklerine dokunulmaz. Silinmiş kayıtların kopyaları sonra geri getirilemez.
+- **Silmek:** Sayfadaki **Roodof arşivini sil** düğmesi (önce onay ister) ya da `pler archive clear`. Ajan kayıtlarına ve kota örneklerine dokunulmaz. Silinmiş kayıtların kopyaları sonra geri getirilemez.
 
-PLER'i kaldırmak özel veri klasörünü kendiliğinden silmez. Arşivin özel yedeğini almadan önce PLER'i kapat. Destek kaydına önbellek veya arşiv ekleme.
+Roodof'i kaldırmak özel veri klasörünü kendiliğinden silmez. Arşivin özel yedeğini almadan önce Roodof'i kapat. Destek kaydına önbellek veya arşiv ekleme.
 
 ## Güven ve veri kalitesi
 
-Ekran tarihli bir anlık görüntü gösterir. Kısa pencerelerde 30 dakikadan, günlük/haftalık pencerelerde 24 saatten eski ölçümlerden tahmin çıkarılmaz. Bunlar sağlayıcının kuralları değil, PLER'in temkinli güncellik sınırlarıdır. Sıfırlanma veya tahmini dolma zamanı geçtiyse güncel doluluk bilinmiyor diye gösterilir. Açık sayfa bu etiketleri kendi saatiyle günceller; hesabı sorgulamaz. Kayıtları yalnız **Kayıtları yeniden oku** ile ya da **Kotayı canlı izle** açıkken yeniden okur.
+Ekran tarihli bir anlık görüntü gösterir. Kısa pencerelerde 30 dakikadan, günlük/haftalık pencerelerde 24 saatten eski ölçümlerden tahmin çıkarılmaz. Bunlar sağlayıcının kuralları değil, Roodof'in temkinli güncellik sınırlarıdır. Sıfırlanma veya tahmini dolma zamanı geçtiyse güncel doluluk bilinmiyor diye gösterilir. Açık sayfa bu etiketleri kendi saatiyle günceller; hesabı sorgulamaz. Kayıtları yalnız **Kayıtları yeniden oku** ile ya da **Kotayı canlı izle** açıkken yeniden okur.
 
 Tamamen okunamayan Claude Code ve Codex dosyaları sayılır. Bozuk JSON, geçersiz kayıt kimliği veya yarım kalmış son satır varsa sağlam satırlar korunur; toplamın eksik olabileceği belirtilir. Her iki ajanın dosyası önbellekten okunurken de uyarı korunur. Hiç kayıt olmaması ile eksik okuma ayrılır. Geçersiz kota sayıları reddedilir. Bulunan dosya sayısı, her konuşma satırının geçerli veya her ajan sürümünün desteklendiği anlamına gelmez.
 
@@ -223,7 +223,7 @@ Claude kayıtları sabit kimlik veriyorsa kopyalanmış istek ve araç çağrıl
 
 Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirilen özet ve `pler report --json --sessions`; kaynak dosya yolu, ham oturum kimliği, dal adı, düzenlenen dosyaların yolları ve kayıttaki serbest notları içermez. Kısaltılmış proje adları, zamanlar, model adları ve sayılar içerir; anonim paylaşım dosyası değildir. Ayrıntılı terminal JSON'u ekranla aynı oturum alanlarını kullanır. Günlük harcama çağrıştıran `days` dizisi kaldırılmıştır: dönem, etkin oturumları seçer ve bu oturumların tamamının toplamını içerir.
 
-Bu deponun kökünden güncellerken PLER'i kapat, `pip install --upgrade .` çalıştır ve yeniden aç. Depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pip install --upgrade ./product` kullan. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için PLER'i yeniden başlat. Güncelleme ve geri dönüşte saklanan geçmiş korunmalıdır. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
+Bu deponun kökünden güncellerken Roodof'i kapat, `pip install --upgrade .` çalıştır ve yeniden aç. Depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pip install --upgrade ./product` kullan. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için Roodof'i yeniden başlat. Güncelleme ve geri dönüşte saklanan geçmiş korunmalıdır. Sürüm ve JSON değişiklikleri [değişiklik kaydında](CHANGELOG.md) listelenir.
 
 [Kalite kaydı](QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta Python 3.9–3.14 ile geçiyor. İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
 

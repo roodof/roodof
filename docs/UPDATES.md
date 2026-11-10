@@ -1,3 +1,9 @@
+# Roodof 0.9.29 — ürün adı değişikliği
+
+PLER ürününün yeni adı Roodof. Görünen uygulama, masaüstü pencere/kurulum, yardım ve site adı güncellendi. Mevcut geçmiş, yedek biçimleri, imza güven kökü ve eski indirme/güncelleme adresleri uyumluluk için korunur. Önceki sürüm kayıtları tarihsel adlarını korur. 400 seçici değişmedi; gerçek ortam kabulü Q01 SON/açık.
+
+---
+
 # Windows portable updates — desktop format 2; historical format 1
 
 Desktop beta 0.9.28 uses updater compatibility 2. Usage/work/backup formats stay

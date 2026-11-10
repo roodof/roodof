@@ -1,4 +1,4 @@
-"""Dated, reconciled response usage from metadata already read by PLER.
+"""Dated, reconciled response usage from metadata already read by Roodof.
 
 This is never a provider ledger or an allocation of whole-session totals.
 Cumulative residuals have no event here. No files, Git, clock or identifiers
