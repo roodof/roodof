@@ -8,6 +8,20 @@ The updater remains format2, usage schema2, work3, backup1. Its signed feed reta
 
 Publication artifacts, exact hashes, checks, GitHub source commit and live results are recorded in `../../reports/publish-0.9.21/REPORT.md`. Independent clean-Windows installation/update/removal, real-agent/WSL acceptance, real user value and license/signing decisions remain open. Source stays private; the public GitHub distribution repo holds binaries and release documentation only. Previous downloads retain immutable filenames and bytes.
 
+## Publication verified — 10 November 2026
+
+[English Site](https://pler-local-usage.oguzay5555.chatgpt.site/) · [Türkçe](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) · [GitHub beta release](https://github.com/OguzayYildiz/pler-downloads/releases/tag/v0.9.21).
+
+The live installer, portable ZIP and Python wheel were downloaded and verified, together with all10historical downloads. The signed updater feed uses the existing trust key and expires8February2027. EN/TR1440px/390px pages, installer hash feedback, release details and no-JavaScript download links passed.931Python tests ran with5skips and no failures;25Site checks passed. Native package integrity/startup/shutdown passed. These checks do not replace independent clean-Windows or real-user acceptance.
+
+| Download | Bytes | SHA-256 |
+| --- | ---: | --- |
+| PLER-Setup-0.9.21.exe | 169755136 | `89c2d6f9434cb08c08c60ddb9d9d76694100d42c537891d41b9956b138bb60c6` |
+| PLER-0.9.21-windows-x64.zip | 169587230 | `478b5a31ff1ccd8ea05dded0c27b3db98468366a7d2cbc3d6e2e5830cf9d9250` |
+| pler-0.9.21-py3-none-any.whl | 969794 | `cada245473622289a0f80924ab510ec3c658cbe17edc6cd01b56c1173b950fd9` |
+
+Source remains private. The public distribution repository contains release parts, optional wheel, signed metadata and checksums. Complete Windows downloads are streamed by the Site as ordinary same-origin files. Previous public bytes were preserved.
+
 The older records below describe previous releases and checks; they are not current0.9.21acceptance.
 
 ---
@@ -18,7 +32,7 @@ This is the maintainer's release procedure and evidence record. The current publ
 
 **Local candidate, 9 November 2026 — 0.9.13:** in-app trusted-backup review, explicit new-folder restoration and desktop history selection/return. Normal desktop launches remember the choice; explicit data-folder launches remain process-scoped. The previous source is preserved at `0948eb4` / `candidate/0.9.12`; the new source receives its own local candidate record. [Recovery contract](HISTORY-RECOVERY.md) and [package/developer evidence](../../reports/history-recovery-v1/REPORT.md). Source records are local only. Public Site/download/feed remain 0.9.11. Q01 clean-Windows/real-user acceptance is still the final task; licensing and Windows signing remain separate open decisions.
 
-**Current free desktop beta: 0.9.11.** The owner requested matching the Site, download and first-use experience. The existing public [PLER Site](https://pler-local-usage.oguzay5555.chatgpt.site/) now serves the Windows x64 desktop ZIP and matching terminal/browser wheel in English and Turkish. The desktop ZIP is 169,550,182 bytes; SHA-256 `62a704f08a155a85dbbc0c389f99024e49bbf1bed2ff2a3a8b7c1f9d94056f85`. The old 0.2.28–0.2.31 download URLs and bytes are preserved. [Publication and verification](../../reports/beta-alignment-v1/REPORT.md).
+**Historical free desktop beta: 0.9.11 (8 November 2026).** The owner requested matching the Site, download and first-use experience. The existing public [PLER Site](https://pler-local-usage.oguzay5555.chatgpt.site/) now serves the Windows x64 desktop ZIP and matching terminal/browser wheel in English and Turkish. The desktop ZIP is 169,550,182 bytes; SHA-256 `62a704f08a155a85dbbc0c389f99024e49bbf1bed2ff2a3a8b7c1f9d94056f85`. The old 0.2.28–0.2.31 download URLs and bytes are preserved. [Publication and verification](../../reports/beta-alignment-v1/REPORT.md).
 
 The first move from browser-era 0.2.31 or earlier is manual: close it, keep a checked private backup, and extract the entire desktop ZIP into a new folder. Desktop updater compatibility is 2; usage schema 2, work format 3 and backup format 1 remain unchanged. The same pinned owner key signs the release feed, expiring 6 February 2027; this is separate from Windows executable signing. Windows Authenticode, product distribution-license decisions, clean-Windows/real-user acceptance and physical platform checks remain open. Q01 remains the final task. Publishing this free beta does not establish demand, savings or production readiness. No messages or invitations were sent.
 

@@ -15,16 +15,14 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 For the Windows installer, close PLER, run **PLER-Setup-0.9.21.exe**, then open PLER from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with PLER-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
 
-
-
-**Free Windows desktop beta 0.9.11.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
+**Optional portable edition.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
 
 1. To explore invented records first, open `PLER-Demo.cmd`. Close the demo before opening your own records with `PLER.exe`; demo work is temporary.
 2. Choose **See your sessions** after PLER finds local Claude Code or Codex records. If none appear, widen the filters or use **Add a log folder** for a different installation or an already running WSL distribution. ChatGPT web conversations are outside this reader.
 3. Create a named item in **My work**, then link a session from its details. The work total covers whole linked sessions; it is not an exact task cost.
-4. In a session's details, set an optional token or API list-price-equivalent budget. PLER warns at 80% and 100% while running. It monitors up to 20 selected sessions, approximately every 10 seconds; it does not stop the agent. Dollar figures are not your subscription bill.
+4. In a session's details, set an optional token or dollar usage alert. Dollar thresholds use the API price equivalent. PLER warns at 80% and 100% while running. It monitors up to 20 selected sessions, approximately every 10 seconds; it does not stop the agent. Dollar figures are not your subscription bill.
 
-**Upgrading from 0.2.31 or earlier:** close the old app and extract this desktop ZIP into a new folder. The browser-era updater cannot install the desktop transition. Keep a checked private backup; saved PLER data stays separate from the package. Desktop updater format 2 is retained for compatible future releases.
+**Upgrading from 0.2.31 or earlier:** close the old app and run the installer, or extract the portable ZIP into a new folder. The browser-era updater cannot install the desktop transition. Keep a checked private backup; saved PLER data stays separate from the package. Desktop updater format 2 is retained for compatible future releases.
 
 The beta is free, requires no PLER account and has no payment signup. Help is included in English and Turkish. Support: plersolutions1st@gmail.com. The executable is unsigned; clean-Windows and real-user acceptance remain the final pending task. [Desktop scope](docs/DESKTOP.md) · [Update details](docs/UPDATES.md).
 

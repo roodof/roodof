@@ -15,16 +15,14 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 Windows kurulumu için PLER’i kapat, **PLER-Setup-0.9.21.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. PLER-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
 
-
-
-**Ücretsiz Windows masaüstü betası 0.9.11.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
+**İsteğe bağlı taşınabilir sürüm.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 
 1. Önce uydurma kayıtları incelemek için `PLER-Demo.cmd` dosyasını aç. Kendi kayıtlarını `PLER.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
 2. PLER yerel Claude Code veya Codex kayıtlarını bulunca **Oturumlarını gör** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
 3. **İşlerim** bölümünde adlandırılmış bir iş oluştur, oturum ayrıntısından bu işe bağla. Toplam bağlı oturumların tamamını kapsar; görevin kesin maliyeti değildir.
-4. Oturum ayrıntısında isteğe bağlı token veya API liste fiyatı karşılığı bütçe koy. PLER çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
+4. Oturum ayrıntısında isteğe bağlı token veya dolar kullanım uyarısı kur. Dolar eşiği API fiyat karşılığını kullanır. PLER çalışırken %80 ve %100 seviyelerinde uyarır. Seçilen en fazla 20 oturum yaklaşık 10 saniyede bir izlenir; ajan durdurulmaz. Dolar değeri abonelik faturası değildir.
 
-**0.2.31 veya öncesinden geçiş:** eski uygulamayı kapat, masaüstü ZIP paketini yeni bir klasöre çıkar. Eski tarayıcı sürümünün güncelleyicisi masaüstüne geçişi kuramaz. Denetlenmiş özel yedeğini koru; kayıtlı PLER verisi uygulama klasöründen ayrı kalır. Masaüstü güncelleyici biçimi 2, gelecekteki uyumlu sürümler için korunur.
+**0.2.31 veya öncesinden geçiş:** eski uygulamayı kapatıp kurucuyu çalıştır veya taşınabilir ZIP’i yeni bir klasöre çıkar. Eski tarayıcı sürümünün güncelleyicisi masaüstüne geçişi kuramaz. Denetlenmiş özel yedeğini koru; kayıtlı PLER verisi uygulama klasöründen ayrı kalır. Masaüstü güncelleyici biçimi 2, gelecekteki uyumlu sürümler için korunur.
 
 Beta ücretsizdir; PLER hesabı veya ödeme kaydı gerekmez. Türkçe ve İngilizce yardım pakete dahildir. Destek: plersolutions1st@gmail.com. Çalıştırılabilir dosya imzasızdır; temiz Windows ve gerçek kullanıcı kabulü en sondaki açık görevdir. [Masaüstü kapsamı](docs/DESKTOP.md) · [Güncelleme ayrıntıları](docs/UPDATES.md).
 
