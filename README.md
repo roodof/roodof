@@ -11,9 +11,9 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 ## Windows beta quick start
 
-**Free Windows beta 0.9.21 — 10 November 2026:** [Download the installer](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://pler-local-usage.oguzay5555.chatgpt.site/). [Installation and updates](docs/SETUP.md).
+**Free Windows beta 0.9.28 — 10 November 2026:** [Download the installer](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.28.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://pler-local-usage.oguzay5555.chatgpt.site/). [Installation and updates](docs/SETUP.md).
 
-For the Windows installer, close PLER, run **PLER-Setup-0.9.21.exe**, then open PLER from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with PLER-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
+For the Windows installer, close PLER, run **PLER-Setup-0.9.28.exe**, then open PLER from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with PLER-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
 
 **Optional portable edition.** Download the Windows x64 ZIP from [the PLER site](https://pler-local-usage.oguzay5555.chatgpt.site/), extract the entire package into a new folder and open `PLER.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
 

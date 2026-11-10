@@ -11,9 +11,9 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Ücretsiz Windows betası 0.9.21 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
+**Ücretsiz Windows betası 0.9.28 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.28.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
 
-Windows kurulumu için PLER’i kapat, **PLER-Setup-0.9.21.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. PLER-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
+Windows kurulumu için PLER’i kapat, **PLER-Setup-0.9.28.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. PLER-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
 
 **İsteğe bağlı taşınabilir sürüm.** [PLER sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `PLER.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 
