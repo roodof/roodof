@@ -1,5 +1,7 @@
 # Roodof 0.9.29 — ürün adı değişikliği
 
+Site V13 ve GitHub ön sürümü yayımlandı. Canlı 19 indirme (16 eski), yeni Roodof adresleri ve EN/TR sayfalar doğrulandı. Kanıt: ../../reports/rebrand-roodof-v1/REPORT.md.
+
 PLER ürününün yeni adı Roodof. Görünen uygulama, masaüstü pencere/kurulum, yardım ve site adı güncellendi. Mevcut geçmiş, yedek biçimleri, imza güven kökü ve eski indirme/güncelleme adresleri uyumluluk için korunur. Önceki sürüm kayıtları tarihsel adlarını korur. 400 seçici değişmedi; gerçek ortam kabulü Q01 SON/açık.
 
 ---
