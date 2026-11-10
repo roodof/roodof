@@ -1,6 +1,6 @@
 # Windows portable updates — desktop format 2; historical format 1
 
-Desktop beta 0.9.11 uses updater compatibility 2. Usage/work/backup formats stay
+Desktop beta 0.9.28 uses updater compatibility 2. Usage/work/backup formats stay
 unchanged. Electron requires bounded 256 MiB compressed, 768 MiB expanded and 256 MiB member
 limits. The website/feed alignment is recorded in reports/beta-alignment-v1; older release bytes remain unchanged. Transition from 0.2.31 requires manual
 extraction into a new folder. Desktop restart keeps --desktop, candidate probes require the

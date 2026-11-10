@@ -1,5 +1,7 @@
 # Sade iş bağlantısı ve gruplu Ayarlar — 0.9.15
 
+0.9.26 yerel aday: Ayarlar dört gruptur: Genel, Kayıt kaynakları, Kullanım uyarıları, Yedek ve destek. Dil, yardım ve güncellemeler Genel altındadır; üst Close kaldırıldı. Aşağıdaki önceki sürüm notları tarihseldir.
+
 Oturum ayrıntısında bağlı işler ve ayırma kontrolleri görünür. Bir işe bağla/başka bir işe bağla açılır bölümü, seçilen mevcut/yeni iş formunu gösterir. Bağlanabilecek iş yoksa yeni iş formu tek seçenektir. Açılma, mod, başlık taslağı ve seçilen iş çalışma belleğinde oturum bazındadır; gruplama yeni kalıcı veri biçimi üretmez. Katlama ve yeniden çizim taslağı korur. Başarısız kayıtta mevcut bağlantı değişmez. İşlerim → Oturum ekle, seçilen işi doldurup düzenleyiciyi açar. İş seçicisi ve400 sınırı aynı dosya/baytlardadır.
 
 Ayarlar, mevcut form düğümlerini bir kez üç tab paneline taşır:

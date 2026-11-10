@@ -1,3 +1,9 @@
+# Güncel yayın —0.9.28
+
+Ayarlar→Genel, ayrı Kayıt incelemesi, toplam/uyarı sayacı, grafik/oturum ve Windows pencere uyumu yeni yayında eşitlenir. Kanıt ../../reports/publish-0.9.28/REPORT.md. Q01gerçek ortam kabulü SON/açık, E01değer veR02lisans/imza açık;400aynı. Aşağıdaki sürüm notları tarihseldir.
+
+---
+
 # Güncel öncelik listesi — frontend, backend ve girişimci bakışları
 
 **10 Kasım 2026 yayın güncellemesi:** Ücretsiz beta0.9.21; Windows kurucusu ana indirme, ZIP/Python isteğe bağlı. Önceki sürüm/yayın kayıtları aşağıda tarihsel kanıttır.400 seçici ertelenmiş durumda. Gerçek ajan/WSL/kullanıcı/temiz Windows kabulü Q01/SON; E01değer veR02lisans/imza kararları açık.
@@ -25,6 +31,30 @@ Bu tablo son kaynak incelemesinin güncel iş özetidir. **Güncel yönlendirme:
 | N01 / uygulandı | Oturum bazlı token / dolar bütçe uyarısı | Frontend + backend + girişimci | Kullanıcı uygulamayı onayladı. 80/100 uyarıları, kalıcı tercih, bağımsız izleme ve yerel masaüstü bildirimi; sınırlar aşağıda. | 0.9.5 yerel adayda tamamlandı; SON kabul açık |
 | N02 / uygulandı | Uygulamadan yedek kurtarma ve masaüstü geçmiş seçimi | Frontend + backend | Güvenilir dosyayı incele, yeni konumu gör, açık onayla ayrı klasöre kurtar; masaüstünde aç ve önceki geçmişe dön. Normal açılış seçimi hatırlar; özel veri klasörü kapsamı korunur. | 0.9.13 yerel adayda uygulandı; kaynak kayıtları yerel Git’te; Q01/SON açık |
 | Q01 / SON | Son sabit paketin temiz Windows kabulü; ardından genel yayın kararı | Frontend + backend + girişimci | Açılış, kaynak okuma, klavye, kayıt/geri yükleme, güncelleme/geri dönüş, kapanış ve kaldırma aynı son adayda doğrulanır. | Kullanıcı isteğiyle SON görev, bekliyor |
+
+## 0.9.27 — Ayrı kayıt incelemesi
+
+Kullanım ekranındaki açılır kapsam/gözlem/hesaplama kutuları ve About this chart kaldırıldı; özgün içerik sol menüde Kayıt incelemesi altında5bölümde erişilir. Uyarı sayısı Kullanım üzerinden yönlendirir. Kanıt reports/record-review-v1.400/public0.9.21 veQ01/SON aynı.
+
+## 0.9.26 — Genel ayarlar
+
+Dil, yardım ve güncellemeler Ayarlar → Genel altında; üst Close kaldırıldı. Kanıt reports/settings-app-v1.400/public0.9.21 veQ01/SON aynı.
+
+## 0.9.25 — Oturum detayında pencere uyumu
+
+Başlık alanı, kapatma düğmesi ve iç kaydırma düzeltildi. Kanıt reports/inspector-fit-v1;400/public0.9.21 veQ01/SON aynı.
+
+## 0.9.24 — Okuma yükü
+
+Kullanım açıklamaları erişilebilir bilgi katmanlarına taşındı; uyarılar ve sayılar korundu. Kanıt reports/reading-layers-v1.400/public0.9.21 veQ01/SON aynı.
+
+## 0.9.23 — Claude ekleri sonrası düzeltme
+
+Menü fare konumu, dar bulgu kartları, günlük animasyon gecikme sınırı ve eski gün vurgusu düzeltildi. Kanıt reports/claude-ui-fixes-v1;400 ve public0.9.21 aynı, Q01/SON açık.
+
+## 0.9.22 — Kullanım geçişi (yerel aday)
+
+Kullanıcının ilk gerçek kullanım yanıtı: oturumu “hemen buldum”; kesin süre yok. Kullanım seçimi/animasyon/sayı kontrolü sonrası düğme eşitlemesi, seri güncellemesi, tam sayı çağrı ekseni ve tablo giriş iptali düzeltildi. Geliştirici kanıtı reports/usage-motion-v1 altında; gerçek kullanıcı doğruluğu veya bağımsız beta sonucu sayılmaz. Public0.9.21 aynı;400 veQ01/SON korunur.
 
 ## 0.9.21 — Yayın eşitlemesi
 

@@ -1,3 +1,9 @@
+# Current release — PLER0.9.28, 10 November 2026
+
+Free Windows beta. Settings → General holds language, Help and Updates. Record review separates warnings/observations/method/chart notes from Usage; counters distinguish totals and warnings. Includes the0.9.22–0.9.27 UI fixes and Windows inspector fit. [Download](https://pler-local-usage.oguzay5555.chatgpt.site/). Publication evidence: ../../reports/publish-0.9.28/REPORT.md.400and updater2/schema2/work3/backup1 unchanged. Clean Windows/agent/WSL/user acceptance and licensing/Authenticode remain open. Older records below are historical.
+
+---
+
 # Current release — PLER0.9.21, 10 November 2026
 
 Free Windows x64 desktop beta. The primary download is [PLER-Setup-0.9.21.exe](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-Setup-0.9.21.exe); portable ZIP and Python wheel remain optional. The setup installs for the current user, writes Start/desktop shortcuts and a Windows Apps entry, and keeps history by default on uninstall. [Setup details](SETUP.md).

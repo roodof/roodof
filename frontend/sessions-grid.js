@@ -1,5 +1,5 @@
 import {getView,saveView} from './view-preferences.js';
-import {enterRows} from './feedback.js';
+import {enterRows,cancelRowEntry} from './feedback.js';
 import {TabulatorFull as Tabulator} from 'tabulator-tables';
 
 // The controller filters and orders the complete snapshot, and owns every write.
@@ -69,7 +69,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
   {title:text('Model calls','Model çağrıları'),field:'calls',width:140,visible:false,hozAlign:'right',formatter:cell=>cell.getValue()==null?text('Unknown','Bilinmiyor'):formatNum(cell.getValue())},
   {title:text('Session code','Oturum kodu'),field:'id',width:140,visible:false,formatter:cell=>node('code','grid-code',cell.getValue().slice(0,8))}
  ];
- let ready=false,signature='',lastWidth=0,adjustingWidth=false,focusRequest=0;
+ let ready=false,signature='',orderSignature='',renderRequest=0,lastWidth=0,adjustingWidth=false,focusRequest=0;
  const savedColumns=getView().columns;
  let projectWidth=savedColumns.find(c=>c.field==='project')?.width;
  const grid=new Tabulator(host,{
@@ -134,7 +134,16 @@ export function mountSessionsGrid({tr,list,inspector}) {
   count.textContent=total===data.length?text(`${formatNum(total)} sessions`,`${formatNum(total)} oturum`):text(`${formatNum(data.length)} of ${formatNum(total)} sessions`,`${formatNum(total)} oturumdan ${formatNum(data.length)} gösteriliyor`);
   const next=JSON.stringify(data);
   const focused=document.activeElement,id=focused?.closest('.tabulator-row')?.dataset.sessionId,selector=focused?.matches('.grid-review')?'.grid-review':focused?.matches('.grid-agent-filter')?'.grid-agent-filter':'.grid-project-name';
-  if(next!==signature){signature=next;grid.replaceData(data).then(()=>{syncSelection();resize();const row=id&&grid.getRow(id);if(row&&document.activeElement===document.body)row.getElement().querySelector(selector)?.focus({preventScroll:true});enterRows(grid.getRows('visible').map(r=>r.getElement()));});}else{syncSelection();resize();}
+  if(next!==signature){
+   const order=JSON.stringify(data.map(row=>row.id)),changedOrder=order!==orderSignature,request=++renderRequest;
+   signature=next;orderSignature=order;cancelRowEntry();
+   grid.replaceData(data).then(()=>{
+    if(request!==renderRequest)return;
+    syncSelection();resize();const row=id&&grid.getRow(id);
+    if(row&&document.activeElement===document.body)row.getElement().querySelector(selector)?.focus({preventScroll:true});
+    if(changedOrder&&host.offsetWidth)enterRows(grid.getRows('visible').map(r=>r.getElement()));
+   });
+  }else{syncSelection();resize();}
  }
  function renderMenu(){
   menu.replaceChildren(node('p','grid-menu-note',text('Drag column headings to reorder. Drag their edges to resize.','Sıralamak için sütun başlığını, genişletmek için kenarını sürükle.')));
@@ -147,7 +156,7 @@ export function mountSessionsGrid({tr,list,inspector}) {
  options.addEventListener('toggle',()=>{if(options.open&&ready)renderMenu();});
  document.addEventListener('click',event=>{if(options.open&&!options.contains(event.target))options.open=false;});
  grid.on('tableBuilt',()=>{ready=true;legacy.hidden=true;document.body.classList.add('tabulator-sessions');refresh();resize();});
- grid.on('scrollVertical',paintSelection);
+ grid.on('scrollVertical',()=>{cancelRowEntry();paintSelection();});
  grid.on('renderComplete',paintSelection);
  grid.on('rowClick',(event,row)=>{if(event.target.closest('button,select,input,a'))return;open(row.getData().id);row.getElement().querySelector('button')?.focus({preventScroll:true});});
  grid.on('columnResized',column=>{

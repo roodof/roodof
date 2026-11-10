@@ -1,5 +1,57 @@
 # Changes
 
+## 0.9.28 — Ücretsiz Windows beta yayını
+
+-0.9.22–0.9.27oturum/grafik hareketi, doğru Token/Calls seçimi, dar ekran ve Windows detay kapatma düğmesi düzeltmeleri yayıma alındı.
+- Dil/Yardım/Güncellemeler Ayarlar → Genel altında; üst Close kaldırıldı. Kapsam/gözlem/yöntem/grafik rehberi ayrı Kayıt incelemesi sayfasında; sticky gezinme ve responsive okuma düzeni. Sayaç toplam gözlem ve uyarıyı ayrı gösterir.
+- Eski indirmeler,400seçici ve veri biçimleri korunur. Ücretsiz beta; gerçek Windows/ajan/WSL/kullanıcı kabulü ve lisans/Windows imzası kararı ayrı ve açık.
+
+## 0.9.27 — Ayrı kayıt incelemesi (yerel aday)
+
+- Kapsam/uyarılar, gözlemler, tarihli hesaplama, hesaplama açıklamaları ve grafik rehberi sol menüde ayrı Kayıt incelemesi sayfasında. Kullanım ekranındaki açılır bilgi kartları kaldırıldı; uyarı sayısı yeni sayfaya yönlendirir. Eski bilgi ve eylemler korunur.
+- Sayfa seçimi saklanır.400 ve public0.9.21 aynı; gerçek ortam kabulü ayrı ve açık.
+- Kayıt incelemesi görünümü: bölüm dizini yanda sabit durur, okunan bölümü işaretler ve uyarı sayısını gösterir (dar pencerede üstte yatay). İçeriği olmayan bölüm ve bağlantısı gizlenir. Kapsam uyarıları kart, hesaplama ve grafik notları terim–açıklama satırı. Kullanım ekranındaki giriş düğmesi küçük hap biçiminde. Metinler ve sayım kuralları aynı.
+
+## 0.9.26 — Uygulama seçenekleri Ayarlar’da (yerel aday)
+
+- Güncellemeler, Yardım ve dil seçimi Ayarlar → Genel sekmesine taşındı. Mevcut düğmeler, yardımın dil bağlantısı ve güncelleme davranışı korunur; taşıma internet kontrolü başlatmaz.
+- Üstteki Close/Kapat düğmesi kaldırıldı. Windows pencere kontrolleri, oturum ayrıntısı ve güncelleme penceresinin kapatılması korunur. Tarayıcı CLI oturumu Ctrl+C ile durdurulur.
+- Kayıt kaynakları, kullanım uyarıları ve yedek/destek sekmelerine erişim korunur.400/public0.9.21 aynı, gerçek ortam kabulü ayrı ve açık.
+
+## 0.9.25 — Pencereye sığan oturum detayı (yerel aday)
+
+- Detay paneli Windows başlık alanının altında, kalan pencere yüksekliğinde açılır. Uzun başlık iki satırla sınırlıdır; tam metin title açıklamasında korunur.32px kapatma düğmesi küçülmez.
+- Başlık ve önceki/sonraki oturum kontrolleri sabit; yalnız detay içeriği kayar. Yeni oturumda içerik başa döner. Panel girişinde yatay taşma üreten hareket kaldırıldı; kısa opaklık geçişi korunur.
+- Hesaplama/400 seçici ve public0.9.21 aynı. Gerçek Windows/ajan/WSL kabulü ayrı ve açık.
+
+## 0.9.24 — Daha az okuma, aynı bilgi (yerel aday)
+
+- Kullanım ekranında grafik açıklamaları ve hesaplama notları klavye/fareyle açılan bilgi alanlarında. Tarihli kullanım ve kayıt gözlemleri kapalı bölümlerden erişilir; mevcut metin/düğüm/işlevler korunur.
+- Fiyat kapsamı ve fatura olmadığı bilgisi, kısmi çağrı sayısı ve veri sorunları görünür kalır. Yeni gözlem uyarısı otomatik açılır; açık hesaplama bilgisi yenilemede korunur.
+- Sayım kuralları ve400 seçici değişmedi; public0.9.21 aynı. Gerçek ortam kabulü ayrı ve açık.
+
+## 0.9.23 — Menü ve dar ekran düzeltmeleri (yerel aday)
+
+- Claude'un yeni menü/grafik/görünüm ekleri korundu. Azaltılmış harekette genel :active transform sıfırlaması yalnız düğme, bağlantı ve summary öğelerine daraltıldı; menü konumlandırması fareye basınca değişmez.
+- Bulgular 340px'ten dar alana sığar. Günlük grafik giriş gecikmesi en fazla140ms; geçmiş uzadıkça büyümez. Metrik/veri değişiminde eski sabit gün vurgusu kaldırılır.
+-400 seçici ve hesaplama kuralları aynı. Public0.9.21 korunur; gerçek Windows/ajan/WSL kabulü ayrı ve açıktır.
+
+## 0.9.22 — Kullanım geçişi ve grafik doğruluğu (yerel aday)
+
+- Tokens/Calls seçimi veriyi ve seçili düğmeyi birlikte değiştirir. Günlük grafik ve ısı haritası aynı serileri günceller; her tıklamada sıfırlanmaz. Gün üzerinden ayrılmak grafiği yeniden kurmaz.
+- Sayılar arada başka değerler göstermeden doğrudan son değere geçer, kısa ve iptal edilebilir yüzey hareketi kullanır. Azaltılmış hareket tercihi korunur. Çağrı ekseni tam sayılıdır; bilinmeyen ajan kullanımı da çizilir.
+- Tablo yalnız sıralı oturum listesi değişince kısa opaklık girişi kullanır; sayı güncellemelerinde tüm satırlar yeniden oynamaz. Kaydırma ve yeni veri eski animasyonu iptal eder.
+- Dar ekranda proje grafiği etiketlerine yer ayrılır. Kaynak sayım kuralları değişmedi. Public beta0.9.21 ve400 seçici korunur; gerçek ortam kabulü ayrı ve açık.
+- Hesap kotaları: kart başlığı artık sınırın adı (5 saatlik sınır, Haftalık sınır); ajan küçük renkli etiket. Aynı ajanın iki penceresi aynı kart gibi okunmaz. Kartlar zaten tahmini taşıdığı için üstteki uyarı şeridi bu ekranda yinelenmez.
+- Zaman grafiği: Çağrı görünümü kendi soğuk renklerini kullanır (çubuklar, gösterge, ısı haritası); Token görünümü aynı kalır. İkinci kutu üstteki kartı yinelemek yerine aktif gün ortalamasını, bir gün seçiliyken o günün dönemdeki payını gösterir.
+- Bir güne tıklamak o günü sabitler; yeniden tıklamak bırakır. Değer değişimi, çubuklar, kota kartları ve zaman çizgisi kısa giriş hareketi kullanır; azaltılmış hareket tercihi korunur.
+- Kullanım bileşimi çubuğunda dört alan ayırt edilebilir renkte; plan etiketi tek satırda. Sayım kuralları değişmedi.
+- Görünüm katmanı (`frontend/premium.css`): Windows değişken yazı tipi, sayılarda okuma yazı tipi ve sabit genişlikli rakamlar, tek vurgu rengi (geçerli menü, işaretli kutu, klavye odağı), sade üst çubuk düğmeleri, çizimi yenilenen açılır kutular, onay kutuları ve açılır satır okları. Davranış ve metinler aynı.
+- Hesap kotaları: kota kaynağı olmayan Claude Code kendi kartında "Bağlı değil" olarak görünür; gereken tek komut kopyalanabilir. Eski açıklama paragrafı bu durumda gizlenir.
+- Kullanım: bulgular tek sütun paragraf yerine kartlarda; proje grafiğinde en büyük proje vurgu renginde, çubukların ucunda değerleri yazar. Metinler ve sayım aynı.
+- Oturumlar: ajan adı noktalı alt çizgi yerine renkli noktayla, durum rozetleri yuvarlak, açık satır vurgu çizgisiyle. Ayrıntı panelinde büyük rakamlar ve bileşim çubuğuyla aynı parça renkleri.
+- Proje ve sıralama kutuları tarayıcının listesi yerine çizilmiş menü açar (`frontend/select-menu.jsx`, Base UI). Sayfadaki `<select>` tek kaynak olarak kalır; klavye ile açma, gezme ve seçme çalışır. Boş İşlerim ekranı ilk adımı ortada sunar.
+
 ## 0.9.21 — Ücretsiz Windows betası, kurulum ve arayüz düzeltmeleri
 
 - Tek dosyalık kullanıcı kurulumu, PLER kısayolları/bildirim kimliği ve güncellemeden sonra Windows sürüm kaydı korundu.

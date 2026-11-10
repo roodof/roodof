@@ -6,7 +6,7 @@ const path=require('node:path');
 const frontend=name=>fs.readFileSync(path.join(__dirname,'../frontend',name),'utf8');
 const quota=frontend('quota-view.jsx');
 function quotaContext(){
- const words={reset:'Reset; waiting',stale:'Sample is old',historical:'Reset time unknown',ambiguous:'Samples disagree',full:'Full',lasts:'Lasts',fills:'Fills',used:'used',gaugeLabel:(a,w,v)=>`${a} ${w}: ${v}%`};
+ const words={limit:'limit',reset:'Reset; waiting',stale:'Sample is old',historical:'Reset time unknown',ambiguous:'Samples disagree',full:'Full',lasts:'Lasts',fills:'Fills',used:'used',gaugeLabel:(a,w,v)=>`${a} ${w}: ${v}%`};
  const el=(tag,cls,text)=>({tag,cls,text,attrs:{},children:[],append(...nodes){this.children.push(...nodes);},setAttribute(k,v){this.attrs[k]=v;}});
  const c={words,el,lang:'en-US'};vm.createContext(c);
  vm.runInContext(quota.slice(quota.indexOf('function stateText('),quota.indexOf('\n  function paint(')),c);return c;
@@ -53,4 +53,27 @@ test('chart boundaries follow elapsed time across DST and preserve all retained 
 test('all-time and empty intervals keep valid chart dates without inventing usage',()=>{
  assert.deepEqual(totals(group({filters:{days:0},dated_usage:{since:null,cutoff:'2026-11-07T12:00:00Z'},timeline:{rows:[]}})),[0,0]);
  const g=group({filters:{days:0},dated_usage:{cutoff:'2026-11-07T12:00:00Z'},timeline:{rows:[['2026-01-01T12:00:00Z','codex',9,1]]}});assert.deepEqual(totals(g),[9,1]);
+});
+
+test('both plotted metrics include unknown agents and agree with their exact summary',()=>{
+ const source=frontend('usage-time.js');
+ const calls=[],g=group({filters:{days:7},dated_usage:{since:'2026-11-01T12:00:00Z',cutoff:'2026-11-08T12:00:00Z'},timeline:{rows:[['2026-11-02T12:00:00Z','codex',15000,3],['2026-11-03T12:00:00Z','claude-code',7000,2],['2026-11-03T12:00:00Z','unknown',500,1]]}});
+ const actions=[],chart={setOption(...args){calls.push(args);},dispatchAction(action){actions.push(action);}};
+ const c={series:g,metric:'tokens',focusDay:null,pinned:null,bars:chart,heat:chart,chartNode:{},heatNode:{},legend:{},empty:{},rhythm:{},legendItems:new Map(),
+  AGENTS:[['claude-code','Claude','agent-claude'],['codex','Codex','agent-codex'],['unknown','Unknown','muted']],
+  busiest:{strong:{},unit:{}},active:{strong:{},unit:{}},words:{period:'Period',none:'—',unitTokens:'tokens',unitCalls:'calls',days:[]},
+  reduced:()=>false,token:()=>'',number:String,compact:String,dateLabel:String,pad:n=>String(n).padStart(2,'0'),tr:false,shown:[],showStats(...args){c.shown.push(args);}};
+ vm.createContext(c);
+ vm.runInContext(source.slice(source.indexOf('function summary('),source.indexOf('\n  function showStats('))+source.slice(source.indexOf('function draw() {'),source.indexOf('\n  function update(data) {')),c);
+ for(const [metric,index,total] of [['tokens',2,22500],['calls',3,6]]){
+  c.metric=metric;c.pinned=g.keys[0];calls.length=0;actions.length=0;vm.runInContext('draw()',c);
+  assert.equal(actions[0]?.type,'downplay','a metric change clears the previously pinned highlight');
+  const option=calls[0][0];
+  assert.equal(option.series.reduce((sum,s)=>sum+s.data.reduce((a,b)=>a+b,0),0),total);
+  assert.equal(c.shown.at(-1)[metric==='tokens'?1:2],total);
+  assert.equal(option.series.find(s=>s.id==='unknown').data.reduce((a,b)=>a+b,0),g.rows.filter(r=>r[1]==='unknown').reduce((s,r)=>s+r[index],0));
+  assert.notEqual(calls[0][1],true,'metric changes must update existing series, not clear the chart');
+  if(metric==='calls')assert.equal(option.yAxis.minInterval,1,'model calls use integer ticks');
+  for(const day of [0,30,365,1000])assert.ok(option.series[0].animationDelay(day)<=140,'long histories must have a bounded entrance delay');
+ }
 });

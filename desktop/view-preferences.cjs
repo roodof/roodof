@@ -1,5 +1,5 @@
 'use strict';
-const SCREENS = ['sessions', 'work', 'overview', 'quota', 'settings'];
+const SCREENS = ['sessions', 'work', 'overview', 'quota', 'review', 'settings'];
 const FIELDS = ['project', 'tokens', 'status', 'verdict', 'agent', 'ended', 'models', 'calls', 'id'];
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 function normalizeView(raw) {

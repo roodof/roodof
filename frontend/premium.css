@@ -1,0 +1,181 @@
+/* Finish layer, appended last by build.mjs. It changes how existing parts look, never what they say:
+   system variable fonts, proportional tabular figures, one accent, and styled native controls. */
+body.workspace-redesign{--body:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;--mono:'Cascadia Mono','Cascadia Code',Consolas,monospace;font-family:var(--body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* Figures: the reading font with fixed-width digits; the code font stays for commands, paths and model names. */
+.workspace-redesign :is(.grid-number,.usage-rank strong,.usage-agent-head strong,.wb-session-metrics strong,.budget-amount,.usage-quota-row strong,.task-number,.diagnostic-count,.diagnostics-group-count,.ws-warning-count),
+.workspace-redesign #usage-session-detail dd,.workspace-redesign #usage-session-detail .session-token-legend dd{font-family:var(--body);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.workspace-redesign .grid-number{font-weight:500}
+
+/* Page heading and panels. */
+.workspace-redesign .workspace-head h1{font-size:24px;letter-spacing:-.035em}
+.workspace-redesign :is(.usage-panel,.task-section,.ws-gauge-card){border-radius:10px;background-image:linear-gradient(180deg,rgb(255 255 255/.022),transparent 96px)}
+.workspace-redesign .usage-stat strong{font-size:24px;letter-spacing:-.035em}
+
+/* One accent, the clay of the mark: where you are, what is checked, where the keyboard is. */
+.ws-brand .ws-symbol{color:var(--ui-accent)}
+.ws-nav-indicator::before{content:"";position:absolute;left:-1px;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--ui-accent)}
+.workspace-redesign :is(button,select,input,summary,a):focus-visible{outline-color:var(--ui-accent)}
+
+/* Top bar: quiet buttons instead of bare words. */
+.workspace-redesign .top-actions{gap:2px}
+.workspace-redesign .top-actions :is(a,.quiet){display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:6px;color:var(--ui-secondary);text-decoration:none;transition:background-color .14s ease,color .14s ease}
+.workspace-redesign .top-actions :is(a,.quiet):hover{background:var(--ui-hover);color:var(--ui-text)}
+/* Reading again is a routine action, so it no longer carries the single bright button. */
+.workspace-redesign .workspace-head #usage-refresh.primary{background:transparent;border-color:var(--ui-border-strong);color:var(--ui-text);font-weight:500}
+.workspace-redesign .workspace-head #usage-refresh.primary:hover:not(:disabled){background:var(--ui-hover);color:var(--ui-text)}
+.workspace-redesign .demo-notice{width:fit-content;max-width:100%;padding:3px 11px;border-radius:99px;font-weight:400}
+
+/* Native controls keep their behaviour and keyboard handling; only the drawing changes. */
+.workspace-redesign select{appearance:none;padding-right:30px;background-repeat:no-repeat;background-size:5px 5px;background-position:calc(100% - 16px) calc(50% + 1px),calc(100% - 11px) calc(50% + 1px);
+  background-image:linear-gradient(45deg,transparent 50%,var(--ui-muted) 50%),linear-gradient(135deg,var(--ui-muted) 50%,transparent 50%);transition:border-color .14s ease,background-color .14s ease}
+.workspace-redesign select:hover:not(:disabled){border-color:var(--ui-border-strong)}
+.workspace-redesign input[type=checkbox]{appearance:none;flex:none;display:inline-grid;place-content:center;width:16px;height:16px;margin:0;border:1px solid var(--ui-border-strong);border-radius:4px;background:var(--ui-canvas);cursor:pointer;transition:background-color .12s ease,border-color .12s ease}
+.workspace-redesign input[type=checkbox]::after{content:"";width:10px;height:10px;background:var(--ui-primary-fg);clip-path:polygon(12% 48%,0 62%,40% 100%,100% 22%,86% 10%,38% 70%);transform:scale(0);transition:transform .12s cubic-bezier(.22,1,.36,1)}
+.workspace-redesign input[type=checkbox]:checked{background:var(--ui-accent);border-color:var(--ui-accent)}
+.workspace-redesign input[type=checkbox]:checked::after{transform:scale(1)}
+.workspace-redesign input[type=checkbox]:hover:not(:disabled){border-color:var(--ui-focus)}
+.workspace-redesign input[type=checkbox]:disabled{opacity:.5;cursor:default}
+/* Disclosure rows: a chevron that turns, in place of the browser triangle. */
+.workspace-redesign :is(.first-use-options,.first-use-guidance,.search-recovery-more,#usage-work-details-editor,.work-followups,.wb-work-scope,.ws-coverage,#usage-quality-details,.source-automatic,.source-guidance,.budget-help,.ws-export-options,.session-title-status,.wb-record-fields,.wb-provenance,.work-link-privacy,.usage-reedit details)>summary{display:flex;align-items:center;gap:9px;list-style:none;cursor:pointer}
+.workspace-redesign :is(.first-use-options,.first-use-guidance,.search-recovery-more,#usage-work-details-editor,.work-followups,.wb-work-scope,.ws-coverage,#usage-quality-details,.source-automatic,.source-guidance,.budget-help,.ws-export-options,.session-title-status,.wb-record-fields,.wb-provenance,.work-link-privacy,.usage-reedit details)>summary::-webkit-details-marker{display:none}
+.workspace-redesign :is(.first-use-options,.first-use-guidance,.search-recovery-more,#usage-work-details-editor,.work-followups,.wb-work-scope,.ws-coverage,#usage-quality-details,.source-automatic,.source-guidance,.budget-help,.ws-export-options,.session-title-status,.wb-record-fields,.wb-provenance,.work-link-privacy,.usage-reedit details)>summary::before{content:"";flex:none;width:6px;height:6px;margin:0 2px 2px 3px;border-right:1.5px solid var(--ui-muted);border-bottom:1.5px solid var(--ui-muted);transform:rotate(-45deg);transition:transform .16s cubic-bezier(.22,1,.36,1)}
+.workspace-redesign :is(.first-use-options,.first-use-guidance,.search-recovery-more,#usage-work-details-editor,.work-followups,.wb-work-scope,.ws-coverage,#usage-quality-details,.source-automatic,.source-guidance,.budget-help,.ws-export-options,.session-title-status,.wb-record-fields,.wb-provenance,.work-link-privacy,.usage-reedit details)[open]>summary::before{transform:rotate(45deg)}
+
+/* Limits page: an agent with no quota source gets its own card and the one step that connects it. */
+.ws-gauge-card.is-unlinked{display:flex;flex-direction:column;border-style:dashed}
+.ws-gauge-card.is-unlinked:hover{background:var(--ui-surface)}
+.ws-unlinked-body{flex:1;display:grid;align-content:center;gap:10px;padding:18px 0 6px}
+.ws-unlinked-body p{margin:0;font-size:var(--ui-label-size);line-height:1.55;color:var(--ui-secondary)}
+.ws-unlinked-body p.is-muted{color:var(--ui-muted)}
+.ws-unlinked-command{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 11px;border:1px solid var(--ui-border);border-radius:7px;background:var(--ui-canvas)}
+.ws-unlinked-command code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 12px/1.5 var(--mono);color:var(--ui-text);user-select:all}
+.workspace-redesign .ws-unlinked-command button{flex:none;min-height:26px;padding:0 10px;font-size:var(--ui-label-size)}
+.has-unlinked-agent.has-quota-gauges #usage-quota{display:none}
+
+/* Round 1, Usage: findings read as cards, not one column of paragraphs. */
+body.workspace-redesign .usage-insight-list{grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:10px;margin-top:14px}
+body.workspace-redesign .usage-insight{position:relative;padding:14px 16px 14px 18px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-canvas);transition:border-color .16s ease}
+body.workspace-redesign .usage-insight:hover{border-color:var(--ui-border-strong)}
+body.workspace-redesign .usage-insight::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:2px;border-radius:2px;background:var(--ui-border-strong)}
+body.workspace-redesign .usage-insight.warn::before{background:var(--ui-warning)}
+body.workspace-redesign .usage-insight h3{margin:0 0 6px;font-size:14px;letter-spacing:-.01em}
+body.workspace-redesign .usage-insight p{line-height:1.6}
+body.workspace-redesign .usage-insight.usage-reedit{grid-column:1/-1}
+body.workspace-redesign .usage-insight .text-button{margin-top:8px;color:var(--ui-text)}
+body.workspace-redesign .usage-rank{padding:10px 0}
+body.workspace-redesign .ws-coverage{border-radius:10px}
+
+/* Round 2, sessions: an agent dot instead of a dotted underline, softer status pills, accent on the open row. */
+body.workspace-redesign .grid-agent-filter{display:inline-flex;align-items:center;gap:6px;border-bottom:0;color:var(--ui-secondary)}
+body.workspace-redesign .grid-agent-filter::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ui-agent-codex)}
+body.workspace-redesign .grid-agent-filter.is-claude::before{background:var(--ui-agent-claude)}
+body.workspace-redesign .grid-agent-filter:hover{color:var(--ui-text);text-decoration:underline;text-underline-offset:3px}
+body.workspace-redesign .grid-status{padding:2px 9px 2px 8px;border-radius:99px}
+body.workspace-redesign.tabulator-sessions .tabulator-row{transition:background-color .12s ease}
+body.workspace-redesign.tabulator-sessions .tabulator-row.grid-row-open{box-shadow:inset 2px 0 0 var(--ui-accent)}
+body.workspace-redesign .grid-project-name{letter-spacing:-.005em}
+/* Session panel: larger figures and the same part colours as the composition bars. */
+body.workspace-redesign .wb-session-metrics strong{font-family:var(--body);font-size:24px;font-weight:600;letter-spacing:-.035em}
+body.workspace-redesign .session-token-bar{height:6px;border-radius:3px;overflow:hidden;gap:2px}
+body.workspace-redesign .token-part-input{background:var(--ui-text)}
+body.workspace-redesign .token-part-cache{background:var(--ui-heat-3);opacity:1}
+body.workspace-redesign .token-part-output{background:var(--ui-calls-claude)}
+body.workspace-redesign .wb-session-identity>strong{display:inline-flex;align-items:center;gap:6px;font-size:var(--ui-body-size)}
+body.workspace-redesign .verdict-button{border-radius:6px;transition:background-color .14s ease,border-color .14s ease,color .14s ease}
+body.workspace-redesign .verdict-button:hover{color:var(--ui-text);border-color:var(--ui-focus)}
+
+/* Round 3: the empty work page invites the first step. */
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden])){display:grid;justify-items:center;text-align:center;padding-block:44px 36px}
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden]))>.section-heading{justify-self:stretch;text-align:left}
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden])) .ws-empty-glyph{order:-1;display:grid;place-content:center;width:52px;height:52px;margin:0 0 14px;border:1px solid var(--ui-border-strong);border-radius:14px;background:var(--ui-raised);color:var(--ui-accent)}
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden])) .work-intro{max-width:52ch;font-size:var(--ui-body-size);color:var(--ui-text)}
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden])) .work-controls{width:min(560px,100%);margin-top:6px;text-align:left}
+body.workspace-redesign .work-items:has(#usage-work-empty:not([hidden]))>details{justify-self:stretch;text-align:left}
+
+/* Round 3: drawn dropdown menus (select-menu.jsx). */
+.ws-select-native{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;border:0!important;opacity:0;pointer-events:none;clip-path:inset(50%)}
+.ws-select-host{display:inline-flex;min-width:0}
+body.workspace-redesign .ws-select{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px;min-width:128px;max-width:260px;padding:0 9px 0 11px;border:1px solid var(--ui-border-strong);border-radius:6px;background:var(--ui-canvas);color:var(--ui-text);font:400 var(--ui-label-size)/1.4 var(--body);cursor:pointer;transition:border-color .14s ease,background-color .14s ease}
+body.workspace-redesign .ws-select:hover:not([data-disabled]){background:var(--ui-hover);border-color:var(--ui-focus)}
+body.workspace-redesign .ws-select[data-popup-open]{background:var(--ui-hover)}
+body.workspace-redesign .ws-select[data-disabled]{opacity:.55;cursor:default}
+.ws-select>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-select-icon{display:inline-flex;color:var(--ui-muted);transition:transform .16s cubic-bezier(.22,1,.36,1)}
+.ws-select[data-popup-open] .ws-select-icon{transform:rotate(180deg)}
+.ws-select-layer{z-index:60}
+.ws-select-popup{min-width:var(--anchor-width);max-width:min(360px,calc(100vw - 24px));max-height:min(340px,var(--available-height));overflow:auto;padding:4px;border:1px solid var(--ui-border-strong);border-radius:9px;background:var(--ui-raised);box-shadow:inset 0 1px 0 var(--ui-highlight),0 14px 28px -14px rgb(0 0 0/.7);transform-origin:var(--transform-origin);transition:opacity .14s ease,transform .14s cubic-bezier(.22,1,.36,1)}
+.ws-select-popup[data-starting-style],.ws-select-popup[data-ending-style]{opacity:0;transform:scale(.97) translateY(-3px)}
+.ws-select-item{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:30px;padding:0 9px;border-radius:6px;color:var(--ui-secondary);font:400 var(--ui-label-size)/1.4 var(--body);cursor:pointer;outline:0;user-select:none}
+.ws-select-item>:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-select-item[data-highlighted]{background:var(--ui-selected);color:var(--ui-text)}
+.ws-select-item[data-selected]{color:var(--ui-text)}
+.ws-select-item[data-disabled]{opacity:.5;cursor:default}
+.ws-select-check{display:inline-flex;color:var(--ui-accent)}
+.ws-select-icon>span,.ws-select-check>span{display:inline-flex}
+.ws-select-popup,.ws-select-list{scrollbar-width:thin;scrollbar-color:var(--ui-border-strong) transparent}
+.ws-select-icon svg{width:14px;height:14px}.ws-select-check svg{width:13px;height:13px}
+#usage-session-sort+.ws-select-host .ws-select{min-height:36px}
+
+/* Record review: a reading page. Index on the side follows the reader; warnings read as cards; method notes as term and meaning. */
+body.workspace-redesign .review-page{display:grid;grid-template-columns:minmax(0,1fr) 196px;column-gap:48px;align-items:start}
+body.workspace-redesign .review-page>.review-chapter{grid-column:1;max-width:none;margin-bottom:40px;scroll-margin-top:64px}
+body.workspace-redesign .review-chapter[hidden],body.workspace-redesign .review-index a[hidden]{display:none}
+body.workspace-redesign .review-page>.review-index{grid-column:2;grid-row:1/span 12;position:sticky;top:60px;display:flex;flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;padding:2px 0 2px 0;border-bottom:0;border-left:1px solid var(--ui-border);font-size:var(--ui-label-size)}
+body.workspace-redesign .review-index-title{padding:0 0 8px 14px;color:var(--ui-muted);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+body.workspace-redesign .review-index a{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:30px;margin-left:-1px;padding:0 4px 0 13px;border-left:2px solid transparent;border-radius:0 6px 6px 0;color:var(--ui-muted);text-decoration:none;transition:color .14s ease,background-color .14s ease,border-color .14s ease}
+body.workspace-redesign .review-index a:hover{color:var(--ui-text);background:var(--ui-hover);text-decoration:none}
+body.workspace-redesign .review-index a[aria-current]{color:var(--ui-text);border-left-color:var(--ui-accent)}
+body.workspace-redesign .review-count{min-width:18px;padding:0 6px;border-radius:99px;background:var(--ui-raised);color:var(--ui-warning);font-size:11px;font-variant-numeric:tabular-nums;line-height:18px;text-align:center}
+body.workspace-redesign .review-count:empty{display:none}
+body.workspace-redesign .review-chapter>h2{margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--ui-border);font-size:16px;font-weight:600;letter-spacing:-.02em}
+body.workspace-redesign .review-chapter>.usage-panel,body.workspace-redesign .review-chapter>.ws-coverage,body.workspace-redesign .review-chapter .data-guidance{padding:0;border:0;border-radius:0;background:none;box-shadow:none;margin:0}
+/* Coverage: the chapter title already names it; each notice is a card with its next step set apart. */
+body.workspace-redesign .review-chapter>.ws-coverage>h3{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+body.workspace-redesign .review-chapter .data-guidance{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 16px;align-items:center}
+body.workspace-redesign .review-chapter .data-guidance>*{grid-column:1/-1;margin:0}
+body.workspace-redesign .review-chapter .data-guidance>h2{font-size:var(--ui-body-size);font-weight:600;letter-spacing:-.01em}
+body.workspace-redesign .review-chapter .data-guidance>h2+.section-note{margin-top:-8px}
+body.workspace-redesign .review-chapter .coverage-notices{display:grid;gap:10px;padding:0;list-style:none}
+body.workspace-redesign .review-chapter .coverage-notices>li{position:relative;padding:14px 16px 14px 18px;border:1px solid var(--ui-border);border-radius:9px;background:var(--ui-canvas);transition:border-color .16s ease}
+body.workspace-redesign .review-chapter .coverage-notices>li:hover{border-color:var(--ui-border-strong)}
+body.workspace-redesign .review-chapter .coverage-notices>li::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:2px;border-radius:2px;background:var(--ui-warning)}
+body.workspace-redesign .review-chapter .coverage-notices h3{margin:0 0 6px;font-size:14px;letter-spacing:-.01em}
+body.workspace-redesign .review-chapter .coverage-notices p{margin:0;max-width:86ch;color:var(--ui-secondary);font-size:var(--ui-body-size);line-height:1.6}
+body.workspace-redesign .review-chapter .coverage-notices .coverage-next{margin-top:10px;padding-top:10px;border-top:1px solid var(--ui-border);color:var(--ui-text);font-size:var(--ui-label-size);font-weight:400}
+body.workspace-redesign .review-chapter .data-guidance>.quality-jump{grid-column:1;justify-self:start;min-height:32px;padding:0 12px;border:1px solid var(--ui-border-strong);border-radius:6px;background:var(--ui-raised);color:var(--ui-text);font-size:var(--ui-label-size);transition:border-color .14s ease,background-color .14s ease}
+body.workspace-redesign .review-chapter .data-guidance>.quality-jump:hover{border-color:var(--ui-focus);background:var(--ui-hover)}
+body.workspace-redesign .review-chapter .data-guidance>.quality-jump:not([hidden])+a{grid-column:2;justify-self:start}
+body.workspace-redesign .review-chapter .data-guidance>a{color:var(--ui-secondary);font-size:var(--ui-label-size);text-underline-offset:3px}
+body.workspace-redesign .review-chapter .data-guidance>a:hover{color:var(--ui-text)}
+body.workspace-redesign .review-chapter>#usage-coverage{margin:16px 0 0;max-width:86ch}
+/* Observations: the chapter is the frame, so the inner panel drops its own. */
+body.workspace-redesign .review-chapter>.usage-insights>.eyebrow{display:none}
+body.workspace-redesign .review-chapter>.usage-insights>h2{margin:0;color:var(--ui-secondary);font-size:var(--ui-body-size);font-weight:400;letter-spacing:0}
+body.workspace-redesign .review-chapter .usage-insight-list{grid-auto-flow:dense}
+/* Method and chart notes: term on the left, meaning on the right. */
+body.workspace-redesign .review-explanation{display:grid;grid-template-columns:220px minmax(0,1fr);gap:4px 24px;padding:12px 0;border-top:1px solid var(--ui-border);font-size:var(--ui-body-size);line-height:1.6}
+body.workspace-redesign .review-chapter>h2+.review-explanation{padding-top:0;border-top:0}
+body.workspace-redesign .review-explanation h3{margin:0;font-size:var(--ui-body-size);font-weight:600}
+body.workspace-redesign .review-explanation>:not(h3){grid-column:2;margin:0;max-width:72ch;color:var(--ui-secondary);font-size:var(--ui-body-size)}
+/* The way in from Usage: a quiet pill; the dot shows there is something to read. */
+body.workspace-redesign .review-entry{display:flex;align-items:center;gap:7px;margin:0 0 12px auto;min-height:28px;padding:0 12px;border-radius:99px;transition:border-color .14s ease,color .14s ease,background-color .14s ease}
+body.workspace-redesign .review-entry:hover{border-color:var(--ui-focus);background:var(--ui-hover);color:var(--ui-text)}
+body.workspace-redesign .review-entry.has-warnings{color:var(--ui-text)}
+body.workspace-redesign .review-entry.has-warnings::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ui-warning)}
+@media(max-width:1180px){
+body.workspace-redesign .review-page{display:block}
+body.workspace-redesign .review-page>.review-index{position:sticky;top:44px;z-index:5;flex-direction:row;gap:4px;margin:0 0 24px;padding:8px 0;border-left:0;border-bottom:1px solid var(--ui-border);background:var(--ui-canvas);overflow-x:auto;scrollbar-width:none}
+body.workspace-redesign .review-index-title{display:none}
+body.workspace-redesign .review-index a{flex:none;margin:0;padding:0 10px;border-left:0;border-radius:6px}
+body.workspace-redesign .review-index a[aria-current]{background:var(--ui-selected)}
+body.workspace-redesign .review-page>.review-chapter{scroll-margin-top:104px}
+}
+@media(max-width:700px){
+body.workspace-redesign .review-explanation{grid-template-columns:1fr}
+body.workspace-redesign .review-explanation>:not(h3){grid-column:1}
+body.workspace-redesign .review-chapter .data-guidance>.quality-jump:not([hidden])+a{grid-column:1/-1}
+}
+body.workspace-redesign .review-chapter .usage-insight-list{align-items:stretch}
+body.workspace-redesign .review-chapter .coverage-notices .coverage-next{max-width:none;color:var(--ui-secondary)}
+body.workspace-redesign .review-chapter .coverage-notices .coverage-next strong{color:var(--ui-text)}

@@ -21,6 +21,7 @@ colors:
   danger: "#eb998d"
   primary-bg: "#eeeeef"
   primary-fg: "#18181b"
+  accent: "#e07a55"
   agent-claude: "#e07a55"
   agent-codex: "#e4e4e7"
   heat-1: "#302a27"
@@ -28,6 +29,13 @@ colors:
   heat-3: "#6f5f58"
   heat-4: "#a18072"
   heat-5: "#d4b3a5"
+  calls-claude: "#4fa8bd"
+  calls-codex: "#cfe3e8"
+  calls-heat-1: "#1d2b30"
+  calls-heat-2: "#27424b"
+  calls-heat-3: "#356774"
+  calls-heat-4: "#5097a8"
+  calls-heat-5: "#a6d3de"
 typography:
   heading:
     fontFamily: Manrope
@@ -96,7 +104,9 @@ Charts may tell the two agents apart: Claude Code uses the clay of the PLER mark
 Codex a light neutral (`agent-codex`). These appear only in data marks and agent legends, never in
 navigation or status. Intensity maps (when you work) use a single warm ramp, `heat-1` to `heat-5`,
 taken from the Radix Colors bronze dark scale (steps 4, 6, 8, 9, 11; github.com/radix-ui/colors, MIT),
-so each step is perceptually even on the dark canvas. Status colors keep their meaning.
+so each step is perceptually even on the dark canvas. When the chart counts model calls instead of tokens it
+switches to a cool set (`calls-claude`, `calls-codex`, `calls-heat-1` to `calls-heat-5`; PLER's own values), so the
+two views cannot be mistaken for each other; agent order and legend stay the same. Status colors keep their meaning.
 
 ## Surface hierarchy and density
 
@@ -104,7 +114,10 @@ Canvas < sidebar < panel < popover/selected surface. Separation uses the documen
 borders and a single inset top highlight. Drop shadows do not carry ordinary panel hierarchy.
 Standard panels use 12–16px padding; main gutters are 20px. Avoid wrapper cards around every
 piece of data. Session rows and field groups carry the structure. Semantic colors are reserved
-for recorded success, error, warning and data limits; navigation remains monochrome.
+for recorded success, error, warning and data limits. One accent, the clay of the mark (`accent`), marks
+the current place, a checked box and keyboard focus; everything else in navigation stays monochrome.
+Body text uses the system variable face (Segoe UI Variable Text, then Segoe UI). Figures use the same face
+with tabular digits; the monospace face is kept for commands, paths and model names.
 
 ## Primitives and feedback
 

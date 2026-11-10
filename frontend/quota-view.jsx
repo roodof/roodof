@@ -30,12 +30,12 @@ function InfoTip({ label, nodes }) {
 export function mountQuota({ tr, page }) {
   const lang = tr ? 'tr-TR' : 'en-US';
   const words = tr ? {
-    info: 'Açıklama', pace: 'hız', resetIn: 'Sıfırlanmaya', resetAt: 'sıfırlanma', fillsAt: 'Bu hızla dolma zamanı', now: 'şimdi', sampled: 'son ölçüm',
+    info: 'Açıklama', limit: 'sınır', unlinked: 'Bağlı değil', unlinkedTitle: 'Kota kaynağı yok', unlinkedWhy: 'Claude Code kota yüzdesini kayıtlarına yazmaz. Terminaldeki Claude Code için bir kez şunu çalıştır; ayar değişmeden önce onayın sorulur:', unlinkedDesktop: 'Claude masaüstü uygulamasından kota verisi geldiği doğrulanmadı.', copy: 'Kopyala', copied: 'Kopyalandı', pace: 'hız', resetIn: 'Sıfırlanmaya', resetAt: 'sıfırlanma', fillsAt: 'Bu hızla dolma zamanı', now: 'şimdi', sampled: 'son ölçüm',
     no_pace: 'Tahmin için yeterli geçmiş yok', ago: 'önce', lasts: 'Sıfırlanmaya kadar yeter', fills: 'Sıfırlanmadan dolabilir', full: 'Dolu', stale: 'Ölçüm eski',
     reset: 'Sıfırlandı; yeni ölçüm bekleniyor', historical: 'Sıfırlanma zamanı bilinmiyor', ambiguous: 'Ölçümler çelişiyor', used: 'kullanıldı',
     gaugeLabel: (agent, window, value) => `${agent} ${window}: yüzde ${value} kullanıldı`
   } : {
-    info: 'About this', pace: 'pace', resetIn: 'Resets in', resetAt: 'reset', fillsAt: 'At this pace it fills at', now: 'now', sampled: 'last sample',
+    info: 'About this', limit: 'limit', unlinked: 'Not connected', unlinkedTitle: 'No quota source', unlinkedWhy: 'Claude Code does not write its quota percentage to its logs. For Claude Code in a terminal, run this once; you are asked before any setting changes:', unlinkedDesktop: 'Quota data from the Claude desktop app is not confirmed.', copy: 'Copy', copied: 'Copied', pace: 'pace', resetIn: 'Resets in', resetAt: 'reset', fillsAt: 'At this pace it fills at', now: 'now', sampled: 'last sample',
     no_pace: 'Not enough history for a forecast', ago: 'ago', lasts: 'Lasts until the reset', fills: 'May fill before the reset', full: 'Full', stale: 'Sample is old',
     reset: 'Reset; waiting for a new sample', historical: 'Reset time unknown', ambiguous: 'Samples disagree', used: 'used',
     gaugeLabel: (agent, window, value) => `${agent} ${window}: ${value} percent used`
@@ -50,7 +50,7 @@ export function mountQuota({ tr, page }) {
     return tr ? (d ? `${d} g ${h} sa` : h ? `${h} sa ${m} dk` : `${m} dk`) : (d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : `${m}m`);
   };
   const charts = [];
-  let windows = [];
+  let windows = [], claudeUnlinked = false;
 
   function stateText(row) {
     if (['reset', 'stale', 'historical', 'ambiguous'].includes(row.state)) return [words[row.state], 'muted'];
@@ -64,7 +64,11 @@ export function mountQuota({ tr, page }) {
     const box = el('article', 'ws-gauge-card');
     const agent = row.agent === 'claude-code' ? 'Claude Code' : 'Codex', windowName = typeof usageWindow === 'function' ? usageWindow(row.window_minutes) : row.window_minutes + ' min';
     const head = el('div', 'ws-gauge-head'), title = el('div');
-    title.append(el('strong', '', agent), el('span', '', windowName));
+    // The window names the card; the agent is a small coloured tag, so two windows of one agent
+    // do not read as the same card twice.
+    const who = el('span', 'ws-gauge-agent');
+    who.append(el('i', 'ws-swatch ws-swatch-' + (row.agent === 'claude-code' ? 'agent-claude' : 'agent-codex')), el('span', '', agent));
+    title.append(el('strong', '', windowName + ' ' + words.limit), who);
     const [label, tone] = stateText(row);
     head.append(title, el('span', 'ws-gauge-state ' + tone, label));
     const gauge = el('div', 'ws-gauge');
@@ -77,6 +81,25 @@ export function mountQuota({ tr, page }) {
     const meta = el('p', 'ws-gauge-meta');
     box.append(head, gauge, track, alert, meta);
     return { box, row, gauge, bar, marks, alert, meta, used, tone };
+  }
+
+  // Claude Code keeps no quota percentage in its logs. Say so where its card would be, with the one
+  // command that adds the source, instead of a paragraph further down the page.
+  function unlinked() {
+    const box = el('article', 'ws-gauge-card is-unlinked'), head = el('div', 'ws-gauge-head'), title = el('div'), who = el('span', 'ws-gauge-agent');
+    who.append(el('i', 'ws-swatch ws-swatch-agent-claude'), el('span', '', 'Claude Code'));
+    title.append(el('strong', '', words.unlinkedTitle), who);
+    head.append(title, el('span', 'ws-gauge-state muted', words.unlinked));
+    const body = el('div', 'ws-unlinked-body'), command = el('div', 'ws-unlinked-command'), code = el('code', '', 'pler statusline --install'), copy = el('button', '', words.copy);
+    copy.type = 'button';
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(code.textContent); copy.textContent = words.copied; setTimeout(() => { copy.textContent = words.copy; }, 1600); }
+      catch { const range = document.createRange(); range.selectNodeContents(code); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); }
+    });
+    command.append(code, copy);
+    body.append(el('p', '', words.unlinkedWhy), command, el('p', 'is-muted', words.unlinkedDesktop));
+    box.append(head, body);
+    return box;
   }
 
   function paint(item, now = Date.now()) {
@@ -110,8 +133,9 @@ export function mountQuota({ tr, page }) {
   function draw() {
     for (const chart of charts.splice(0)) chart.dispose();
     const items = windows.map(row => card(current(row)));
-    strip.replaceChildren(...items.map(item => item.box));
+    strip.replaceChildren(...items.map(item => item.box), ...(claudeUnlinked && items.length ? [unlinked()] : []));
     strip.hidden = !items.length;
+    document.body.classList.toggle('has-unlinked-agent', claudeUnlinked && items.length > 0);
     document.body.classList.toggle('has-quota-gauges', items.length > 0);
     const animation = !matchMedia('(prefers-reduced-motion: reduce)').matches;
     for (const item of items) {
@@ -161,6 +185,7 @@ export function mountQuota({ tr, page }) {
       const outlook = data?.outlook || [], codex = outlook.filter(row => row.agent !== 'claude-code'), claude = outlook.filter(row => row.agent === 'claude-code');
       const rows = [...(codex.length ? codex : data?.quota?.latest || []), ...claude];
       windows = rows;
+      claudeUnlinked = data?.claude_statusline === false && !claude.length && !rows.some(row => row.agent === 'claude-code');
       draw();
       for (const id of ['usage-quota', 'usage-plans', 'usage-mix']) tuck(document.getElementById(id));
     },

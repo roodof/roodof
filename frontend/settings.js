@@ -5,13 +5,20 @@ export function mountSettings({tr,page,show}){
  const text=(local,en)=>tr?local:en;
  const el=(tag,cls,value)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(value)n.textContent=value;return n;};
  const $=id=>document.getElementById(id);
- const entries=[['sources',text('Kayıt kaynakları','Record sources')],['alerts',t('usage_alerts')],['support',text('Yedek ve destek','Backup & support')]];
+ const entries=[['general',text('Genel','General')],['sources',text('Kayıt kaynakları','Record sources')],['alerts',t('usage_alerts')],['support',text('Yedek ve destek','Backup & support')]];
  const tabs=el('div','settings-tabs wb-segmented');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label',text('Ayar grupları','Settings groups'));page.prepend(tabs);
  const panels={};
  for(const [key] of entries){const panel=el('section','settings-group');panel.id='settings-panel-'+key;panel.dataset.settingsGroup=key;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','settings-tab-'+key);panel.tabIndex=0;panels[key]=panel;page.append(panel);}
- let active='sources';
+ let active='general';
  function select(key){if(!panels[key])return;active=key;for(const [name,panel] of Object.entries(panels))panel.hidden=name!==key;control.setValue(key);}
  const control=mountSegments(tabs,entries,active,select,{tabPrefix:'settings'});
+ const application=el('section','settings-application');
+ application.append(el('h2','',text('Uygulama','Application')));
+ for(const [id,label] of [['lang-toggle',text('Arayüz dili','Interface language')],['usage-update-open',text('Sürüm ve güncelleme','Version & updates')],['usage-help',text('Kullanım kılavuzu','User guide')]]){
+  const action=$(id);if(!action)continue;
+  const row=el('div','settings-application-row');row.append(el('span','',label),action);application.append(row);
+ }
+ panels.general.append(application);
  const starting=page.querySelector('.first-use-settings');
  panels.sources.append($('source-folders'));if(starting)panels.sources.append(starting);
  panels.alerts.append($('budget-watch'));

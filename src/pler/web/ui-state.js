@@ -1,7 +1,7 @@
 // Shared runtime state for the controller and desktop views. No storage, network or credentials.
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.PlerUIState=api;})(globalThis,function(){
  'use strict';
- const screens=['sessions','work','overview','quota','settings'];
+ const screens=['sessions','work','overview','quota','review','settings'];
  const defaults={days:'30',agent:'all',project:'all',sort:'recent',quality:false,search:''};
  function filters(value={},previous=defaults){
   const pick=(key,allowed)=>allowed.includes(value[key])?value[key]:previous[key];

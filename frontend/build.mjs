@@ -32,4 +32,4 @@ await writeFile('../src/pler/web/sessions-grid.css', (await readFile('node_modul
 
 const tokens=JSON.parse(await readFile('tokens.json','utf8'));
 const declarations=Object.entries(tokens).map(([name,value])=>`  --ui-${name}: ${value};`).join('\n');
-await writeFile('../src/pler/web/workspace.css', ':root{\n'+declarations+'\n}\n'+await readFile('node_modules/sonner/dist/styles.css','utf8')+'\n'+await readFile('node_modules/driver.js/dist/driver.css','utf8')+'\n'+await readFile('workspace.css','utf8'));
+await writeFile('../src/pler/web/workspace.css', ':root{\n'+declarations+'\n}\n'+await readFile('node_modules/sonner/dist/styles.css','utf8')+'\n'+await readFile('node_modules/driver.js/dist/driver.css','utf8')+'\n'+await readFile('workspace.css','utf8')+'\n'+await readFile('premium.css','utf8'));

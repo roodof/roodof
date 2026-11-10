@@ -2160,7 +2160,7 @@ async function performWorkAction(body,context={}){
 }
 function reconnectFromAccessLink(){if(/^#access=[a-f0-9]{64}$/.test(location.hash))location.reload();}
 applyLanguage();
-$('lang-toggle').addEventListener('click',switchLanguage);$('close-app').addEventListener('click',closeApp);$('usage-refresh').addEventListener('click',refreshUsage);$('usage-export').addEventListener('click',exportUsage);$('usage-close-session').addEventListener('click',()=>$('usage-session-dialog').close());$('usage-more').addEventListener('click',showMoreUsageSessions);
+$('lang-toggle').addEventListener('click',switchLanguage);$('usage-refresh').addEventListener('click',refreshUsage);$('usage-export').addEventListener('click',exportUsage);$('usage-close-session').addEventListener('click',()=>$('usage-session-dialog').close());$('usage-more').addEventListener('click',showMoreUsageSessions);
 $('usage-archive-clear').addEventListener('click',clearUsageArchive);
 $('usage-retention').addEventListener('change',()=>changeMetadata('retention'));
 $('usage-cache-reset').addEventListener('click',()=>changeMetadata('cache'));

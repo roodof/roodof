@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('./',import.meta.url);
 const read=name=>readFile(new URL(name,root),'utf8');
-const [tokens,css,grid,design,primitives,feedback]=await Promise.all([read('tokens.json').then(JSON.parse),read('workspace.css'),read('sessions-grid.css'),read('../DESIGN.md'),read('primitives.jsx'),read('feedback.js')]);
+const [tokens,css,grid,design,primitives,feedback,premium]=await Promise.all([read('tokens.json').then(JSON.parse),read('workspace.css'),read('sessions-grid.css'),read('../DESIGN.md'),read('primitives.jsx'),read('feedback.js'),read('premium.css')]);
 for(const [key,value] of Object.entries(tokens))assert.ok(design.includes(`  ${key}: "${value}"`),`DESIGN.md differs from token ${key}`);
-for(const [name,source] of [['workspace.css',css],['sessions-grid.css',grid]]){
+for(const [name,source] of [['workspace.css',css],['sessions-grid.css',grid],['premium.css',premium]]){
  assert.ok(!/#[\da-f]{3,8}\b/i.test(source),`${name} has a hard-coded color outside tokens.json`);
  assert.ok(!/shadow-(?:lg|xl)|\bp-(?:8|10)\b|(?:purple|indigo|fuchsia|magenta)/i.test(source),`${name} violates a design exclusion`);
  assert.ok(!/box-shadow\s*:\s*(?!inset)[^;{}]*\b(?:30|40|50|60|90)px/i.test(source),`${name} has a heavy drop shadow`);

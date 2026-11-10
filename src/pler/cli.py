@@ -1,6 +1,6 @@
 """pler: what your AI coding agents used, read from their own logs on this computer.
 
-  pler             open the usage page in your browser (stop with Ctrl+C or the page's Close button)
+  pler             open the usage page in your browser (stop with Ctrl+C)
   pler report      the same summary in the terminal (pler report --help for options)
   pler statusline --install
                    show context and Claude subscription use in Claude Code's status line, and let PLER

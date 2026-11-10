@@ -9,52 +9,44 @@ import { mountSegments } from './primitives.jsx';
 
 use([BarChart, HeatmapChart, GridComponent, TooltipComponent, AriaComponent, VisualMapComponent, CanvasRenderer]);
 
-const AGENTS = [['claude-code', 'Claude Code', 'agent-claude'], ['codex', 'Codex', 'agent-codex']];
+const AGENTS = [['claude-code', 'Claude Code', 'agent-claude'], ['codex', 'Codex', 'agent-codex'], ['unknown', 'Unknown agent', 'muted']];
 
 function el(tag, cls, text) { const node = document.createElement(tag); if (cls) node.className = cls; if (text) node.textContent = text; return node; }
 const pad = n => String(n).padStart(2, '0');
 const dayKey = date => date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Odometer after motion-primitives' SlidingNumber: each digit is a 0-9 reel moved by a CSS variable,
-// so it works under the app's strict style-src policy. The text itself stays readable to assistive tech.
-function odometer(host) {
-  let shape = '';
-  return text => {
-    if (shape !== text.replace(/\d/g, '0')) {
-      shape = text.replace(/\d/g, '0');
-      const spoken = el('span', 'sr-only'), reels = el('span', 'ws-odometer');
-      reels.setAttribute('aria-hidden', 'true');
-      for (const char of text) {
-        if (!/\d/.test(char)) { reels.append(el('span', 'ws-odometer-sep', char)); continue; }
-        const digit = el('span', 'ws-digit'), reel = el('span', 'ws-reel');
-        for (let n = 0; n < 10; n++) reel.append(el('span', '', String(n)));
-        digit.append(reel); reels.append(digit);
-      }
-      host.replaceChildren(spoken, reels);
-    }
-    host.firstChild.textContent = text;
-    let index = 0;
-    const reels = host.querySelectorAll('.ws-reel');
-    for (const char of text) if (/\d/.test(char)) reels[index++].style.setProperty('--d', char);
+// Commit the exact value immediately; animate its surface, never intermediate counts.
+// Switching metric or period slides the new value in; pointing at days swaps it at once.
+function metricNumber(host) {
+  let previous = '', animation;
+  return (text, instant) => {
+    if (text === previous) return;
+    animation?.cancel();
+    host.textContent = text;
+    if (previous && !instant && !reduced()) animation = host.animate(
+      [{ opacity: 0, transform: 'translateY(9px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: 320, easing: 'cubic-bezier(.22,1,.36,1)' }
+    );
+    previous = text;
   };
 }
 
 export function mountUsageTime({ tr, before }) {
   const lang = tr ? 'tr-TR' : 'en-US';
   const words = tr ? {
-    title: 'Zaman içinde kullanım', note: 'Zamanı kayıtlı yanıtlar, senin saatine göre. Bir güne gel, o günü gör.',
+    title: 'Zaman içinde kullanım', note: 'Zamanı kayıtlı yanıtlar, senin saatine göre. Bir güne gel, o günü gör; tıkla, sabitle.',
     tokens: 'Token', calls: 'Çağrı', period: 'Seçili dönem', unitTokens: 'token', unitCalls: 'çağrı',
-    callsLabel: 'Model çağrısı', busiest: 'En yoğun gün', active: 'Aktif gün', none: '—',
+    average: 'Aktif gün ortalaması', share: 'Dönemdeki payı', perDay: 'günde', pinned: 'sabitlendi · bırakmak için tıkla', busiest: 'En yoğun gün', active: 'Aktif gün', none: '—',
     rhythm: 'Ne zaman çalışıyorsun?', rhythmNote: 'Haftanın günü ve saatine göre toplam. Koyu: az, açık: çok.',
     empty: 'Bu dönemde zamanı kayıtlı yanıt yok.', chart: 'Günlere göre kayıtlı kullanım, ajanlara ayrılmış',
     heat: 'Haftanın günü ve saatine göre kayıtlı kullanım',
     partial: n => `Grafik yalnız zamanı kayıtlı yanıtları gösterir. ${n} oturumun kullanımının bir kısmı bir zamana bağlanamadı; bu yüzden toplam karttaki değerden küçük olabilir.`,
     days: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz']
   } : {
-    title: 'Usage over time', note: 'Responses with a recorded time, in your local time. Point at a day to see it.',
+    title: 'Usage over time', note: 'Responses with a recorded time, in your local time. Point at a day to see it; click to pin it.',
     tokens: 'Tokens', calls: 'Calls', period: 'Selected period', unitTokens: 'tokens', unitCalls: 'calls',
-    callsLabel: 'Model calls', busiest: 'Busiest day', active: 'Active days', none: '—',
+    average: 'Average per active day', share: 'Share of the period', perDay: 'a day', pinned: 'pinned · click to release', busiest: 'Busiest day', active: 'Active days', none: '—',
     rhythm: 'When do you work?', rhythmNote: 'Totals by weekday and hour. Dark: little, light: a lot.',
     empty: 'No responses with a recorded time in this period.', chart: 'Recorded usage by day, split by agent',
     heat: 'Recorded usage by weekday and hour',
@@ -73,11 +65,12 @@ export function mountUsageTime({ tr, before }) {
   head.append(headText, metricHost);
   const stats = el('div', 'ws-time-stats');
   const stat = (label) => { const box = el('div', 'ws-time-stat'), small = el('small', '', label), strong = el('strong'), unit = el('span'); box.append(small, strong, unit); stats.append(box); return { small, strong, unit }; };
-  const main = stat(words.period), callStat = stat(words.callsLabel), busiest = stat(words.busiest), active = stat(words.active);
-  const showMain = odometer(main.strong), showCalls = odometer(callStat.strong);
+  const main = stat(words.period), callStat = stat(words.average), busiest = stat(words.busiest), active = stat(words.active);
+  const showMain = metricNumber(main.strong), showCalls = metricNumber(callStat.strong);
   const chartNode = el('div', 'ws-time-chart'); chartNode.setAttribute('role', 'img'); chartNode.setAttribute('aria-label', words.chart);
   const legend = el('div', 'ws-time-legend');
-  for (const [, name, token] of AGENTS) { const item = el('span', 'ws-legend-item'); item.append(el('i', 'ws-swatch ws-swatch-' + token), document.createTextNode(name)); legend.append(item); }
+  const legendItems = new Map();
+  for (const [agent, name, token] of AGENTS) { const item = el('span', 'ws-legend-item'); item.append(el('i', 'ws-swatch ws-swatch-' + token), document.createTextNode(agent === 'unknown' && tr ? 'Bilinmeyen ajan' : name)); legend.append(item); legendItems.set(agent, item); }
   const empty = el('p', 'ws-time-empty', words.empty);
   const rhythm = el('div', 'ws-rhythm'), rhythmText = el('div');
   rhythmText.append(el('h3', '', words.rhythm), el('p', 'section-note', words.rhythmNote));
@@ -87,8 +80,14 @@ export function mountUsageTime({ tr, before }) {
   card.append(head, stats, chartNode, legend, empty, rhythm, coverage);
   before.before(card);
 
-  let metric = 'tokens', series = null, bars = null, heat = null, focusDay = null;
-  mountSegments(metricHost, [['tokens', words.tokens], ['calls', words.calls]], metric, value => { metric = value; draw(); });
+  let metric = 'tokens', series = null, bars = null, heat = null, focusDay = null, pinned = null;
+  card.dataset.metric = metric;
+  const metricControl = mountSegments(metricHost, [['tokens', words.tokens], ['calls', words.calls]], metric, value => {
+    if (value === metric) return;
+    metric = value; metricControl.setValue(value); card.dataset.metric = value;
+    bars?.dispatchAction({ type: 'hideTip' }); heat?.dispatchAction({ type: 'hideTip' });
+    draw();
+  });
 
   const token = name => getComputedStyle(document.body).getPropertyValue('--ui-' + name).trim();
 
@@ -130,11 +129,21 @@ export function mountUsageTime({ tr, before }) {
     return { tokens, calls, best, activeDays };
   }
 
-  function showStats(label, tokens, calls) {
+  function showStats(label, tokens, calls, period) {
+    const value = metric === 'tokens' ? tokens : calls, unit = metric === 'tokens' ? words.unitTokens : words.unitCalls, day = focusDay !== null;
     main.small.textContent = label;
-    showMain(number(metric === 'tokens' ? tokens : calls)); main.unit.textContent = metric === 'tokens' ? words.unitTokens : words.unitCalls;
-    showCalls(number(metric === 'tokens' ? calls : tokens)); callStat.small.textContent = metric === 'tokens' ? words.callsLabel : words.tokens;
-    callStat.unit.textContent = metric === 'tokens' ? words.unitCalls : words.unitTokens;
+    showMain(number(value), day); main.unit.textContent = unit;
+    if (day) {
+      const whole = period ? (metric === 'tokens' ? period.tokens : period.calls) : 0;
+      callStat.small.textContent = words.share;
+      showCalls(whole ? (value / whole).toLocaleString(lang, { style: 'percent', maximumFractionDigits: 1 }) : words.none, true);
+      callStat.unit.textContent = '';
+    } else {
+      const days = period?.activeDays || 0;
+      callStat.small.textContent = words.average;
+      showCalls(days ? (metric === 'tokens' ? compact(Math.round(value / days)) : (value / days).toLocaleString(lang, { maximumFractionDigits: 1 })) : words.none);
+      callStat.unit.textContent = days ? unit + ' · ' + words.perDay : '';
+    }
   }
 
   function draw() {
@@ -142,8 +151,9 @@ export function mountUsageTime({ tr, before }) {
     const { keys, perDay, grid, gridCalls, rows } = series;
     const index = metric === 'tokens' ? 0 : 1, values = keys.map(key => [key, perDay.get(key)]).filter(([, day]) => day);
     const total = summary(values);
-    focusDay = null;
-    showStats(words.period, total.tokens, total.calls);
+    if (pinned !== null) bars?.dispatchAction({ type: 'downplay' });
+    focusDay = null; pinned = null;
+    showStats(words.period, total.tokens, total.calls, total);
     busiest.strong.textContent = total.best ? dateLabel(total.best.key, true) : words.none;
     busiest.unit.textContent = total.best ? (metric === 'tokens' ? compact(total.best.value) + ' ' + words.unitTokens : number(total.best.value) + ' ' + words.unitCalls) : '';
     active.strong.textContent = number(total.activeDays) + ' / ' + number(keys.length);
@@ -151,35 +161,37 @@ export function mountUsageTime({ tr, before }) {
     const hasRows = rows.length > 0;
     empty.hidden = hasRows; chartNode.hidden = !hasRows; legend.hidden = !hasRows; rhythm.hidden = !hasRows;
     if (!hasRows) return;
+    for (const [agent, item] of legendItems) item.hidden = agent === 'unknown' && !values.some(([, day]) => day.unknown[index]);
     const animation = !reduced(), muted = token('muted'), border = token('border');
     const text = { color: muted, fontFamily: 'Segoe UI', fontSize: 12 };
     bars = bars || init(chartNode, null, { renderer: 'canvas' });
     bars.setOption({
-      animation, animationDuration: 500, animationEasing: 'cubicOut', aria: { enabled: true },
+      animation, animationDuration: 620, animationDurationUpdate: 420, animationEasing: 'cubicOut', animationEasingUpdate: 'cubicOut', aria: { enabled: true },
       grid: { left: 4, right: 8, top: 10, bottom: 4, containLabel: true },
       // richText tooltips draw on the canvas: no inline style attributes, so the strict style-src policy holds.
       tooltip: { trigger: 'axis', renderMode: 'richText', axisPointer: { type: 'shadow', shadowStyle: { color: token('highlight') } }, backgroundColor: token('raised'), borderColor: token('border-strong'), textStyle: { color: token('text'), fontSize: 12 },
         formatter: items => { const key = keys[items[0].dataIndex]; const lines = items.filter(item => item.value).map(item => item.marker + item.seriesName + '  ' + (index ? number(item.value) + ' ' + words.unitCalls : number(item.value) + ' ' + words.unitTokens)); return dateLabel(key, true) + '\n' + (lines.length ? lines.join('\n') : words.none); } },
       xAxis: { type: 'category', data: keys.map(key => dateLabel(key)), axisLine: { lineStyle: { color: border } }, axisTick: { show: false }, axisLabel: { ...text, hideOverlap: true } },
-      yAxis: { type: 'value', splitNumber: 3, axisLabel: { ...text, formatter: value => index ? value : compact(value) }, splitLine: { lineStyle: { color: border } } },
-      series: AGENTS.map(([agent, name, color], i) => ({ name, type: 'bar', stack: 'day', barMaxWidth: 22, emphasis: { focus: 'series' },
-        itemStyle: { color: token(color), borderRadius: i === AGENTS.length - 1 ? [3, 3, 0, 0] : 0 },
+      yAxis: { type: 'value', minInterval: index ? 1 : 0, splitNumber: 3, axisLabel: { ...text, formatter: value => index ? number(value) : compact(value) }, splitLine: { lineStyle: { color: border } } },
+      series: AGENTS.map(([agent, name, color]) => ({ id: agent, name: agent === 'unknown' && tr ? 'Bilinmeyen ajan' : name, type: 'bar', stack: 'day', barMaxWidth: 22, emphasis: { focus: 'series' }, animationDelay: at => Math.min(at * 14, 140),
+        // Calls use their own cool colours, so the two views cannot be mistaken for each other.
+        itemStyle: { color: token(index ? color.replace('agent-', 'calls-') : color), borderRadius: 2 },
         data: keys.map(key => perDay.get(key)?.[agent][index] || 0) }))
-    }, true);
+    });
     heat = heat || init(heatNode, null, { renderer: 'canvas' });
     const source = index ? gridCalls : grid, cells = [];
     let max = 0;
     source.forEach((hours, day) => hours.forEach((value, hour) => { cells.push([hour, day, value || '-']); max = Math.max(max, value); }));
     heat.setOption({
-      animation, aria: { enabled: true },
+      animation, animationDuration: 520, animationDurationUpdate: 420, animationEasingUpdate: 'cubicOut', aria: { enabled: true },
       grid: { left: 4, right: 8, top: 4, bottom: 4, containLabel: true },
       tooltip: { renderMode: 'richText', backgroundColor: token('raised'), borderColor: token('border-strong'), textStyle: { color: token('text'), fontSize: 12 },
         formatter: item => words.days[item.value[1]] + ' ' + pad(item.value[0]) + ':00  ' + (item.value[2] === '-' ? words.none : (index ? number(item.value[2]) + ' ' + words.unitCalls : number(item.value[2]) + ' ' + words.unitTokens)) },
       xAxis: { type: 'category', data: Array.from({ length: 24 }, (_, h) => pad(h)), splitArea: { show: false }, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { ...text, interval: 2 } },
       yAxis: { type: 'category', data: words.days, inverse: true, axisLine: { show: false }, axisTick: { show: false }, axisLabel: text },
-      visualMap: { show: false, min: 0, max: Math.max(1, max), inRange: { color: [token('heat-1'), token('heat-2'), token('heat-3'), token('heat-4'), token('heat-5')] } },
-      series: [{ type: 'heatmap', data: cells, itemStyle: { borderColor: token('surface'), borderWidth: 2, borderRadius: 3 }, emphasis: { itemStyle: { borderColor: token('text'), borderWidth: 1 } } }]
-    }, true);
+      visualMap: { show: false, min: 0, max: Math.max(1, max), inRange: { color: [1, 2, 3, 4, 5].map(step => token((index ? 'calls-heat-' : 'heat-') + step)) } },
+      series: [{ id: 'weekly-rhythm', type: 'heatmap', data: cells, itemStyle: { borderColor: token('surface'), borderWidth: 2, borderRadius: 3 }, emphasis: { itemStyle: { borderColor: token('text'), borderWidth: 1 } } }]
+    });
   }
 
   function update(data) {
@@ -193,14 +205,44 @@ export function mountUsageTime({ tr, before }) {
   }
 
   // Hovering a day shows that day in the stat row; leaving the chart returns to the period.
-  chartNode.addEventListener('pointerleave', () => { if (focusDay !== null) draw(); });
-  const hover = () => bars?.on('updateAxisPointer', event => {
-    const axis = event.axesInfo?.[0]; if (!axis || !series) return;
-    const key = series.keys[axis.value]; if (key === undefined || key === focusDay) return;
+  const period = () => summary(series.keys.map(key => [key, series.perDay.get(key)]).filter(([, day]) => day));
+  function showPeriod() {
+    focusDay = null;
+    const total = period();
+    showStats(words.period, total.tokens, total.calls, total);
+  }
+  function showDay(key) {
     focusDay = key; const day = series.perDay.get(key);
     const tokens = day ? day['claude-code'][0] + day.codex[0] + day.unknown[0] : 0, calls = day ? day['claude-code'][1] + day.codex[1] + day.unknown[1] : 0;
-    showStats(dateLabel(key, true), tokens, calls);
+    showStats(dateLabel(key, true) + (pinned === key ? ' · ' + words.pinned : ''), tokens, calls, period());
+  }
+  function mark(key, on) {
+    const dataIndex = series.keys.indexOf(key);
+    if (dataIndex >= 0) bars?.dispatchAction({ type: on ? 'highlight' : 'downplay', dataIndex });
+  }
+  chartNode.addEventListener('pointerleave', () => {
+    if (!series) return;
+    bars?.dispatchAction({ type: 'hideTip' });
+    if (pinned !== null) { if (focusDay !== pinned) showDay(pinned); mark(pinned, true); }
+    else if (focusDay !== null) showPeriod();
   });
+  const hover = () => {
+    bars?.on('updateAxisPointer', event => {
+      const axis = event.axesInfo?.[0]; if (!axis || !series) return;
+      const key = series.keys[axis.value]; if (key === undefined || key === focusDay) return;
+      showDay(key);
+    });
+    // A click keeps one day in the figures above until it is clicked again or another day is chosen.
+    bars?.getZr().on('click', event => {
+      if (!series || !bars.containPixel('grid', [event.offsetX, event.offsetY])) return;
+      const key = series.keys[bars.convertFromPixel({ xAxisIndex: 0 }, event.offsetX)];
+      if (key === undefined) return;
+      if (pinned !== null) mark(pinned, false);
+      pinned = pinned === key ? null : key;
+      if (pinned !== null) mark(pinned, true);
+      focusDay = null; showDay(key);
+    });
+  };
   new ResizeObserver(() => { bars?.resize(); heat?.resize(); }).observe(card);
 
   // A small trend line in the first total card: the same daily totals, no axis, no extra claim.

@@ -15,6 +15,8 @@ import {mountUsageTime} from './usage-time.js';
 import {mountQuota} from './quota-view.jsx';
 import {mountWork} from './work-view.jsx';
 import {mountTour} from './tour.js';
+import {mountSelectMenus} from './select-menu.jsx';
+import {mountReadingLayers} from './reading-layers.js';
 import { init, use } from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, AriaComponent } from 'echarts/components';
@@ -24,7 +26,7 @@ import { createElement, LayoutDashboard, ListFilter, Layers, Gauge, Settings2, S
 use([BarChart, GridComponent, TooltipComponent, AriaComponent, CanvasRenderer]);
 const tr = document.documentElement.lang === 'tr';
 const words = tr ? {
-  overview:'Kullanım',sessions:'Oturumlar',work:'İşlerim',quota:t('account_limits'),settings:'Ayarlar',
+  overview:'Kullanım',sessions:'Oturumlar',work:'İşlerim',quota:t('account_limits'),settings:'Ayarlar',review:'Kayıt incelemesi',reviewIntro:'Kapsam, gözlemler ve hesaplama yöntemleri.',
   warning:t('account_limit_warning'),workspace:'Çalışma alanı',find:'Bir bölüme git…',local:'Verilerin bu bilgisayarda',localNote:'Yerel kayıtlar · Model çağrısı yok',
   overviewIntro:'Kullanımını anla. Bir sonraki işine odaklan.',sessionsIntro:'Oturumunu bul. Kullanımını gör, uyarını kur.',
   workIntro:'Bir işe ait oturumlar, hedefler ve sonuçlar bir arada.',quotaIntro:'Sağlayıcının belirlediği hesap sınırları. Kayıtlardaki son ölçümler gösterilir.',settingsIntro:'Yerel geçmişini sakla, yedekle ve yönet.',
@@ -32,7 +34,7 @@ const words = tr ? {
   chartEmpty:'Projelerin burada görünecek',chartEmptyNote:'Kayıtlar okunduğunda seçili projelerin dağılımını görebilirsin.',
   export:'Dışa aktarma seçenekleri',allSessions:'Oturumları incele',chartLabel:'Projelere göre kaydedilmiş toplam tokenlar',noMatch:'Bölüm bulunamadı',close:'Kapat'
 } : {
-  overview:'Usage',sessions:'Sessions',work:'My work',quota:t('account_limits'),settings:'Settings',
+  overview:'Usage',sessions:'Sessions',work:'My work',quota:t('account_limits'),settings:'Settings',review:'Record review',reviewIntro:'Coverage, observations and calculation methods.',
   warning:t('account_limit_warning'),workspace:'Workspace',find:'Jump to a section…',local:'Your data stays here',localNote:'Local records · No model calls',
   overviewIntro:'Understand your usage. Focus on your next piece of work.',sessionsIntro:'Find a session. See its usage and set an alert.',
   workIntro:'The sessions, goals and outcomes behind each piece of work.',quotaIntro:'Limits set by your provider, shown from the latest recorded samples.',settingsIntro:'Keep, back up and manage your local history.',
@@ -45,7 +47,7 @@ const ui=window.plerUI;
 function el(tag, cls, text) { const item=document.createElement(tag); if(cls)item.className=cls; if(text)item.textContent=text; return item; }
 function icon(node) { const svg=createElement(node,{width:19,height:19,'stroke-width':1.65,'aria-hidden':'true'}); return svg; }
 const pages = {};
-const routes=[['sessions',ListFilter],['work',Layers],['overview',LayoutDashboard],['quota',Gauge],['settings',Settings2]];
+const routes=[['sessions',ListFilter],['work',Layers],['overview',LayoutDashboard],['quota',Gauge],['review',ShieldCheck],['settings',Settings2]];
 const sidebar=el('aside','ws-sidebar');
 const brand=el('a','ws-brand','PLER');brand.href=location.pathname+location.search;brand.prepend(el('span','ws-symbol','∥')); sidebar.append(brand);
 // Home stays inside the mounted workspace: no document reload, lost language or drafts.
@@ -74,12 +76,12 @@ pages.overview.insertBefore(chartCard,$('usage-dated'));
 const timeCard=mountUsageTime({tr,before:chartCard});
 const quotaView=mountQuota({tr,page:pages.quota});
 const options=document.querySelector('.export-options');const exportDetails=el('details','ws-export-options');exportDetails.append(el('summary','',words.export));exportDetails.append(options);pages.settings.append(exportDetails);
-const coverage=el('details','ws-coverage');const coverageSummary=el('summary','',tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings');coverage.append(coverageSummary);$('usage-data-guidance').before(coverage);coverage.append($('usage-data-guidance'));
+const coverage=el('section','ws-coverage');const coverageSummary=el('h3','',tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings');coverage.append(coverageSummary);$('usage-data-guidance').before(coverage);coverage.append($('usage-data-guidance'));
 const h1=document.querySelector('.workspace-head h1');const intro=document.querySelector('.usage-intro');
 let current=null,chart=null,lastData=null,linkingWork=null,workDirty=true;
 const renderedViews={overview:new WeakSet(),quota:new WeakSet()};
 // Mounted further down, once the work page is rearranged; redraw() may run before that.
-let workView=null,tour=null,firstUse=null,budgetUI=null,diagnosticUI=null,reconnectionUI=null,settingsUI=null;
+let workView=null,tour=null,firstUse=null,budgetUI=null,diagnosticUI=null,reconnectionUI=null,settingsUI=null,readingLayers=null;
 function revealSetting(target){show('settings',true);settingsUI?.reveal(target);}
 function show(name,focus=false) {
   if(!Object.hasOwn(pages,name))name='sessions';
@@ -122,6 +124,7 @@ function redraw() {
   coverage.hidden=$('usage-data-guidance').hidden;
   const warningCount=$('usage-data-guidance-items').children.length;coverageSummary.textContent=(tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings')+(warningCount?' · '+warningCount:'');
   if(data?.sources?.unreadable)coverage.open=true;
+  readingLayers?.update(data);
   if(current==='work'&&workView&&workDirty){workView.update();workDirty=false;}
   if(current==='quota'&&data?.has_snapshot&&!renderedViews.quota.has(data)){quotaView.update(data);renderedViews.quota.add(data);}
   if(current!=='overview')return;
@@ -134,9 +137,9 @@ function redraw() {
   if(!rows.length)return;
   if(!chart){chart=init(chartNode,null,{renderer:'canvas'});chart.on('click',event=>{const row=lastData?.[event.dataIndex];if(!row)return;$('usage-project').value=row.id;$('usage-project').dispatchEvent(new Event('change',{bubbles:true}));show('sessions',true);});}
   lastData=rows;
-  chart.setOption({animation:!matchMedia('(prefers-reduced-motion: reduce)').matches,aria:{enabled:true},grid:{left:16,right:60,top:18,bottom:22,containLabel:true},tooltip:{trigger:'axis',renderMode:'richText',axisPointer:{type:'shadow'},valueFormatter:value=>Number(value).toLocaleString(tr?'tr-TR':'en-US')+' tokens'},xAxis:{type:'value',axisLabel:{color:token('muted'),formatter:n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'k':n},splitLine:{lineStyle:{color:token('border')}},axisLine:{show:false}},yAxis:{type:'category',inverse:true,data:rows.map(p=>p.name),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:token('secondary'),width:150,overflow:'truncate',fontSize:12}},series:[{type:'bar',barMaxWidth:25,data:rows.map((p,i)=>({value:p.total_tokens,itemStyle:{color:i===0?token('text'):token('muted'),borderRadius:[0,5,5,0]}})),emphasis:{itemStyle:{color:token('text')}}}]},true);
+  chart.setOption({animation:!matchMedia('(prefers-reduced-motion: reduce)').matches,aria:{enabled:true},animationDuration:620,animationDurationUpdate:420,animationEasing:'cubicOut',animationEasingUpdate:'cubicOut',grid:{left:4,right:56,top:18,bottom:12,containLabel:true},tooltip:{trigger:'axis',renderMode:'richText',axisPointer:{type:'shadow',shadowStyle:{color:token('highlight')}},backgroundColor:token('raised'),borderColor:token('border-strong'),textStyle:{color:token('text'),fontSize:12},valueFormatter:value=>Number(value).toLocaleString(tr?'tr-TR':'en-US')+' tokens'},xAxis:{type:'value',splitNumber:3,axisLabel:{hideOverlap:true,color:token('muted'),formatter:n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'k':n},splitLine:{lineStyle:{color:token('border')}},axisLine:{show:false}},yAxis:{type:'category',inverse:true,data:rows.map(p=>p.name),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:token('secondary'),width:Math.min(150,Math.max(64,chartNode.clientWidth*.3)),overflow:'truncate',fontSize:12}},series:[{id:'project-usage',type:'bar',barMaxWidth:18,animationDelay:at=>at*60,label:{show:true,position:'right',color:token('secondary'),fontSize:12,fontFamily:'Segoe UI',formatter:item=>item.value>=1e6?(item.value/1e6).toLocaleString(tr?'tr-TR':'en-US',{maximumFractionDigits:1})+'M':item.value>=1e3?Math.round(item.value/1e3).toLocaleString(tr?'tr-TR':'en-US')+'k':String(item.value)},data:rows.map((p,i)=>({name:p.id,value:p.total_tokens,itemStyle:{color:i===0?token('accent'):token('muted'),borderRadius:[0,4,4,0]}})),emphasis:{itemStyle:{color:token('text')}}}]});
 }
-new ResizeObserver(()=>{if(current==='overview')chart?.resize();}).observe(chartNode);
+new ResizeObserver(()=>{if(current==='overview'&&chart){chart.resize();chart.setOption({yAxis:{axisLabel:{width:Math.min(150,Math.max(64,chartNode.clientWidth*.3))}}});}}).observe(chartNode);
 const palette=el('dialog','ws-palette');palette.setAttribute('aria-label',words.find);const search=el('input');search.type='search';search.placeholder=words.find;search.setAttribute('aria-label',words.find);const choices=el('div','ws-command-list');const close=el('button','quiet',words.close);close.addEventListener('click',()=>palette.close());palette.append(search,choices,close);document.body.append(palette);
 function commands(){choices.replaceChildren();for(const [name,node] of routes){if(!words[name].toLocaleLowerCase().includes(search.value.toLocaleLowerCase()))continue;const button=el('button','ws-command');button.append(icon(node),el('span','',words[name]));button.addEventListener('click',()=>{palette.close();show(name,true);});choices.append(button);}if(!choices.childElementCount)choices.append(el('p','section-note',words.noMatch));}
 search.addEventListener('input',commands);search.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();choices.querySelector('button')?.focus();}if(event.key==='Enter'){event.preventDefault();choices.querySelector('button')?.click();}});
@@ -192,8 +195,9 @@ if(dl&&!dl.closest('details')){
  }
 }
 budgetUI?.open(session,detail);
+$('usage-session-title').title=$('usage-session-title').textContent;
 show('sessions');
-const previous=document.activeElement;if(!inspector.open)inspector.show();document.body.classList.add('inspector-open');syncRows();if(previous?.closest('#usage-sessions'))previous.focus({preventScroll:true});inspector.scrollTop=0;
+const previous=document.activeElement;if(!inspector.open)inspector.show();document.body.classList.add('inspector-open');syncRows();if(previous?.closest('#usage-sessions'))previous.focus({preventScroll:true});inspector.scrollTop=0;detail.scrollTop=0;
 };
 inspector.addEventListener('close',()=>{if(inspector.open)return;budgetUI?.close();document.body.classList.remove('inspector-open');syncRows();});
 list.addEventListener('click',event=>{const row=event.target.closest('tr');if(!row||event.target.closest('button,a,input,select'))return;row.querySelector('button')?.click();});
@@ -256,6 +260,9 @@ diagnosticUI=mountDiagnostics({tr,settings:pages.settings,show,reveal:revealSett
 mountHistoryRecovery({tr,settings:pages.settings,show,reveal:revealSetting});
 settingsUI=mountSettings({tr,page:pages.settings,show});
 mountSearchRecovery({tr});
+readingLayers=mountReadingLayers({tr,pages,show});
 ui.subscribe(['screen'],state=>{if(state.screen!==current)show(state.screen);});
 ui.subscribe(['data','loading','readError','filters','restoring','screen','work'],(_state,topic)=>{if(topic==='work')workDirty=true;redraw();syncLoading();});
 redraw();
+// Drawn menus replace the browser's own list for the main dropdowns; the selects stay the source of truth.
+mountSelectMenus();
