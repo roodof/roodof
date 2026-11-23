@@ -4,6 +4,22 @@
 
 See what Claude Code and Codex used, from their own logs on your computer: tokens by project and model, where your subscription quota is heading, and where usage builds up.
 
+[![Latest release](https://img.shields.io/github/v/release/roodof/roodof?include_prereleases&label=beta)](https://github.com/roodof/roodof/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) ![Windows](https://img.shields.io/badge/platform-Windows-0078D6)
+
+**[Download the free Windows beta](https://roodof.com/)** · no account, no signup
+
+![Roodof Usage screen with demo data: tokens per day for Claude Code and Codex, and tokens per project for a chosen day](docs/usage-overview.jpg)
+<sub>Demo data shown. Roodof reads your own Claude Code and Codex logs on your computer.</sub>
+
+**What it shows**
+
+- Tokens per day for Claude Code and Codex, side by side
+- **Projects by day:** pick a day and see which repo used the most tokens
+- Tokens by project and model, and where your 5-hour and weekly quota is heading
+- API price equivalent, clearly marked as not your subscription bill
+
+**How it handles your data**
+
 - **Calls no model.** Measuring costs zero tokens.
 - **Agent data stays local.** The page opens on this computer only (`127.0.0.1`). Usage analysis works offline. Optional update checks/downloads contact the release service without agent records or project data. Explicit local WSL roots are supported; other network shares stay refused.
 - **Agent logs stay unchanged.** Roodof keeps a metadata cache; prompts, replies, commands and tool output never reach the page or the cache. The optional status line changes Claude Code settings only after confirmation and keeps a backup.
@@ -11,9 +27,9 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 ## Windows beta quick start
 
-**Free Windows beta 0.9.30 — 23 November 2026:** [Download the installer](https://roodof.com/downloads/Roodof-Setup-0.9.30.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://roodof.com/). [Installation and updates](docs/SETUP.md).
+**Free Windows beta 0.9.31 — 23 November 2026:** [Download the installer](https://roodof.com/downloads/Roodof-Setup-0.9.31.exe). Per-user installation, Start/desktop shortcuts and removal from Windows Apps. Portable ZIP and the optional Python edition remain available on the [download page](https://roodof.com/). [Installation and updates](docs/SETUP.md).
 
-For the Windows installer, close Roodof, run **Roodof-Setup-0.9.30.exe**, then open Roodof from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with Roodof-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
+For the Windows installer, close Roodof, run **Roodof-Setup-0.9.31.exe**, then open Roodof from Start or its desktop shortcut. Administrator rights and a separate Python installation are not needed. To try invented records with Roodof-Demo.cmd, use the portable ZIP. The detailed ZIP/terminal instructions below remain optional.
 
 **Optional portable edition.** Download the Windows x64 ZIP from [the Roodof site](https://roodof.com/), extract the entire package into a new folder and open `Roodof.exe`. Electron and Python are included; the app opens in its own window. Close the window to stop it. The terminal/Python wheel still opens a browser.
 
