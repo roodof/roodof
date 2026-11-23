@@ -1,3 +1,9 @@
+# Kullanıcı isteği — proje bazlı günlük döküm (öneri, 23 Kasım 2026)
+
+X'te bir geliştirici (18 Kasım, @roodof_ gönderisine yanıt): "A daily split per project would show people which repo burns their limit." Roodof bugün kullanımı projeye göre grupluyor ve dönem/proje filtresi sunuyor. Ancak gün × proje dökümü yok (README: JSON'da `days` serisi yok). Bu, E01 için ilk dış kullanıcı sinyalidir. Uygulanmış özellik sayılmaz. Kapsam ve tarihlenebilir kullanım sınırları ayrıca karara bağlanmalıdır.
+
+---
+
 # Roodof 0.9.29 — ürün adı değişikliği
 
 Site V13 ve GitHub ön sürümü yayımlandı. Canlı 19 indirme (16 eski), yeni Roodof adresleri ve EN/TR sayfalar doğrulandı. Kanıt: ../../reports/rebrand-roodof-v1/REPORT.md.

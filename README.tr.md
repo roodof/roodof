@@ -11,11 +11,11 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Ücretsiz Windows betası 0.9.29 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://pler-local-usage.oguzay5555.chatgpt.site/downloads/Roodof-Setup-0.9.29.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://pler-local-usage.oguzay5555.chatgpt.site/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
+**Ücretsiz Windows betası 0.9.29 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://roodof.com/downloads/Roodof-Setup-0.9.29.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://roodof.com/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
 
 Windows kurulumu için Roodof’i kapat, **Roodof-Setup-0.9.29.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. Roodof-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
 
-**İsteğe bağlı taşınabilir sürüm.** [Roodof sitesinden](https://pler-local-usage.oguzay5555.chatgpt.site/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `Roodof.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
+**İsteğe bağlı taşınabilir sürüm.** [Roodof sitesinden](https://roodof.com/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `Roodof.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 
 1. Önce uydurma kayıtları incelemek için `Roodof-Demo.cmd` dosyasını aç. Kendi kayıtlarını `Roodof.exe` ile açmadan önce demoyu kapat; demo işleri geçicidir.
 2. Roodof yerel Claude Code veya Codex kayıtlarını bulunca **Oturumlarını gör** seçeneğini kullan. Kayıt görünmüyorsa filtreleri genişlet veya farklı kurulum/önceden açılmış WSL dağıtımı için **Kayıt klasörü ekle** seçeneğini kullan. ChatGPT web sohbetleri bu okuyucuya dahil değildir.
@@ -247,3 +247,7 @@ Bu deponun kökünden güncellerken Roodof'i kapat, `pip install --upgrade .` ç
 ```
 python -m pytest
 ```
+
+## Lisans
+
+MIT. Bkz. [LICENSE](LICENSE). `docs/design-references` içindeki tasarım referansı kopyaları kendi lisanslarını korur.
