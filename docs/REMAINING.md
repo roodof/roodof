@@ -1,3 +1,9 @@
+# Windows imzası: SignPath Foundation başvurusu (23 Kasım 2026)
+
+Kaynak MIT ile github.com/roodof/roodof altında açıldı. Kurulum dosyası .github/workflows/windows-build.yml ile GitHub Actions üzerinde derleniyor; içerik yayınlanmış 0.9.29 ile aynı 193 dosya. SignPath Foundation başvurusu hesap sahibince gönderildi, sonuç bekleniyor. Kabul gelirse iş akışına imza adımı eklenecek ve indirme sayfasına SignPath ibaresi konacak. Red gelirse seçenekler bireysel OV sertifika (~220 $/yıl) veya ileride yeniden başvuru. Bu bölüm R02 imza kararını izler.
+
+---
+
 # Kullanıcı isteği — proje bazlı günlük döküm (öneri, 23 Kasım 2026)
 
 X'te bir geliştirici (18 Kasım, @roodof_ gönderisine yanıt): "A daily split per project would show people which repo burns their limit." Roodof bugün kullanımı projeye göre grupluyor ve dönem/proje filtresi sunuyor. Ancak gün × proje dökümü yok (README: JSON'da `days` serisi yok). Bu, E01 için ilk dış kullanıcı sinyalidir. Uygulanmış özellik sayılmaz. Kapsam ve tarihlenebilir kullanım sınırları ayrıca karara bağlanmalıdır.
