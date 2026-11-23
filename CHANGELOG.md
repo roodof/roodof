@@ -1,3 +1,10 @@
+# Roodof 0.9.30 — güncelleme kanalı
+
+- Windows uygulaması imzalı güncelleme beslemesini artık `https://roodof.com` üzerinden kontrol eder. 0.9.29 kullanıcılarının bu sürüme geçmek için [roodof.com](https://roodof.com/) üzerinden bir kez elle indirmesi gerekir.
+- Roodof kaynak kodu [GitHub'da](https://github.com/roodof/roodof) MIT lisansıyla yayımlandı.
+
+---
+
 # Roodof 0.9.29 — ürün adı değişikliği
 
 PLER ürününün yeni adı Roodof. Görünen uygulama, masaüstü pencere/kurulum, yardım ve site adı güncellendi. Mevcut geçmiş, yedek biçimleri, imza güven kökü ve eski indirme/güncelleme adresleri uyumluluk için korunur. Önceki sürüm kayıtları tarihsel adlarını korur. 400 seçici değişmedi; gerçek ortam kabulü Q01 SON/açık.
