@@ -12,9 +12,11 @@ Kaynak MIT ile github.com/roodof/roodof altında açıldı. Kurulum dosyası .gi
 
 ---
 
-# Kullanıcı isteği — proje bazlı günlük döküm (öneri, 23 Kasım 2026)
+# Kullanıcı isteği — proje bazlı günlük döküm (yerel, 23 Kasım 2026)
 
-X'te bir geliştirici (18 Kasım, @roodof_ gönderisine yanıt): "A daily split per project would show people which repo burns their limit." Roodof bugün kullanımı projeye göre grupluyor ve dönem/proje filtresi sunuyor. Ancak gün × proje dökümü yok (README: JSON'da `days` serisi yok). Bu, E01 için ilk dış kullanıcı sinyalidir. Uygulanmış özellik sayılmaz. Kapsam ve tarihlenebilir kullanım sınırları ayrıca karara bağlanmalıdır.
+X'te bir geliştirici (18 Kasım, @roodof_ gönderisine yanıt): "A daily split per project would show people which repo burns their limit." Bu, E01 için ilk dış kullanıcı sinyalidir.
+
+Yerel uygulamada Kullanım ekranı, grafik seçimi veya klavyeyle kullanılabilen tarih alanı üzerinden o günün kayıtlı tokenlarını projeye göre sıralar. Gün hesabı yerel gece yarılarını kullanır; gün sınırını aşan yanıtlar ve bütünüyle tarihlendirilemeyen kullanım ayrı belirtilir. Dışa aktarma biçimi aynı. 0.9.30 yayınına eklenmedi. Bağımsız kullanıcı kabulü ve yayın kararı açık.
 
 ---
 

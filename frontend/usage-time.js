@@ -6,6 +6,7 @@ import { BarChart, HeatmapChart } from 'echarts/charts';
 import { GridComponent, TooltipComponent, AriaComponent, VisualMapComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { mountSegments } from './primitives.jsx';
+import { mountDayProjects } from './usage-day-projects.js';
 
 use([BarChart, HeatmapChart, GridComponent, TooltipComponent, AriaComponent, VisualMapComponent, CanvasRenderer]);
 
@@ -32,7 +33,7 @@ function metricNumber(host) {
   };
 }
 
-export function mountUsageTime({ tr, before }) {
+export function mountUsageTime({ tr, before, loadDayProjects }) {
   const lang = tr ? 'tr-TR' : 'en-US';
   const words = tr ? {
     title: 'Zaman içinde kullanım', note: 'Zamanı kayıtlı yanıtlar, senin saatine göre. Bir güne gel, o günü gör; tıkla, sabitle.',
@@ -77,7 +78,10 @@ export function mountUsageTime({ tr, before }) {
   const heatNode = el('div', 'ws-rhythm-chart'); heatNode.setAttribute('role', 'img'); heatNode.setAttribute('aria-label', words.heat);
   rhythm.append(rhythmText, heatNode);
   const coverage = el('p', 'section-note ws-time-coverage'); coverage.hidden = true;
-  card.append(head, stats, chartNode, legend, empty, rhythm, coverage);
+  const projectPanel = el('div', 'ws-day-projects'); projectPanel.hidden = true;
+  const dayProjects = mountDayProjects({ tr, number, parent: projectPanel, load: loadDayProjects, create: el,
+    onSelect: key => pinDay(key) });
+  card.append(head, stats, chartNode, legend, empty, projectPanel, rhythm, coverage);
   before.before(card);
 
   let metric = 'tokens', series = null, bars = null, heat = null, focusDay = null, pinned = null;
@@ -195,12 +199,13 @@ export function mountUsageTime({ tr, before }) {
   }
 
   function update(data) {
-    if (!data?.has_snapshot || !data.timeline) { card.hidden = true; return; }
+    if (!data?.has_snapshot || !data.timeline) { card.hidden = true; dayProjects.update(null); return; }
     card.hidden = false;
     series = group(data);
     const partial = data.dated_usage?.unallocated_sessions || 0;
     coverage.hidden = !partial; coverage.textContent = partial ? words.partial(number(partial)) : '';
     draw();
+    dayProjects.update(data, series.keys);
     requestAnimationFrame(() => { bars?.resize(); heat?.resize(); });
   }
 
@@ -220,6 +225,15 @@ export function mountUsageTime({ tr, before }) {
     const dataIndex = series.keys.indexOf(key);
     if (dataIndex >= 0) bars?.dispatchAction({ type: on ? 'highlight' : 'downplay', dataIndex });
   }
+  function pinDay(key, toggle = false) {
+    if (!series) return;
+    if (pinned !== null) mark(pinned, false);
+    pinned = toggle && pinned === key ? null : key;
+    if (pinned !== null) mark(pinned, true);
+    focusDay = null;
+    if (pinned === null) showPeriod();
+    else showDay(key);
+  }
   chartNode.addEventListener('pointerleave', () => {
     if (!series) return;
     bars?.dispatchAction({ type: 'hideTip' });
@@ -237,10 +251,8 @@ export function mountUsageTime({ tr, before }) {
       if (!series || !bars.containPixel('grid', [event.offsetX, event.offsetY])) return;
       const key = series.keys[bars.convertFromPixel({ xAxisIndex: 0 }, event.offsetX)];
       if (key === undefined) return;
-      if (pinned !== null) mark(pinned, false);
-      pinned = pinned === key ? null : key;
-      if (pinned !== null) mark(pinned, true);
-      focusDay = null; showDay(key);
+      pinDay(key, true);
+      dayProjects.select(key);
     });
   };
   new ResizeObserver(() => { bars?.resize(); heat?.resize(); }).observe(card);

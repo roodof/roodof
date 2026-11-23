@@ -1073,6 +1073,16 @@ body:is([data-screen=work],[data-screen=quota],[data-screen=settings]) #usage-em
 .ws-swatch{transition:background-color .3s ease}.ws-time-chart{cursor:pointer}
 .ws-time-stat{transition:background-color .16s ease}.ws-time-stat:hover{background:var(--ui-highlight)}
 .ws-time-empty{padding:28px 0;text-align:center;font-size:var(--ui-label-size);color:var(--ui-muted)}
+.ws-day-projects{margin-top:14px;padding-top:14px;border-top:1px solid var(--ui-border)}
+.ws-day-project-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px}
+.ws-day-project-head h3{margin:0}
+.ws-day-project-head label{display:flex;align-items:center;gap:8px;color:var(--ui-secondary);font-size:var(--ui-label-size)}
+.ws-day-project-head input{min-height:32px;max-width:100%;padding:4px 8px;background:var(--ui-raised);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:5px;color-scheme:dark}
+.ws-day-projects .section-note:empty,.ws-day-project-list:empty{display:none}
+.ws-day-project-list{list-style:none;margin:8px 0;padding:0}
+.ws-day-project-list li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--ui-border)}
+.ws-day-project-list li span{overflow-wrap:anywhere}
+.ws-day-project-list strong{flex:none;font-variant-numeric:tabular-nums}
 .ws-rhythm{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:16px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--ui-border)}
 .ws-rhythm h3{margin:0}.ws-rhythm .section-note{margin-top:4px}
 .ws-rhythm-chart{width:100%;height:190px}

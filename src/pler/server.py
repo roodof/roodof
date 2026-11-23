@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlsplit
 from . import __version__
 from .dashboard import UnknownProject, UsageDashboard
 from .i18n import LANGUAGES, say
+from .usage.period_usage import event_time
 
 WEB = Path(__file__).with_name('web')
 FILES = {'/app.js': 'text/javascript; charset=utf-8','/ui-state.js':'text/javascript; charset=utf-8','/updates.js':'text/javascript; charset=utf-8',
@@ -210,7 +211,7 @@ class Handler(BaseHTTPRequestHandler):
                 result=self.server.recovery.state()
                 result.update(desktop=self.server.desktop_switch,demo=bool(self.server.dashboard.sources.get('demo')))
                 self._send(200,result)
-            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups','/api/usage/budgets','/api/usage/sources','/api/usage/diagnostics','/api/usage/reconnections'):
+            elif request.path in ('/api/usage', '/api/usage/export','/api/usage/session','/api/usage/work/followups','/api/usage/budgets','/api/usage/sources','/api/usage/diagnostics','/api/usage/reconnections','/api/usage/day-projects'):
                 if not self._token():
                     self._send(401, dict(error=say(lang, 'error.read_token'), code='connection_required'))
                     return
@@ -253,12 +254,24 @@ class Handler(BaseHTTPRequestHandler):
                     self._send(200,dict(session=session)) if session else self._send(404,dict(error=say(lang,'error.session_missing')))
                     return
                 fields={'days','agent','project','lang'}|({'mask_projects'} if request.path.endswith('/export') else set())
+                day_projects = request.path == '/api/usage/day-projects'
+                if day_projects:
+                    fields.update(('start','end','snapshot'))
                 if (set(query) - fields or any(len(v) != 1 for v in query.values())
                         or query.get('lang', ['en'])[0] not in LANGUAGES):
                     raise ValueError(say(lang, 'error.query'))
                 days = query.get('days', ['30'])[0]
                 if days not in ('0', '7', '30', '90'):
                     raise ValueError(say(lang, 'error.bad_period'))
+                if day_projects:
+                    start, end, snapshot = (query.get(key, [''])[0] for key in ('start','end','snapshot'))
+                    if (len(start)!=24 or len(end)!=24 or not start.endswith('Z') or not end.endswith('Z')
+                            or not snapshot or len(snapshot)>40):
+                        raise ValueError(say(lang, 'error.query'))
+                    result = self.server.dashboard.day_projects(event_time(start), event_time(end), snapshot,
+                        int(days), query.get('agent',['all'])[0], query.get('project',['all'])[0], lang)
+                    self._send(200,result) if result is not None else self._send(409,dict(error=say(lang,'error.no_snapshot')))
+                    return
                 value = self.server.dashboard.view(int(days), query.get('agent', ['all'])[0], query.get('project', ['all'])[0], lang)
                 if request.path.endswith('/export'):
                     if not value['has_snapshot']:

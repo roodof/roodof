@@ -73,7 +73,7 @@ const chartLink=el('button','secondary',words.allSessions);chartLink.append(icon
 const chartNode=el('div','ws-chart-canvas');chartNode.setAttribute('role','img');chartNode.setAttribute('aria-label',words.chartLabel);
 const chartEmpty=el('div','ws-chart-empty');chartEmpty.append(icon(ChartNoAxesCombined),el('strong','',words.chartEmpty),el('p','',words.chartEmptyNote));chartCard.append(chartHead,chartNode,chartEmpty);
 pages.overview.insertBefore(chartCard,$('usage-dated'));
-const timeCard=mountUsageTime({tr,before:chartCard});
+const timeCard=mountUsageTime({tr,before:chartCard,loadDayProjects:ui.dayProjects});
 const quotaView=mountQuota({tr,page:pages.quota});
 const options=document.querySelector('.export-options');const exportDetails=el('details','ws-export-options');exportDetails.append(el('summary','',words.export));exportDetails.append(options);pages.settings.append(exportDetails);
 const coverage=el('section','ws-coverage');const coverageSummary=el('h3','',tr?'Veri kapsamı ve uyarılar':'Data coverage & warnings');coverage.append(coverageSummary);$('usage-data-guidance').before(coverage);coverage.append($('usage-data-guidance'));

@@ -25,7 +25,7 @@ from .usage.projects import ProjectRoots, label, labels
 from .usage.records import total, timestamp
 from .usage.reedit import analyze as subsequent_edits, insight as edit_insight
 from .usage.period_usage import analyze as dated_usage
-from .usage.timeline import hourly as hourly_usage
+from .usage.timeline import hourly as hourly_usage, projects_for_day
 from .usage.pricing import PRICES_AS_OF
 from .usage.verdicts import Folder, session_code, summary as verdict_summary
 from .usage.identities import IdentityError
@@ -198,20 +198,24 @@ def session_view(session, lang='en', git=None, project_names=None, verdicts=None
                 notes=_notes(session, lang), git_activity=session_activity(git, session.started, session.ended))
 
 
-def project_view(sessions, sources, days=30, agent='all', project='all', now=None, lang='en'):
-    lang = lang if lang in LANGUAGES else 'en'
+def _usage_scope(sessions, days, agent, project, lang):
     if type(days) is not int or days not in PERIODS:
         raise ValueError(say(lang, 'error.period'))
     if agent not in ('all', *AGENTS):
         raise ValueError(say(lang, 'error.agent'))
-    known_projects = {_id('project', s.project) for s in sessions}
-    if project != 'all' and project not in known_projects:
+    if project != 'all' and not any(_id('project', s.project) == project for s in sessions):
         raise UnknownProject(say(lang, 'error.unknown_project'))
+    return [s for s in sessions if (agent == 'all' or s.agent == agent)
+            and (project == 'all' or _id('project', s.project) == project)]
+
+
+def project_view(sessions, sources, days=30, agent='all', project='all', now=None, lang='en'):
+    lang = lang if lang in LANGUAGES else 'en'
+    scoped = _usage_scope(sessions, days, agent, project, lang)
     now = now or datetime.now(timezone.utc)
     project_names=labels([s.project for s in sessions],lang=lang)
     since = now - timedelta(days=days) if days else None
-    rows = [s for s in sessions if (since is None or (s.ended is not None and s.ended >= since))
-            and (agent == 'all' or s.agent == agent) and (project == 'all' or _id('project', s.project) == project)]
+    rows = [s for s in scoped if since is None or (s.ended is not None and s.ended >= since)]
     # The common summary sorts timestamps; preserve unknown dates in the public
     # session row rather than replacing them with an invented date in the UI.
     epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
@@ -250,7 +254,6 @@ def project_view(sessions, sources, days=30, agent='all', project='all', now=Non
     outcome=git_outcome(rows,sources)
     reedit=subsequent_edits(sessions,rows,timestamp(sources.get('observed_at')) or now)
     observed=timestamp(sources.get('observed_at')) or now
-    scoped=[s for s in sessions if (agent=='all' or s.agent==agent) and (project=='all' or _id('project',s.project)==project)]
     dated=dated_usage(scoped,observed-timedelta(days=days) if days else None,observed)
     # Same responses as the dated total, in UTC hours; the page groups them into local days.
     timeline=hourly_usage(scoped,observed-timedelta(days=days) if days else None,observed)
@@ -839,3 +842,21 @@ class UsageDashboard:
             value.update(state=self.state, scanned_at=self.scanned_at, error=self.error and say(value['lang'], self.error),
                          has_snapshot=self.scanned_at is not None, diagnostics=self.diagnostic_view(value['lang']))
             return value
+
+    def day_projects(self, start, end, snapshot, days, agent, project, lang):
+        """Read one selected day from the same retained snapshot as the chart."""
+        with self.lock:
+            self._check_archive_generation()
+            if self.scanned_at is None or snapshot != self.scanned_at:
+                return None
+            scoped = _usage_scope(self.sessions, days, agent, project, lang)
+            cutoff = timestamp(self.sources.get('observed_at')) or timestamp(self.scanned_at)
+            try:
+                projects, boundary_calls = projects_for_day(
+                    scoped, start, end, cutoff - timedelta(days=days) if days else None, cutoff)
+            except ValueError:
+                raise ValueError(say(lang, 'error.query')) from None
+            names = labels([s.project for s in self.sessions], lang=lang)
+            rows = [dict(name=names[path], tokens=tokens) for path, tokens in projects.items() if tokens]
+            rows.sort(key=lambda row: (-row['tokens'], row['name'].casefold()))
+            return dict(projects=rows, total_tokens=sum(row['tokens'] for row in rows), boundary_calls=boundary_calls)

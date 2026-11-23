@@ -108,6 +108,10 @@ Quota journal writers share a bounded local OS lock across deduplication, append
 
 ## Identity and copies
 
+### Projects by day in the local dashboard
+
+The day uses the viewer's local calendar between consecutive midnights. Only reconciled responses with all recorded copies inside the selected day and report interval contribute. Responses that cross a day boundary are reported separately. A dated response can have an unknown project. Undated or cumulative use is never allocated to a day. The breakdown uses the current filters and exposes only existing project display names and token sums. It does not add project-by-day records to exports.
+
 ### Dated usage and comparable observations (0.2.13)
 
 These rules are fixed before measuring new real-data results. The existing active-session selection and whole-session totals remain available and unchanged in meaning.

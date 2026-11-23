@@ -7,7 +7,7 @@ import unittest
 
 from pler.usage import claude_code, codex
 from pler.usage.period_usage import analyze
-from pler.usage.timeline import hourly
+from pler.usage.timeline import hourly, projects_for_day
 from test_logs import write_jsonl
 from test_period_usage import NOW, OLD, SECRET, SINCE, TRANSCRIPT, cumulative, meta, reply, response
 
@@ -67,6 +67,31 @@ class TimelineTests(unittest.TestCase):
     def test_a_cumulative_only_session_is_never_spread_over_time(self):
         sessions = self.codex([cumulative(1000000, NOW - timedelta(hours=1))])
         self.assertEqual(self.agrees(sessions), [])
+
+    def test_project_breakdown_uses_exact_day_bounds_and_excludes_ambiguous_usage(self):
+        start = NOW - timedelta(days=1, hours=3, minutes=30)
+        end = start + timedelta(days=1)
+        alpha = self.codex([
+            response('before', 900, start - timedelta(seconds=1)),
+            response('start', 11, start),
+            response('last', 7, end - timedelta(seconds=1)),
+            response('end', 600, end),
+        ])[0]
+        beta = self.claude([
+            reply('cross-start', 20, start - timedelta(seconds=1)),
+            reply('cross-start', 20, start + timedelta(seconds=1)),
+            reply('cross-end', 30, end - timedelta(seconds=1)),
+            reply('cross-end', 30, end),
+            reply('counted', 40, start + timedelta(hours=2)),
+            reply('undated', 55, None),
+        ])[0]
+        cumulative_only = self.codex([cumulative(1000000, start)], 'rollout-b.jsonl', 'two')[0]
+        alpha.project, beta.project, cumulative_only.project = 'alpha', None, 'absent'
+        values, boundaries = projects_for_day([alpha, beta, alpha, cumulative_only], start, end, None, NOW)
+        self.assertEqual(values, {'alpha': 18, None: 40})
+        self.assertEqual(boundaries, 2)
+        self.assertEqual(projects_for_day([alpha, beta], start, end, start + timedelta(hours=1), NOW),
+                         ({'alpha': 7, None: 40}, 1))
 
     def test_empty_and_invalid_intervals(self):
         self.assertEqual(hourly([], SINCE, NOW), dict(unit='hour_utc', rows=[]))

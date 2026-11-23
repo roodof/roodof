@@ -1203,6 +1203,7 @@ function setUsageFilters(patch){
 }
 function publishUsage(){const loading=Boolean(usageState.reading||usageState.refreshing),changed=usageState.loading!==loading;usageState.loading=loading;usageUI.publish('restoring',Boolean(usageState.restore));usageUI.publish('data',usageState.data);usageUI.publish('loading',loading);usageUI.publish('readError',Boolean(usageState.readError));if(changed){syncExportButton();syncArchiveButton();}}
 window.plerUI=Object.freeze({get:usageUI.get,subscribe:usageUI.subscribe,
+ dayProjects:(params,signal)=>api('/api/usage/day-projects?'+new URLSearchParams({...params,lang:LANG}),{signal}),
  setScreen:name=>usageUI.publish('screen',name),setFilters:setUsageFilters,
  useSessionGrid(){sessionGridActive=true;$('usage-sessions').replaceChildren();renderUsageSessions();}});
 const usageTokens=[['input',t('token_input')],['cache_read',t('token_cache')],['cache_write',t('token_write')],['output',t('token_output')]];

@@ -5,6 +5,7 @@ import json
 import threading
 import unittest
 from unittest.mock import patch
+from urllib.parse import urlencode
 
 from pler.usage.records import Session
 from pler.dashboard import UsageDashboard, project_view
@@ -146,6 +147,35 @@ class ServerTests(unittest.TestCase):
         value = response.status, dict(response.getheaders()), response.read()
         connection.close()
         return value
+
+    def test_daily_projects_requires_current_snapshot_and_only_returns_safe_aggregates(self):
+        rows = sessions()
+        day = NOW.replace(hour=0)
+        for row in rows:
+            row._usage_events = [dict(at=NOW - timedelta(hours=1), tokens=row.tokens)]
+        dashboard = self.server.dashboard
+        with dashboard.lock:
+            dashboard.sessions = rows
+            dashboard.sources = {'observed_at': NOW.isoformat()}
+            dashboard.scanned_at = NOW.isoformat()
+        params = dict(start=day.isoformat(timespec='milliseconds').replace('+00:00','Z'),
+                      end=(day + timedelta(days=1)).isoformat(timespec='milliseconds').replace('+00:00','Z'),
+                      days='7', snapshot=dashboard.scanned_at)
+        route = '/api/usage/day-projects?'
+        self.assertEqual(self.request(route + urlencode(params), authenticated=False)[0], 401)
+        self.assertEqual(self.request(route + urlencode(dict(params,snapshot='stale')))[0], 409)
+        self.assertEqual(self.request(route + urlencode(dict(params,start=params['end'])))[0], 400)
+        status, _, raw = self.request(route + urlencode(params))
+        self.assertEqual(status, 200)
+        self.assertNotIn(SECRET.encode(), raw)
+        self.assertEqual(json.loads(raw), dict(projects=[dict(name='Projects/shop',tokens=100),
+                                                        dict(name='work/other',tokens=20)],
+                                               total_tokens=120, boundary_calls=0))
+        scoped = json.loads(self.request(route + urlencode(dict(params,agent='claude-code')))[2])
+        self.assertEqual(scoped['total_tokens'], 20)
+        project = project_view(rows, {}, days=0, now=NOW)['sessions'][0]['project_id']
+        scoped = json.loads(self.request(route + urlencode(dict(params,project=project)))[2])
+        self.assertEqual(scoped['total_tokens'], 100)
 
     def test_it_listens_on_this_computer_only_and_serves_three_fixed_files(self):
         self.assertEqual(self.server.server_address[0], '127.0.0.1')

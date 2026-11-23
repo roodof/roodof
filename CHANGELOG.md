@@ -1,3 +1,9 @@
+# Roodof 0.9.31 — proje bazlı günlük kullanım
+
+- Kullanım ekranında seçilen günün kayıtlı tokenları proje bazında sıralanır. Gün, grafik veya tarih alanından seçilebilir. Tarihi belirsiz kullanım ve gün sınırını aşan yanıtlar ayrı belirtilir.
+
+---
+
 # Roodof 0.9.30 — güncelleme kanalı
 
 - Windows uygulaması imzalı güncelleme beslemesini artık `https://roodof.com` üzerinden kontrol eder. 0.9.29 kullanıcılarının bu sürüme geçmek için [roodof.com](https://roodof.com/) üzerinden bir kez elle indirmesi gerekir.
