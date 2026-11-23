@@ -56,7 +56,7 @@ Search by project, model or session code. Sort by last activity, start, tokens, 
 
 ![Account limits with quota status and recorded usage compared with plan prices](docs/screenshots/account-limits.jpg)
 
-Shows where your 5-hour and weekly quotas were last and whether they fill before they reset at the current pace. Codex writes its quota to its logs. Claude Code does not, so run `pler statusline --install` once in a terminal to record it. This works with terminal Claude Code on Pro and Max plans. You can also compare recorded usage at API list prices with your plan's monthly price.
+Shows where your 5-hour and weekly quotas were last and whether they fill before they reset at the current pace. Codex writes its quota to its logs. Claude Code does not, so run `roodof statusline --install` once in a terminal to record it. This works with terminal Claude Code on Pro and Max plans. You can also compare recorded usage at API list prices with your plan's monthly price.
 
 ### My work and record review
 
@@ -76,20 +76,18 @@ Claude Code deletes transcripts older than 30 days by default. Roodof keeps the 
 
 ## Command line and Python edition
 
-Roodof was earlier called **PLER**. The terminal command, the Python package and some file names still use `pler`, so existing installations and updates keep working.
-
 The Python edition needs Python 3.9 or newer and has no other dependencies. From this repository's root:
 
 ```
 pipx install .
-pler                         # open the page in your browser
-pler demo                    # the page with invented logs
-pler report --json           # machine-readable report
-pler statusline --install    # record Claude Code quota (asks first, keeps a backup)
-pler backup create "my-history.pler-backup.zip"
+roodof                         # open the page in your browser
+roodof demo                    # the page with invented logs
+roodof report --json           # machine-readable report
+roodof statusline --install    # record Claude Code quota (asks first, keeps a backup)
+roodof backup create "my-history.roodof-backup.zip"
 ```
 
-The portable Windows package uses `PLER.cmd` instead of `pler`. Every command, option and data rule is in the **[full reference](docs/REFERENCE.md)**.
+The portable Windows package uses `Roodof.cmd` instead of `roodof`. Every command, option and data rule is in the **[full reference](docs/REFERENCE.md)**.
 
 ## Limits
 

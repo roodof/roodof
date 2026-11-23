@@ -4,7 +4,7 @@
 
 Detailed behaviour, terminal commands and data rules. For a quick overview with screenshots, see the [README](../README.md).
 
-> Roodof was earlier called PLER. The terminal command, the Python package and some file and folder names (`pler`, `PLER.cmd`, `%LOCALAPPDATA%\pler`, `PLER_*` variables) keep that name so existing installations and updates keep working.
+> Use the `roodof` command (`Roodof.cmd` in the portable Windows package). In 0.9.31 the data folder (`%LOCALAPPDATA%\pler`) and environment variables (`PLER_*`) still carry Roodof's earlier internal name; they move to Roodof names in an upcoming release, with your data carried over.
 
 ## Install
 
@@ -21,7 +21,7 @@ pipx install .
 ## Use
 
 ```
-pler
+roodof
 ```
 
 Opens the **My usage** page in your browser. Stop it with the page's **Close** button or Ctrl+C in the terminal.
@@ -29,13 +29,13 @@ Opens the **My usage** page in your browser. Stop it with the page's **Close** b
 For a manually opened tab, use the complete address printed at startup. It grants access to that running report and changes after restart; do not share it. The page removes the access fragment from the visible address. Direct report/API reads and downloads require the same credential. This is a personal local application; team accounts and shared-server deployment are not supported.
 
 ```
-pler report             # sessions active in the last 30 days
-pler report --days 0    # all records
-pler report --json      # machine-readable
-pler demo               # the page with invented logs and an invented Git repository
+roodof report             # sessions active in the last 30 days
+roodof report --days 0    # all records
+roodof report --json      # machine-readable
+roodof demo               # the page with invented logs and an invented Git repository
 ```
 
-**Try it without your own data:** `pler demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside Roodof's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `Roodof-Demo.cmd` for the same.
+**Try it without your own data:** `roodof demo` writes invented Claude Code and Codex logs and a small Git repository into a `demo` folder inside Roodof's cache folder, then opens the page reading only that folder. A banner says the data is invented. It shows two agents, several projects, a quota forecast, a data-quality warning and commits on and off a branch. Each **Read logs again** recreates the data relative to the current time. The Windows portable package has `Roodof-Demo.cmd` for the same.
 
 **Language:** the page follows your browser and has an English / Türkçe switch at the top. The terminal speaks Turkish on a Turkish system and English elsewhere; choose with `PLER_LANG=en` or `PLER_LANG=tr`.
 
@@ -60,13 +60,13 @@ Work names, goals, outcome notes and opaque session links are saved only on this
 Open **Local history and reader cache** to download a private backup or check a selected backup on this computer. A backup covers saved history, session verdicts, retention preference, Claude quota observations and your work names and links, independently of the report filters. It does not read original agent logs or include reader/code caches, demo data, agent settings or access tokens.
 
 ```text
-pler backup create "my-history.pler-backup.zip"
-pler backup check "my-history.pler-backup.zip"
-pler backup restore "my-history.pler-backup.zip" --to "recovered-history"
-pler --data-dir "recovered-history"
+roodof backup create "my-history.roodof-backup.zip"
+roodof backup check "my-history.roodof-backup.zip"
+roodof backup restore "my-history.roodof-backup.zip" --to "recovered-history"
+roodof --data-dir "recovered-history"
 ```
 
-For terminal commands, the portable package uses `PLER.cmd` instead of `pler`. Restore only creates a **new local folder** with an existing parent. It validates the entire backup before publishing a complete folder and refuses existing destinations; your current data remains intact. Select that folder explicitly with `--data-dir` on future launches, including backup commands. No active profile changes automatically. `--json` returns counts and fixed error codes, without private paths or identifiers.
+For terminal commands, the portable package uses `Roodof.cmd` instead of `roodof`. Restore only creates a **new local folder** with an existing parent. It validates the entire backup before publishing a complete folder and refuses existing destinations; your current data remains intact. Select that folder explicitly with `--data-dir` on future launches, including backup commands. No active profile changes automatically. `--json` returns counts and fixed error codes, without private paths or identifiers.
 
 **The backup is private and unencrypted:** unlike masked JSON, it contains original paths and retained identifiers. Keep it private and use only a trusted own backup. SHA-256 detects damage, not authenticity. Unknown formats, damaged checksums, unexpected files and excessive sizes are refused; uploads for checking stay in memory on this local server. Recovery preserves original source roots, times and reader keys: use the same selected roots on the same computer. Source relocation/another computer is not automatically mapped, retention limits still apply, old quotas stay old and an old reader's archive stays unverified where appropriate. Full instructions are included in installed offline help.
 
@@ -111,7 +111,7 @@ A session's **record span** is the time between its first and last event, waitin
 
 ## Subsequent edits
 
-The page and `pler report` show when another independent session names the same edited target within seven days after an earlier session ended. Expand the observation for up to five pairs: agents, opaque session codes, the gap between session boundaries and each whole session's recorded tokens. Those tokens are not the cost of the repeated edit. The observation uses already-read metadata and makes no file or Git query.
+The page and `roodof report` show when another independent session names the same edited target within seven days after an earlier session ended. Expand the observation for up to five pairs: agents, opaque session codes, the gap between session boundaries and each whole session's recorded tokens. Those tokens are not the cost of the repeated edit. The observation uses already-read metadata and makes no file or Git query.
 
 Period/agent/project filters choose earlier sessions; later evidence comes from all selected log roots, including other agents. The cutoff stays fixed until logs are read again. Recent unmatched sessions have follow-up pending. Missing targets, uncertain related histories, overlapping spans and old or unverified archive evidence are excluded with counts. Windows drive paths compare without case; POSIX paths preserve case. Aliases, moves, failed edits, deletion and recreation limit file identity. This observation does not establish waste, savings, causality or quality. See the [fixed definition](../ACCOUNTING.md#preregistered-subsequent-edit-observation-0212).
 
@@ -130,14 +130,14 @@ Local reflogs can expire, be disabled or be absent in a copied checkout. At most
 Claude Code does not write its quota percentage to its logs, but on Pro and Max plans it passes it to its status line. Run once:
 
 ```
-pler statusline --install
+roodof statusline --install
 ```
 
 - **What happens:** you see the line that will be added to Claude Code's `settings.json` and are asked to confirm. A backup of the file is made first.
 - **If you already have a status line:** it is left alone, and you are shown how your own script can pass the data to Roodof.
 - **Afterwards:** Claude Code's status line shows something like `ctx 37% · 5h 24% · week 41%`. Roodof keeps only the quota percentages and reset times, when they change, in its cache folder; no conversation, folder or session information.
 - **On the page:** the Claude Code quota appears with the same "when does it fill" forecast as Codex.
-- **To undo:** `pler statusline --remove`
+- **To undo:** `roodof statusline --remove`
 
 Only the exact, unmodified line generated by the current Roodof installation is removed. A custom wrapper, an edited line or a command pointing to another installation is left alone. Settings changed while confirmation is pending are not overwritten; retry after checking them.
 
@@ -161,7 +161,7 @@ Metadata extracted from unchanged Claude Code and Codex logs is kept in a cache,
 - macOS: `~/Library/Caches/pler`
 - Linux: `~/.cache/pler`
 
-`PLER_CACHE_DIR` moves it. Rebuildable reader caches currently share this folder with retained archive history and quota samples. **Do not delete the whole folder to repair a cache.** Use `pler cache reset`, which removes only the known Claude/Codex reader cache files and the code counts (`git-survival.json`) and preserves the archive, quota samples and retention preferences. Metadata from deleted source logs may exist only in `metadata-archive.json` and cannot be rebuilt if that file is erased.
+`PLER_CACHE_DIR` moves it. Rebuildable reader caches currently share this folder with retained archive history and quota samples. **Do not delete the whole folder to repair a cache.** Use `roodof cache reset`, which removes only the known Claude/Codex reader cache files and the code counts (`git-survival.json`) and preserves the archive, quota samples and retention preferences. Metadata from deleted source logs may exist only in `metadata-archive.json` and cannot be rebuilt if that file is erased.
 Damaged or older cache entries are re-read from the original log. The checksum detects accidental changes; it is not protection against someone who can edit both the cache and checksum.
 An update that changes a reader or its validation helpers rebuilds the affected cache on its next read. Logs that grow during reading or fail partway through access are retried on the next read. A failed cache replacement leaves the previous cache intact and removes the temporary file when permitted.
 
@@ -171,9 +171,9 @@ Claude Code deletes transcripts older than 30 days by default. So that monthly c
 - **What is kept:** The same fields as the cache: counts, times, identifiers, models, project paths, branch names and edited file paths. No prompt, reply, command or tool output is kept.
 - **Which folders:** The default folders and those selected with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`. Folders named with `--claude-dir`/`--codex-dir` are read but never archived.
 - **Limits:** A file is dropped after 365 days without being seen. The archive is capped at 2,048 files and 64 MB, oldest first, and the page says when coverage was lost.
-- **Control:** The page shows retention state even while source logs are still live. `pler archive off` stops archive use and new retention without deleting saved history; `pler archive on` enables it again. Live sources remain readable. Do not confuse pausing retention with permanently clearing it.
+- **Control:** The page shows retention state even while source logs are still live. `roodof archive off` stops archive use and new retention without deleting saved history; `roodof archive on` enables it again. Live sources remain readable. Do not confuse pausing retention with permanently clearing it.
 - **Copies:** A resumed session that copies archived replies is counted once. Archived metadata from an older reader, or from a source that is present but unreadable, is shown with a quality warning.
-- **Clearing:** Use **Clear Roodof archive** on the page (it asks first) or `pler archive clear`. Agent logs and quota samples are not touched. Copies of deleted logs cannot be recovered afterwards.
+- **Clearing:** Use **Clear Roodof archive** on the page (it asks first) or `roodof archive clear`. Agent logs and quota samples are not touched. Copies of deleted logs cannot be recovered afterwards.
 
 Removing Roodof does not automatically delete this private data folder. Close Roodof before making a private archive backup. Do not attach a cache or archive to a support report.
 
@@ -189,9 +189,9 @@ Compressed Codex files must have complete frames and matching declared sizes. Pr
 
 Repeated Claude prompts and tool calls are counted once when the logs supply stable IDs. Without those IDs, separate records cannot reliably be identified as copies.
 
-Token use is not a price or a measured saving. Neither the page export nor `pler report --json --sessions` includes source file paths, raw session IDs, branch names, edited file paths or arbitrary log notes. They still contain shortened project names, times, model names and counts; they are not anonymous sharing files. Detailed terminal JSON now uses the page's session allowlist. It no longer has a `days` series: periods select active sessions and include each selected session's full totals, not daily spending.
+Token use is not a price or a measured saving. Neither the page export nor `roodof report --json --sessions` includes source file paths, raw session IDs, branch names, edited file paths or arbitrary log notes. They still contain shortened project names, times, model names and counts; they are not anonymous sharing files. Detailed terminal JSON now uses the page's session allowlist. It no longer has a `days` series: periods select active sessions and include each selected session's full totals, not daily spending.
 
-For an update from this repository root, close Roodof, run `pip install --upgrade .`, then reopen it. From an enclosing workspace use `pip install --upgrade ./product` instead. `pler --version` identifies the installed release. A running page keeps the assets it started with; restart Roodof to use updated code. Preserve retained history when updating or rolling back. Release and JSON changes are listed in the [changelog](../CHANGELOG.md).
+For an update from this repository root, close Roodof, run `pip install --upgrade .`, then reopen it. From an enclosing workspace use `pip install --upgrade ./product` instead. `roodof --version` identifies the installed release. A running page keeps the assets it started with; restart Roodof to use updated code. Preserve retained history when updating or rolling back. Release and JSON changes are listed in the [changelog](../CHANGELOG.md).
 
 The [quality register](../QUALITY.md) separates fixed defects from unresolved reasons to reject the product. Automated tests pass on Windows, Linux and macOS with Python 3.9 to 3.14. A signed Python-free installation, real-browser acceptance on each system and proven usefulness in professionals' daily work remain open.
 

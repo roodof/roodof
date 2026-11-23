@@ -4,7 +4,7 @@
 
 Ayrıntılı davranış, terminal komutları ve veri kuralları. Ekran görüntülü kısa tanıtım için [README](../README.tr.md).
 
-> Roodof'un eski adı PLER'di. Terminal komutu, Python paketi ve bazı dosya/klasör adları (`pler`, `PLER.cmd`, `%LOCALAPPDATA%\pler`, `PLER_*` değişkenleri) mevcut kurulumlar ve güncellemeler bozulmasın diye bu adı korur.
+> `roodof` komutunu kullan (taşınabilir Windows paketinde `Roodof.cmd`). 0.9.31'de veri klasörü (`%LOCALAPPDATA%\pler`) ve ortam değişkenleri (`PLER_*`) hâlâ Roodof'un eski iç adını taşır; yakın bir sürümde verilerin taşınarak Roodof adlarına geçecek.
 
 ## Kurulum
 
@@ -21,7 +21,7 @@ pipx install .
 ## Kullanım
 
 ```
-pler
+roodof
 ```
 
 Tarayıcıda **Kullanımım** sayfası açılır. Kapatmak için sayfadaki **Kapat** düğmesi ya da terminalde Ctrl+C.
@@ -33,13 +33,13 @@ Sekmeyi elle açarken başlangıçta yazılan tam adresi kullanın. Bu adres ça
 **Çevrimdışı yardım:** Sayfadaki Yardım bağlantısı, kurulu paketle birlikte gelen sürümlü Türkçe/İngilizce açıklamayı açar. Mahremiyet, güvenli önbellek sıfırlama, saklanan geçmiş, dönemler, kalite ve destek anlatılır. Sayım sözleşmesi de pakettedir; kaynak klasörü veya İnternet bağlantısı gerekmez.
 
 ```
-pler report             # son 30 günde etkin oturumlar
-pler report --days 0    # bütün kayıtlar
-pler report --json      # makinenin okuyacağı biçim
-pler demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
+roodof report             # son 30 günde etkin oturumlar
+roodof report --days 0    # bütün kayıtlar
+roodof report --json      # makinenin okuyacağı biçim
+roodof demo               # uydurma kayıtlar ve uydurma bir Git deposuyla sayfa
 ```
 
-**Kendi verin olmadan dene:** `pler demo`, uydurma Claude Code ve Codex kayıtlarıyla küçük bir Git deposunu Roodof'in önbellek klasöründeki `demo` klasörüne yazar. Sayfa yalnız bu klasörü okur ve en üstte verilerin uydurma olduğunu söyler. Denemede şunlar görünür:
+**Kendi verin olmadan dene:** `roodof demo`, uydurma Claude Code ve Codex kayıtlarıyla küçük bir Git deposunu Roodof'in önbellek klasöründeki `demo` klasörüne yazar. Sayfa yalnız bu klasörü okur ve en üstte verilerin uydurma olduğunu söyler. Denemede şunlar görünür:
 - iki ajan ve birkaç proje;
 - kota tahmini;
 - bir veri kalitesi uyarısı;
@@ -66,13 +66,13 @@ Seçimdeki oturumlar, filtre dışındaki bilinen oturumlar ve artık bulunamaya
 **Yerel geçmiş ve okuma önbelleği** bölümünden özel yedek indirilebilir ve seçilen yedek bu bilgisayarda kontrol edilebilir. Yedek, rapor filtrelerinden bağımsız olarak saklanan geçmişi, oturum değerlendirmelerini, saklama tercihini, Claude kota örneklerini ve iş adlarınla bağlantılarını kapsar. Özgün ajan kayıtlarını okumaz; okuyucu/kod önbellekleri, deneme verisi, ajan ayarları ve erişim anahtarı alınmaz.
 
 ```text
-pler backup create "gecmisim.pler-backup.zip"
-pler backup check "gecmisim.pler-backup.zip"
-pler backup restore "gecmisim.pler-backup.zip" --to "kurtarilan-gecmis"
-pler --data-dir "kurtarilan-gecmis"
+roodof backup create "gecmisim.roodof-backup.zip"
+roodof backup check "gecmisim.roodof-backup.zip"
+roodof backup restore "gecmisim.roodof-backup.zip" --to "kurtarilan-gecmis"
+roodof --data-dir "kurtarilan-gecmis"
 ```
 
-Taşınabilir paketin terminal komutlarında `pler` yerine `PLER.cmd` kullanılır. Geri yükleme yalnız üst klasörü var olan **yeni bir yerel klasör** oluşturur. Yedeği tamamen doğrulayıp tam klasörü hazırlar; var olan hedefi reddeder ve mevcut veriyi korur. Sonraki her açılışta bu klasörü `--data-dir` ile açıkça seç; yedek komutları da buna dahildir. Çalışan profil kendiliğinden değişmez. `--json` özel yol/kimlik yerine sayılar ve sabit hata kodları döndürür.
+Taşınabilir paketin terminal komutlarında `roodof` yerine `Roodof.cmd` kullanılır. Geri yükleme yalnız üst klasörü var olan **yeni bir yerel klasör** oluşturur. Yedeği tamamen doğrulayıp tam klasörü hazırlar; var olan hedefi reddeder ve mevcut veriyi korur. Sonraki her açılışta bu klasörü `--data-dir` ile açıkça seç; yedek komutları da buna dahildir. Çalışan profil kendiliğinden değişmez. `--json` özel yol/kimlik yerine sayılar ve sabit hata kodları döndürür.
 
 **Yedek özeldir ve şifreli değildir:** gizlenmiş JSON'dan farklı olarak özgün yolları ve saklanan kimlikleri içerir. Özel yerde tut; yalnız kendi güvendiğin yedeği kullan. SHA-256 hasarı bulur, kaynağın güvenilirliğini doğrulamaz. Bilinmeyen biçim, tutmayan sağlama toplamı, beklenmeyen dosya ve aşırı boyut reddedilir; kontrol için seçilen dosya yerel sunucunun belleğinde kalır. Kurtarma özgün kaynak köklerini, zamanları ve okuyucu anahtarlarını korur: aynı bilgisayarda aynı kökleri seç. Taşınmış kaynak veya başka bilgisayar otomatik eşlenmez; saklama sınırları geçerlidir, eski kota güncel hale gelmez ve eski okuyucu arşivi uygun durumlarda doğrulanamamış kalır. Tam yönergeler kurulu çevrimdışı yardımdadır.
 
@@ -116,7 +116,7 @@ Oturum ayrıntısındaki **kayıt aralığı**, ilk ve son olay arasındaki zama
 
 ## Sonraki düzenlemeler
 
-Sayfa ve `pler report`, bir oturum bittikten sonraki yedi gün içinde başka bağımsız bir oturumun aynı düzenleme hedefini kaydettiğini gösterir. Gözlemi açınca en fazla beş çift görünür: ajanlar, kısa oturum kodları, oturum sınırları arasındaki süre ve her oturumun bütün kayıtlı tokenları. Bunlar tekrarlanan düzenlemenin maliyeti değildir. Hesaplama, önceden okunan üst bilgiyi kullanır; dosya ya da Git sorgusu yapmaz.
+Sayfa ve `roodof report`, bir oturum bittikten sonraki yedi gün içinde başka bağımsız bir oturumun aynı düzenleme hedefini kaydettiğini gösterir. Gözlemi açınca en fazla beş çift görünür: ajanlar, kısa oturum kodları, oturum sınırları arasındaki süre ve her oturumun bütün kayıtlı tokenları. Bunlar tekrarlanan düzenlemenin maliyeti değildir. Hesaplama, önceden okunan üst bilgiyi kullanır; dosya ya da Git sorgusu yapmaz.
 
 Dönem/ajan/proje filtreleri önceki oturumları seçer; sonraki oturum kanıtı, diğer ajanlar dahil seçilen kayıt klasörlerinin tamamından gelir. Gözlem sonu, kayıtlar yeniden okunana kadar sabittir. Yakın tarihli eşleşmeyen oturumların takibi beklemededir. Eksik hedefler, bağımsızlığı belirsiz geçmişler, çakışan zamanlar ve eski ya da doğrulanamayan arşiv kanıtı nedenleriyle birlikte dışlanır. Windows sürücü yollarında harf büyüklüğü ayrılmaz; POSIX yollarında ayrılır. Farklı yol adları, taşıma, başarısız düzenleme, silme ve yeniden oluşturma dosya kimliğini sınırlar. Bu gözlem israfı, tasarrufu, nedeni ya da kaliteyi kanıtlamaz. [Sabit tanım](../ACCOUNTING.md#preregistered-subsequent-edit-observation-0212).
 
@@ -143,14 +143,14 @@ Yerel günlük silinmiş, süresi dolmuş veya kapalı olabilir. Her projenin g�
 Claude Code kota yüzdesini kayıtlarına yazmaz, ama Pro ve Max aboneliklerde durum satırına verir. Bir kez şunu çalıştır:
 
 ```
-pler statusline --install
+roodof statusline --install
 ```
 
 - **Ne olur:** Claude Code'un `settings.json` dosyasına hangi satırın ekleneceği gösterilir ve onayın sorulur. Önce dosyanın bir yedeği alınır.
 - **Mevcut durum satırın varsa:** Ona dokunulmaz. Kendi betiğinden Roodof'e nasıl veri verebileceğin yazılır.
 - **Sonrasında:** Claude Code'un alt satırında `bağlam %37 · 5 saat %24 · hafta %41` gibi bir satır görünür. Roodof bu satırdan yalnız kota yüzdelerini ve sıfırlanma zamanlarını, değiştiklerinde önbellek klasörüne yazar; konuşma, klasör ve oturum bilgisi saklanmaz.
 - **Ekranda:** Claude Code kotası Codex'inki gibi "ne zaman dolar" tahminiyle görünür.
-- **Geri almak için:** `pler statusline --remove`
+- **Geri almak için:** `roodof statusline --remove`
 
 Yalnız mevcut Roodof kurulumunun ürettiği, değiştirilmemiş satır kaldırılır. Özel betik, düzenlenmiş satır veya başka kurulum yoluna işaret eden komut korunur. Onay beklerken değişen ayarın üzerine yazılmaz; kontrol ettikten sonra yeniden dene.
 
@@ -174,7 +174,7 @@ Değişmeyen Claude Code ve Codex kayıtlarının üst bilgileri önbellekte tut
 - macOS: `~/Library/Caches/pler`
 - Linux: `~/.cache/pler`
 
-`PLER_CACHE_DIR` ile yeri değiştirilebilir. Yeniden kurulabilen okuyucu önbellekleri, saklanan arşiv geçmişi ve kota örnekleri şu anda bu klasörü paylaşır. **Önbellek onarımı için klasörün tamamını silme.** `pler cache reset` yalnız bilinen Claude/Codex okuyucu önbelleklerini ve kod sayımlarını (`git-survival.json`) kaldırır; arşivi, kota örneklerini ve saklama tercihini korur. Silinmiş kaynak kayıtlarının üst bilgisi yalnız `metadata-archive.json` içinde kalmış olabilir; bu dosya silinirse yeniden kurulamaz.
+`PLER_CACHE_DIR` ile yeri değiştirilebilir. Yeniden kurulabilen okuyucu önbellekleri, saklanan arşiv geçmişi ve kota örnekleri şu anda bu klasörü paylaşır. **Önbellek onarımı için klasörün tamamını silme.** `roodof cache reset` yalnız bilinen Claude/Codex okuyucu önbelleklerini ve kod sayımlarını (`git-survival.json`) kaldırır; arşivi, kota örneklerini ve saklama tercihini korur. Silinmiş kaynak kayıtlarının üst bilgisi yalnız `metadata-archive.json` içinde kalmış olabilir; bu dosya silinirse yeniden kurulamaz.
 Bozulmuş veya eski biçimdeki önbellek girdileri özgün kayıttan yeniden okunur. Sağlama toplamı kazara değişiklikleri yakalar; önbelleği ve sağlama toplamını birlikte değiştirebilen birine karşı koruma değildir.
 Okuyucuyu veya doğrulama yardımcılarını değiştiren güncellemeden sonra ilgili önbellek ilk okumada yeniden kurulur. Okunurken büyüyen ya da erişimi yarıda kesilen dosya sonraki okumada tekrar denenir. Önbellek değiştirilemezse önceki dosya korunur; izin verildiği sürece geçici dosya temizlenir.
 
@@ -184,9 +184,9 @@ Claude Code varsayılan olarak 30 günden eski konuşmaları siler. Aylık karş
 - **Ne tutulur:** Önbellektekiyle aynı alanlar: sayılar, zamanlar, kimlikler, modeller, proje yolları, dal adları ve düzenlenen dosya yolları. İstek, yanıt, komut ve araç çıktısı tutulmaz.
 - **Hangi klasörler:** Varsayılan klasörler ile `CLAUDE_CONFIG_DIR` ya da `CODEX_HOME` ile seçilenler. `--claude-dir`/`--codex-dir` ile verilen klasörler okunur ama arşivlenmez.
 - **Sınırlar:** 365 gün görülmeyen dosya düşer. Arşiv en çok 2.048 dosya ve 64 MB tutar, önce en eskiler gider; kapsam kaybı sayfada söylenir.
-- **Denetim:** Kaynak kayıtları hâlâ canlıyken de sayfada saklama durumu görünür. `pler archive off` saklanan geçmişi silmeden arşiv kullanımını ve yeni saklamayı durdurur; `pler archive on` yeniden açar. Canlı kaynaklar yine okunabilir. Saklamayı durdurmak ile kalıcı olarak silmek farklı işlemlerdir.
+- **Denetim:** Kaynak kayıtları hâlâ canlıyken de sayfada saklama durumu görünür. `roodof archive off` saklanan geçmişi silmeden arşiv kullanımını ve yeni saklamayı durdurur; `roodof archive on` yeniden açar. Canlı kaynaklar yine okunabilir. Saklamayı durdurmak ile kalıcı olarak silmek farklı işlemlerdir.
 - **Kopyalar:** Arşivdeki yanıtları kopyalayan devam oturumu bir kez sayılır. Eski okuyucuyla çıkarılmış ya da kaynağı yerinde olduğu hâlde okunamayan arşiv verisi kalite uyarısıyla gösterilir.
-- **Silmek:** Sayfadaki **Roodof arşivini sil** düğmesi (önce onay ister) ya da `pler archive clear`. Ajan kayıtlarına ve kota örneklerine dokunulmaz. Silinmiş kayıtların kopyaları sonra geri getirilemez.
+- **Silmek:** Sayfadaki **Roodof arşivini sil** düğmesi (önce onay ister) ya da `roodof archive clear`. Ajan kayıtlarına ve kota örneklerine dokunulmaz. Silinmiş kayıtların kopyaları sonra geri getirilemez.
 
 Roodof'i kaldırmak özel veri klasörünü kendiliğinden silmez. Arşivin özel yedeğini almadan önce Roodof'i kapat. Destek kaydına önbellek veya arşiv ekleme.
 
@@ -200,9 +200,9 @@ Sıkıştırılmış Codex dosyalarının çerçeveleri tam olmalı ve belirtile
 
 Claude kayıtları sabit kimlik veriyorsa kopyalanmış istek ve araç çağrıları bir kez sayılır. Bu kimlikler yoksa ayrı satırların kopya olduğu güvenle anlaşılamaz.
 
-Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirilen özet ve `pler report --json --sessions`; kaynak dosya yolu, ham oturum kimliği, dal adı, düzenlenen dosyaların yolları ve kayıttaki serbest notları içermez. Kısaltılmış proje adları, zamanlar, model adları ve sayılar içerir; anonim paylaşım dosyası değildir. Ayrıntılı terminal JSON'u ekranla aynı oturum alanlarını kullanır. Günlük harcama çağrıştıran `days` dizisi kaldırılmıştır: dönem, etkin oturumları seçer ve bu oturumların tamamının toplamını içerir.
+Token kullanımı fiyat veya ölçülmüş tasarruf değildir. Ekrandan indirilen özet ve `roodof report --json --sessions`; kaynak dosya yolu, ham oturum kimliği, dal adı, düzenlenen dosyaların yolları ve kayıttaki serbest notları içermez. Kısaltılmış proje adları, zamanlar, model adları ve sayılar içerir; anonim paylaşım dosyası değildir. Ayrıntılı terminal JSON'u ekranla aynı oturum alanlarını kullanır. Günlük harcama çağrıştıran `days` dizisi kaldırılmıştır: dönem, etkin oturumları seçer ve bu oturumların tamamının toplamını içerir.
 
-Bu deponun kökünden güncellerken Roodof'i kapat, `pip install --upgrade .` çalıştır ve yeniden aç. Depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pip install --upgrade ./product` kullan. `pler --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için Roodof'i yeniden başlat. Güncelleme ve geri dönüşte saklanan geçmiş korunmalıdır. Sürüm ve JSON değişiklikleri [değişiklik kaydında](../CHANGELOG.md) listelenir.
+Bu deponun kökünden güncellerken Roodof'i kapat, `pip install --upgrade .` çalıştır ve yeniden aç. Depo daha büyük bir çalışma klasöründe `product/` adıyla duruyorsa dış klasörden `pip install --upgrade ./product` kullan. `roodof --version` kurulu sürümü gösterir. Açık sayfa başladığı sürümün dosyalarını kullanır; güncel kod için Roodof'i yeniden başlat. Güncelleme ve geri dönüşte saklanan geçmiş korunmalıdır. Sürüm ve JSON değişiklikleri [değişiklik kaydında](../CHANGELOG.md) listelenir.
 
 [Kalite kaydı](../QUALITY.md), düzeltilmiş hatalarla açık kullanıcı itirazlarını ayırır. Otomatik testler Windows, Linux ve macOS'ta Python 3.9–3.14 ile geçiyor. İmzalı ve Python gerektirmeyen kurulum, her sistemde gerçek tarayıcı kabulü ve profesyonellerin günlük işinde fayda kanıtı hâlâ açık.
 

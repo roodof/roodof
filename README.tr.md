@@ -56,7 +56,7 @@ Proje, model veya oturum koduyla ara. Son etkinliğe, başlangıca, tokena ya da
 
 ![Kota durumu ve plan fiyatlarıyla karşılaştırılan kayıtlı kullanımla hesap limitleri](docs/screenshots/account-limits.jpg)
 
-5 saatlik ve haftalık kotanın en son nerede olduğunu ve mevcut hızla sıfırlanmadan dolup dolmayacağını gösterir. Codex kotasını kayıtlarına yazar. Claude Code yazmaz; kaydetmek için terminalde bir kez `pler statusline --install` çalıştır. Bu, Pro ve Max planlarında terminaldeki Claude Code ile çalışır. Kayıtlı kullanımın API liste fiyatını planının aylık fiyatıyla da karşılaştırabilirsin.
+5 saatlik ve haftalık kotanın en son nerede olduğunu ve mevcut hızla sıfırlanmadan dolup dolmayacağını gösterir. Codex kotasını kayıtlarına yazar. Claude Code yazmaz; kaydetmek için terminalde bir kez `roodof statusline --install` çalıştır. Bu, Pro ve Max planlarında terminaldeki Claude Code ile çalışır. Kayıtlı kullanımın API liste fiyatını planının aylık fiyatıyla da karşılaştırabilirsin.
 
 ### Çalışmalarım ve kayıt incelemesi
 
@@ -76,20 +76,18 @@ Claude Code varsayılan olarak 30 günden eski kayıtları siler. Roodof daha ö
 
 ## Komut satırı ve Python sürümü
 
-Roodof'un eski adı **PLER**'di. Terminal komutu, Python paketi ve bazı dosya adları, mevcut kurulumlar ve güncellemeler bozulmasın diye hâlâ `pler` adını kullanır.
-
 Python sürümü Python 3.9 veya üstünü ister, başka bağımlılığı yoktur. Bu deponun kökünden:
 
 ```
 pipx install .
-pler                         # sayfayı tarayıcıda aç
-pler demo                    # uydurma kayıtlarla sayfa
-pler report --json           # makinece okunur rapor
-pler statusline --install    # Claude Code kotasını kaydet (önce sorar, yedek alır)
-pler backup create "gecmisim.pler-backup.zip"
+roodof                         # sayfayı tarayıcıda aç
+roodof demo                    # uydurma kayıtlarla sayfa
+roodof report --json           # makinece okunur rapor
+roodof statusline --install    # Claude Code kotasını kaydet (önce sorar, yedek alır)
+roodof backup create "gecmisim.roodof-backup.zip"
 ```
 
-Taşınabilir Windows paketinde `pler` yerine `PLER.cmd` kullanılır. Tüm komutlar, seçenekler ve veri kuralları **[başvuru belgesinde](docs/REFERENCE.tr.md)**.
+Taşınabilir Windows paketinde `roodof` yerine `Roodof.cmd` kullanılır. Tüm komutlar, seçenekler ve veri kuralları **[başvuru belgesinde](docs/REFERENCE.tr.md)**.
 
 ## Sınırlar
 
