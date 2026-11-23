@@ -11,9 +11,9 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 ## Windows betasında ilk adımlar
 
-**Ücretsiz Windows betası 0.9.29 — 10 Kasım 2026:** [Kurulum dosyasını indir](https://roodof.com/downloads/Roodof-Setup-0.9.29.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://roodof.com/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
+**Ücretsiz Windows betası 0.9.30 — 23 Kasım 2026:** [Kurulum dosyasını indir](https://roodof.com/downloads/Roodof-Setup-0.9.30.exe). Kullanıcı hesabına kurulum, Başlat/masaüstü kısayolları ve Windows Uygulamalar üzerinden kaldırma. Taşınabilir ZIP ve isteğe bağlı Python sürümü [indirme sayfasında](https://roodof.com/tr/). [Kurulum ve güncelleme](docs/SETUP.md).
 
-Windows kurulumu için Roodof’i kapat, **Roodof-Setup-0.9.29.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. Roodof-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
+Windows kurulumu için Roodof’i kapat, **Roodof-Setup-0.9.30.exe** dosyasını çalıştır; sonra Başlat veya masaüstü kısayolundan aç. Yönetici izni ve ayrı Python kurulumu gerekmez. Roodof-Demo.cmd ile uydurma kayıtları denemek için taşınabilir ZIP’i kullan. Aşağıdaki ZIP/terminal adımları isteğe bağlıdır.
 
 **İsteğe bağlı taşınabilir sürüm.** [Roodof sitesinden](https://roodof.com/tr/) Windows x64 ZIP paketini indir, tamamını yeni bir klasöre çıkar ve `Roodof.exe` dosyasını aç. Electron ve Python pakete dahildir; uygulama kendi penceresinde açılır. Pencereyi kapatınca uygulama durur. Terminal/Python wheel girişi tarayıcıda açılmaya devam eder.
 

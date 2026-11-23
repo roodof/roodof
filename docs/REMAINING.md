@@ -1,3 +1,11 @@
+# Roodof 0.9.30 — güncelleme kanalı yayında (23 Kasım 2026)
+
+Ücretsiz, Windows yayıncı imzası olmayan 0.9.30 beta [roodof.com](https://roodof.com/) ve [roodof/roodof Releases](https://github.com/roodof/roodof/releases/tag/v0.9.30) üzerinde yayımlandı. **0.9.29 kullanıcıları 0.9.30'u siteden bir kez elle indirmeli.** Yeni sürüm imzalı güncelleme beslemesini roodof.com üzerinden doğrular.
+
+[Windows derlemesi](https://github.com/roodof/roodof/actions/runs/45094288883) tamamlandı. Canlı kurulum, ZIP ve wheel dosyalarının boyutları ve SHA-256 değerleri eşleşti. Türkçe ve İngilizce sayfalar ve güncelleyicinin kullandığı ZIP adresi doğrulandı. Site Worker'ındaki indirme kesintisi düzeltildi ve eski 0.9.29 kurucusu tam indirmeyle doğrulandı. SignPath sonucu ve Q01 son kullanıcı kabulü bekliyor.
+
+---
+
 # Windows imzası: SignPath Foundation başvurusu (23 Kasım 2026)
 
 Kaynak MIT ile github.com/roodof/roodof altında açıldı. Kurulum dosyası .github/workflows/windows-build.yml ile GitHub Actions üzerinde derleniyor; içerik yayınlanmış 0.9.29 ile aynı 193 dosya. SignPath Foundation başvurusu hesap sahibince gönderildi, sonuç bekleniyor. Kabul gelirse iş akışına imza adımı eklenecek ve indirme sayfasına SignPath ibaresi konacak. Red gelirse seçenekler bireysel OV sertifika (~220 $/yıl) veya ileride yeniden başvuru. Bu bölüm R02 imza kararını izler.
