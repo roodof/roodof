@@ -25,7 +25,7 @@ import zipfile
 from . import __version__,update_crypto
 from .paths import cache_folder,local_path
 
-ORIGIN='https://pler-local-usage.oguzay5555.chatgpt.site'
+ORIGIN='https://roodof.com'
 FEED='/updates/windows-x64/early-beta.json'
 COMPATIBILITY=dict(updater=2,schema=2,work=3,backup=1)
 MAX_PACKAGE=256*1024*1024

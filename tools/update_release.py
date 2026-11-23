@@ -89,7 +89,7 @@ def main():
         now=datetime.now(timezone.utc).replace(microsecond=0)
         payload=dict(format=1,product='pler',channel='early-beta',platform='windows-x64',version=args.version,
                      published_at=now.isoformat(),expires_at=(now+timedelta(days=90)).isoformat(),
-                     url='https://pler-local-usage.oguzay5555.chatgpt.site/downloads/PLER-'+args.version+'-windows-x64.zip',
+                     url='https://roodof.com/downloads/PLER-'+args.version+'-windows-x64.zip',
                      sha256=hashlib.sha256(args.package.read_bytes()).hexdigest(),size=args.package.stat().st_size,
                      compatibility=dict(updater=2,schema=2,work=3,backup=1),notes=dict(en=args.notes_en,tr=args.notes_tr))
         validate_payload(payload)
