@@ -1,0 +1,70 @@
+name: Windows build
+
+# Builds the Windows portable ZIP and the installer from this repository alone, so the
+# released bytes can be traced to a commit (required for SignPath Foundation code
+# signing). Manual only; nothing is published. A signing step is added once the
+# SignPath project exists.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  # Official CPython embeddable package; SHA-256 as published on python.org.
+  CPYTHON_EMBED_URL: https://www.python.org/ftp/python/3.14.10/python-3.14.10-embed-amd64.zip
+  CPYTHON_EMBED_SHA256: 90905e64a840557d8c1bc4f5b74db3d7ee85e3ffb217611cac1c7813acea4159
+  CSC: C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install the pinned desktop runtime (Electron)
+        working-directory: desktop
+        run: |
+          npm ci
+          node node_modules/electron/install.js
+
+      - name: Fetch and verify the CPython embeddable package
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'cpython-embed.zip'
+          Invoke-WebRequest -Uri $env:CPYTHON_EMBED_URL -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne $env:CPYTHON_EMBED_SHA256) { throw "CPython package hash mismatch: $hash" }
+          Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP 'cpython')
+
+      - name: Build the portable package and the installer
+        shell: pwsh
+        run: |
+          $version = python -c "import sys; sys.path.insert(0, 'src'); from pler import __version__; print(__version__)"
+          $out = Join-Path $env:RUNNER_TEMP 'out'
+          New-Item -ItemType Directory $out | Out-Null
+          $portable = Join-Path $out "PLER-$version-windows-x64"
+          python tools/build_windows_portable.py --runtime (Join-Path $env:RUNNER_TEMP 'cpython') --compiler $env:CSC --output $portable --channel early-beta
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python tools/build_windows_setup.py --package "$portable.zip" --compiler $env:CSC --output (Join-Path $out "PLER-Setup-$version.exe")
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          Get-ChildItem $out -File | ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } | Tee-Object (Join-Path $out 'SHA256SUMS.txt')
+          "OUT=$out" >> $env:GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: roodof-windows-unsigned
+          path: |
+            ${{ env.OUT }}/*.zip
+            ${{ env.OUT }}/*.exe
+            ${{ env.OUT }}/SHA256SUMS.txt
+          if-no-files-found: error
