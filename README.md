@@ -1,4 +1,4 @@
-# Roodof
+# Roodof: Claude Code & Codex usage tracker for Windows
 
 **English** · [Türkçe](README.tr.md)
 
@@ -32,7 +32,7 @@ See what Claude Code and Codex used, from their own logs on your computer: token
 
 **Try it without your own data:** download the portable ZIP from [roodof.com](https://roodof.com/), extract it into a new folder and open `Roodof-Demo.cmd`. It shows invented logs only.
 
-More: [installation and updates](docs/SETUP.md) · [desktop scope](docs/DESKTOP.md) · [update details](docs/UPDATES.md)
+More: [installation and updates](docs/SETUP.md) · [desktop scope](docs/DESKTOP.md) · [update details](docs/UPDATES.md) · [how Roodof compares with ccusage and other trackers](https://roodof.com/ccusage-alternative-windows/)
 
 ## A quick tour
 

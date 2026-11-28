@@ -1,4 +1,4 @@
-# Roodof
+# Roodof: Windows için Claude Code ve Codex kullanım takibi
 
 [English](README.md) · **Türkçe**
 
@@ -32,7 +32,7 @@ Claude Code ve Codex'in ne kullandığını, bilgisayarındaki kendi kayıtları
 
 **Kendi verin olmadan dene:** taşınabilir ZIP'i [roodof.com](https://roodof.com/tr/) sayfasından indir, yeni bir klasöre çıkar ve `Roodof-Demo.cmd` dosyasını aç. Yalnız uydurma kayıtları gösterir.
 
-Ayrıntı: [kurulum ve güncelleme](docs/SETUP.md) · [masaüstü kapsamı](docs/DESKTOP.md) · [güncelleme ayrıntıları](docs/UPDATES.md)
+Ayrıntı: [kurulum ve güncelleme](docs/SETUP.md) · [masaüstü kapsamı](docs/DESKTOP.md) · [güncelleme ayrıntıları](docs/UPDATES.md) · [ccusage ve diğer araçlarla karşılaştırma (İngilizce)](https://roodof.com/ccusage-alternative-windows/)
 
 ## Kısa tur
 
